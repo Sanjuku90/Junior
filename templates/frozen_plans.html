@@ -170,11 +170,11 @@ function showFrozenModal(planId, planName, minAmount, maxAmount, totalReturn, du
     };
 
     document.getElementById('frozenModalTitle').textContent = `${planName}`;
-    document.getElementById('modalTotalReturn').textContent = `${(totalReturn * 100).toFixed(0)}%`;
-    document.getElementById('modalDuration').textContent = duration;
-    document.getElementById('modalDurationDays').textContent = duration;
-    document.getElementById('modalMinAmount').textContent = minAmount.toLocaleString();
-    document.getElementById('modalMaxAmount').textContent = maxAmount.toLocaleString();
+    document.getElementById('frozenModalReturnRate').textContent = `${(totalReturn * 100).toFixed(0)}%`;
+    document.getElementById('frozenModalDuration').textContent = `${duration} jours`;
+    document.getElementById('frozenModalDurationText').textContent = `${duration} jours`;
+    document.getElementById('frozenModalMinAmount').textContent = minAmount.toLocaleString();
+    document.getElementById('frozenModalMaxAmount').textContent = maxAmount.toLocaleString();
 
     document.getElementById('frozenModal').classList.remove('hidden');
 }
@@ -182,15 +182,14 @@ function showFrozenModal(planId, planName, minAmount, maxAmount, totalReturn, du
 function hideFrozenModal() {
     document.getElementById('frozenModal').classList.add('hidden');
     document.getElementById('frozenInvestAmount').value = '';
-    document.getElementById('modalFinalAmount').textContent = '0 USDT';
-    document.getElementById('acceptTerms').checked = false;
+    document.getElementById('frozenModalFinalAmount').textContent = '0 USDT';
 }
 
 document.getElementById('frozenInvestAmount').addEventListener('input', function() {
     const amount = parseFloat(this.value) || 0;
     if (currentFrozenPlan) {
         const finalAmount = amount * currentFrozenPlan.totalReturn;
-        document.getElementById('modalFinalAmount').textContent = `${finalAmount.toLocaleString()} USDT`;
+        document.getElementById('frozenModalFinalAmount').textContent = `${finalAmount.toLocaleString()} USDT`;
     }
 });
 
@@ -198,12 +197,6 @@ async function submitFrozenInvestment() {
     if (!currentFrozenPlan) return;
 
     const amount = parseFloat(document.getElementById('frozenInvestAmount').value);
-    const acceptTerms = document.getElementById('acceptTerms').checked;
-
-    if (!acceptTerms) {
-        showNotification('Vous devez accepter les conditions', 'error');
-        return;
-    }
 
     if (!amount || amount < currentFrozenPlan.minAmount || amount > currentFrozenPlan.maxAmount) {
         showNotification(`Montant doit être entre ${currentFrozenPlan.minAmount.toLocaleString()} et ${currentFrozenPlan.maxAmount.toLocaleString()} USDT`, 'error');
