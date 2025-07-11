@@ -228,40 +228,68 @@ def init_db():
         )
     ''')
 
-    # Insert default ROI plans - Minimum 20 USDT pour tous les plans
+    # Insert top 10 ROI plans - Starting from 20 USDT
     cursor.execute('''
         INSERT OR IGNORE INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
-        ('Plan Débutant', '🚀 Idéal pour débuter dans l''investissement crypto ! Commencez avec seulement 20$ et recevez 5% de profit quotidien automatiquement. Parfait pour tester notre plateforme et comprendre le potentiel des investissements crypto. Retour total de 150% en 30 jours !', 0.05, 30, 20, 1000),
-        ('Plan Intermédiaire', '💎 Notre plan le plus équilibré ! 8% de rendement quotidien garanti pendant 45 jours. Stratégie diversifiée sur plusieurs crypto-monnaies pour optimiser les gains. Capital + profits = 360% de retour total. Idéal pour les investisseurs avisés cherchant un bon équilibre risque/rendement.', 0.08, 45, 20, 5000),
-        ('Plan Premium', '⭐ CHOIX POPULAIRE ! 12% de profit quotidien pendant 60 jours avec notre algorithme de trading avancé. Accès prioritaire aux nouvelles opportunités d''investissement. Support client VIP 24/7. Retour total exceptionnel de 720% ! Recommandé par 95% de nos clients.', 0.12, 60, 20, 10000),
-        ('Plan VIP', '👑 EXCLUSIF pour les gros investisseurs ! 15% de rendement quotidien pendant 90 jours grâce à notre pool de liquidité premium. Gestionnaire de compte personnel, analyses de marché exclusives, accès aux ICO privées. Retour total de 1350% ! Rejoignez l''élite des investisseurs crypto.', 0.15, 90, 20, 50000)
+        ('Starter Pro', '🚀 Parfait pour débuter ! 3% quotidien sur 30 jours. Idéal pour tester nos services avec un petit budget.', 0.03, 30, 20, 500),
+        ('Rapid Growth', '⚡ Croissance rapide ! 4% par jour pendant 25 jours. Parfait équilibre temps/profit.', 0.04, 25, 20, 800),
+        ('Silver Plan', '🥈 Plan argent ! 5% quotidien sur 30 jours. Notre bestseller pour débutants.', 0.05, 30, 20, 1000),
+        ('Golden Boost', '🥇 Plan or ! 6% par jour pendant 35 jours. Excellent retour sur investissement.', 0.06, 35, 20, 2000),
+        ('Platinum Elite', '💎 Elite platinum ! 7% quotidien sur 40 jours. Pour investisseurs sérieux.', 0.07, 40, 20, 3000),
+        ('Diamond Pro', '💍 Diamant professionnel ! 8% par jour pendant 45 jours. Rendement exceptionnel.', 0.08, 45, 20, 5000),
+        ('VIP Supreme', '👑 VIP suprême ! 10% quotidien sur 50 jours. Pour les grands investisseurs.', 0.10, 50, 20, 8000),
+        ('Royal Master', '🏆 Royal master ! 12% par jour pendant 60 jours. Retour royal garanti.', 0.12, 60, 20, 12000),
+        ('Ultra Premium', '⭐ Ultra premium ! 15% quotidien sur 70 jours. Performance maximale.', 0.15, 70, 20, 20000),
+        ('Emperor Elite', '👨‍💼 Empereur elite ! 18% par jour pendant 80 jours. Le summum de l''investissement.', 0.18, 80, 20, 50000)
     ''')
 
-    # Insert default Staking plans - Minimum 20 USDT pour accessibilité
+    # Insert top 10 staking plans - Starting from 20 USDT
     cursor.execute('''
         INSERT OR IGNORE INTO staking_plans (name, description, duration_days, annual_rate, min_amount, max_amount, penalty_rate)
         VALUES 
-        ('Staking Flexible', '🔄 Parfait pour débuter ! Stakez vos cryptos pendant seulement 15 jours et gagnez 12% par an. Flexibilité maximale avec possibilité de retrait anticipé (3% de pénalité). Idéal pour tester le staking sans engagement long terme. Profits calculés et versés automatiquement !', 15, 0.12, 20, 5000, 0.03),
-        ('Staking Standard', '⚖️ L''équilibre parfait ! 30 jours de staking pour 18% de rendement annuel. Notre plan le plus populaire alliant sécurité et rentabilité. Vos tokens sont sécurisés dans notre pool de validation. Récompenses distribuées proportionnellement à votre participation.', 30, 0.18, 20, 10000, 0.05),
-        ('Staking Premium', '💰 Pour les vrais HODLers ! 90 jours de staking pour un rendement exceptionnel de 25% par an. Participez activement à la sécurisation du réseau blockchain. Bonus de fidélité inclus. Pénalité de 8% pour retrait anticipé car nous privilégions la stabilité long terme.', 90, 0.25, 20, 25000, 0.08)
+        ('Quick Stake', '⚡ Staking rapide 7 jours ! 8% annuel. Parfait pour tester le staking.', 7, 0.08, 20, 300, 0.02),
+        ('Flex Stake', '🔄 Staking flexible 15 jours ! 12% annuel. Idéal pour débutants.', 15, 0.12, 20, 500, 0.03),
+        ('Standard Stake', '📊 Staking standard 30 jours ! 18% annuel. Notre choix populaire.', 30, 0.18, 20, 1000, 0.04),
+        ('Power Stake', '💪 Staking puissant 45 jours ! 22% annuel. Excellent rendement.', 45, 0.22, 20, 2000, 0.05),
+        ('Premium Stake', '💎 Staking premium 60 jours ! 28% annuel. Pour investisseurs sérieux.', 60, 0.28, 20, 3000, 0.06),
+        ('Elite Stake', '🏆 Staking elite 90 jours ! 35% annuel. Performance exceptionnelle.', 90, 0.35, 20, 5000, 0.07),
+        ('Master Stake', '👑 Staking master 120 jours ! 42% annuel. Retour impressionnant.', 120, 0.42, 20, 8000, 0.08),
+        ('Royal Stake', '🎖️ Staking royal 150 jours ! 50% annuel. Rendement royal.', 150, 0.50, 20, 12000, 0.09),
+        ('Supreme Stake', '⭐ Staking suprême 180 jours ! 60% annuel. Le top du staking.', 180, 0.60, 20, 20000, 0.10),
+        ('Ultimate Stake', '🚀 Staking ultimate 365 jours ! 80% annuel. Performance ultime.', 365, 0.80, 20, 50000, 0.12)
     ''')
 
-    # Insert default Frozen plans - Minimum 20 USDT pour tous
+    # Insert top 10 frozen plans - Starting from 20 USDT
     cursor.execute('''
         INSERT OR IGNORE INTO frozen_plans (name, description, duration_days, total_return_rate, min_amount, max_amount)
         VALUES 
-        ('Plan Diamant', '💎 INVESTISSEMENT PREMIUM ! Vos fonds sont gelés pendant 6 mois dans notre programme exclusif de yield farming. 250% de retour GARANTI grâce à nos partenariats avec les plus grandes DeFi. Vos tokens travaillent 24/7 dans des pools de liquidité ultra-rentables. Aucun stress, aucune volatilité - juste des gains assurés !', 180, 2.5, 20, 50000),
-        ('Plan Platinum', '🏆 L''ÉLITE DES INVESTISSEMENTS ! 12 mois pour 400% de retour total ! Vos fonds sont déployés dans notre stratégie propriétaire combinant arbitrage, DeFi farming et participation aux gouvernances. Accès exclusif aux projets les plus prometteurs du marché crypto. Un an d''attente pour une vie de profits !', 365, 4.0, 20, 100000)
+        ('Ice Starter', '🧊 Plan gelé débutant ! 30 jours gelés pour 150% de retour total.', 30, 1.5, 20, 400),
+        ('Frost Basic', '❄️ Plan frost basique ! 60 jours gelés pour 180% de retour total.', 60, 1.8, 20, 600),
+        ('Freeze Standard', '🥶 Plan freeze standard ! 90 jours gelés pour 220% de retour total.', 90, 2.2, 20, 800),
+        ('Glacial Pro', '🏔️ Plan glacial pro ! 120 jours gelés pour 280% de retour total.', 120, 2.8, 20, 1200),
+        ('Arctic Elite', '🐧 Plan arctique elite ! 150 jours gelés pour 350% de retour total.', 150, 3.5, 20, 2000),
+        ('Polar Premium', '🐻‍❄️ Plan polaire premium ! 180 jours gelés pour 450% de retour total.', 180, 4.5, 20, 3000),
+        ('Blizzard VIP', '❄️ Plan blizzard VIP ! 240 jours gelés pour 600% de retour total.', 240, 6.0, 20, 5000),
+        ('Absolute Zero', '🌨️ Plan zéro absolu ! 300 jours gelés pour 800% de retour total.', 300, 8.0, 20, 8000),
+        ('Eternal Frost', '🧊 Plan gel éternel ! 360 jours gelés pour 1200% de retour total.', 360, 12.0, 20, 15000),
+        ('Cosmic Ice', '🌌 Plan glace cosmique ! 450 jours gelés pour 2000% de retour total.', 450, 20.0, 20, 50000)
     ''')
 
-    # Insert sample projects - Minimum 20 USDT pour l'accessibilité
+    # Insert top 10 projects - Starting from 20 USDT
     cursor.execute('''
         INSERT OR IGNORE INTO projects (title, description, category, target_amount, expected_return, duration_months, min_investment, max_investment, deadline)
         VALUES 
-        ('Ferme Solaire Éco', '☀️ RÉVOLUTIONNEZ L''ÉNERGIE ! Investissez dans la plus grande ferme solaire d''Afrique de l''Ouest. 500 hectares de panneaux dernière génération avec contrats gouvernementaux sur 20 ans. 20% de retour GARANTI grâce aux tarifs de rachat préférentiels. Impact environnemental positif + profits assurés. Déjà 78% financé !', 'Énergie', 50000, 0.20, 18, 20, 5000, datetime("now", "+60 days")),
-        ('Immobilier Résidentiel', '🏠 OPPORTUNITÉ EN OR ! Complexe résidentiel de luxe dans la nouvelle zone économique spéciale. 200 appartements haut de gamme avec pré-ventes déjà à 65%. Promoteur expérimenté avec 15 ans de succès. 25% de retour sur 24 mois grâce à la plus-value et aux loyers. Défiscalisation possible !', 'Immobilier', 100000, 0.25, 24, 20, 10000, datetime("now", "+90 days")),
-        ('Agriculture Bio', '🌱 NOURRISSEZ L''AVENIR ! Ferme bio moderne de 100 hectares avec techniques permaculture avancées. Contrats exclusifs avec grandes chaînes de distribution bio. 18% de retour en 12 mois grâce à la demande croissante pour le bio. Agriculture 4.0 avec IoT et intelligence artificielle. Impact social et environnemental fort !', 'Agriculture', 30000, 0.18, 12, 20, 3000, datetime("now", "+45 days"))
+        ('Crypto Mining Farm', '⛏️ Ferme de minage crypto moderne ! 15% de retour en 6 mois.', 'Mining', 10000, 0.15, 6, 20, 1000, datetime("now", "+30 days")),
+        ('E-commerce Platform', '🛒 Plateforme e-commerce innovante ! 18% de retour en 8 mois.', 'Tech', 15000, 0.18, 8, 20, 1500, datetime("now", "+45 days")),
+        ('Green Energy Solar', '☀️ Énergie solaire verte ! 20% de retour en 12 mois.', 'Énergie', 25000, 0.20, 12, 20, 2500, datetime("now", "+60 days")),
+        ('FinTech Startup', '💳 Startup fintech prometteuse ! 22% de retour en 10 mois.', 'Finance', 20000, 0.22, 10, 20, 2000, datetime("now", "+40 days")),
+        ('Real Estate Fund', '🏠 Fonds immobilier diversifié ! 25% de retour en 18 mois.', 'Immobilier', 50000, 0.25, 18, 20, 5000, datetime("now", "+75 days")),
+        ('AI Tech Company', '🤖 Entreprise tech IA ! 28% de retour en 14 mois.', 'Intelligence Artificielle', 35000, 0.28, 14, 20, 3500, datetime("now", "+50 days")),
+        ('Renewable Energy', '🌱 Énergies renouvelables ! 30% de retour en 20 mois.', 'Écologie', 40000, 0.30, 20, 20, 4000, datetime("now", "+65 days")),
+        ('Biotech Innovation', '🧬 Innovation biotechnologique ! 35% de retour en 24 mois.', 'Biotechnologie', 60000, 0.35, 24, 20, 6000, datetime("now", "+80 days")),
+        ('Space Technology', '🚀 Technologie spatiale ! 40% de retour en 30 mois.', 'Espace', 80000, 0.40, 30, 20, 8000, datetime("now", "+90 days")),
+        ('Quantum Computing', '⚛️ Informatique quantique ! 50% de retour en 36 mois.', 'Quantique', 100000, 0.50, 36, 20, 10000, datetime("now", "+120 days"))
     ''')
 
     conn.commit()
