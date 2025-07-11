@@ -1,0 +1,158 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-gradient-to-r from-primary to-secondary text-white -mx-4 -mt-8 px-4 pt-8 pb-16">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                Investissez dans votre avenir avec la crypto
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 text-gray-200">
+                Rendements garantis • Sécurité maximale • Transparence totale
+            </p>
+            <div class="space-x-4">
+                {% if not session.user_id %}
+                    <a href="{{ url_for('register') }}" class="bg-accent hover:bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold inline-block">
+                        Commencer maintenant
+                    </a>
+                    <a href="{{ url_for('login') }}" class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary px-8 py-3 rounded-lg text-lg font-semibold inline-block">
+                        Se connecter
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('dashboard') }}" class="bg-accent hover:bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold inline-block">
+                        Accéder au Dashboard
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-16">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">Pourquoi choisir InvestCrypto Pro ?</h2>
+        <p class="text-lg text-gray-600">Des solutions d'investissement innovantes pour tous les profils</p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div class="bg-secondary text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-shield-alt text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Sécurité Maximale</h3>
+            <p class="text-gray-600">Chiffrement avancé, authentification 2FA et conformité KYC pour protéger vos investissements.</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div class="bg-accent text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-chart-line text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Rendements Garantis</h3>
+            <p class="text-gray-600">Plans ROI avec rendements quotidiens de 5% à 15% selon votre niveau d'investissement.</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div class="bg-yellow-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-users text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Crowdfunding</h3>
+            <p class="text-gray-600">Participez à des projets innovants dans l'immobilier, l'énergie et l'agriculture.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ROI Plans Preview -->
+<div class="bg-gray-100 py-16 -mx-4 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Plans d'Investissement ROI</h2>
+            <p class="text-lg text-gray-600">Choisissez le plan qui correspond à vos objectifs</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="text-center">
+                    <h3 class="text-xl font-semibold mb-2">Plan Débutant</h3>
+                    <div class="text-3xl font-bold text-secondary mb-2">5%</div>
+                    <div class="text-sm text-gray-600 mb-4">par jour</div>
+                    <div class="text-sm text-gray-600 mb-4">Durée: 30 jours</div>
+                    <div class="text-sm text-gray-600">Min: 50 USDT</div>
+                    <div class="text-sm text-gray-600">Max: 1,000 USDT</div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="text-center">
+                    <h3 class="text-xl font-semibold mb-2">Plan Intermédiaire</h3>
+                    <div class="text-3xl font-bold text-secondary mb-2">8%</div>
+                    <div class="text-sm text-gray-600 mb-4">par jour</div>
+                    <div class="text-sm text-gray-600 mb-4">Durée: 45 jours</div>
+                    <div class="text-sm text-gray-600">Min: 500 USDT</div>
+                    <div class="text-sm text-gray-600">Max: 5,000 USDT</div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg border-2 border-accent">
+                <div class="text-center">
+                    <div class="bg-accent text-white text-xs px-2 py-1 rounded mb-2">POPULAIRE</div>
+                    <h3 class="text-xl font-semibold mb-2">Plan Premium</h3>
+                    <div class="text-3xl font-bold text-accent mb-2">12%</div>
+                    <div class="text-sm text-gray-600 mb-4">par jour</div>
+                    <div class="text-sm text-gray-600 mb-4">Durée: 60 jours</div>
+                    <div class="text-sm text-gray-600">Min: 1,000 USDT</div>
+                    <div class="text-sm text-gray-600">Max: 10,000 USDT</div>
+                </div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <div class="text-center">
+                    <h3 class="text-xl font-semibold mb-2">Plan VIP</h3>
+                    <div class="text-3xl font-bold text-yellow-500 mb-2">15%</div>
+                    <div class="text-sm text-gray-600 mb-4">par jour</div>
+                    <div class="text-sm text-gray-600 mb-4">Durée: 90 jours</div>
+                    <div class="text-sm text-gray-600">Min: 5,000 USDT</div>
+                    <div class="text-sm text-gray-600">Max: 50,000 USDT</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="py-16">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+        <div>
+            <div class="text-3xl font-bold text-secondary mb-2">500+</div>
+            <div class="text-gray-600">Investisseurs actifs</div>
+        </div>
+        <div>
+            <div class="text-3xl font-bold text-secondary mb-2">$2M+</div>
+            <div class="text-gray-600">Investis à ce jour</div>
+        </div>
+        <div>
+            <div class="text-3xl font-bold text-secondary mb-2">15%</div>
+            <div class="text-gray-600">Rendement moyen</div>
+        </div>
+        <div>
+            <div class="text-3xl font-bold text-secondary mb-2">24/7</div>
+            <div class="text-gray-600">Support client</div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="bg-primary text-white py-16 -mx-4 px-4">
+    <div class="max-w-7xl mx-auto text-center">
+        <h2 class="text-3xl font-bold mb-4">Prêt à commencer votre aventure crypto ?</h2>
+        <p class="text-xl mb-8 text-gray-200">Rejoignez des milliers d'investisseurs qui font confiance à InvestCrypto Pro</p>
+        {% if not session.user_id %}
+            <a href="{{ url_for('register') }}" class="bg-accent hover:bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold inline-block">
+                Créer un compte gratuitement
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
