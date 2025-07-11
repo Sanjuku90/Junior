@@ -1,0 +1,191 @@
+
+{% extends "base.html" %}
+
+{% block title %}Projets Crowdfunding - InvestCrypto Pro{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="text-center">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Projets de Crowdfunding</h1>
+        <p class="text-lg text-gray-600">Investissez dans des projets innovants et rentables</p>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex flex-wrap gap-2 mb-6">
+            <button class="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium">Tous les projets</button>
+            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Énergie</button>
+            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Immobilier</button>
+            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Agriculture</button>
+            <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300">Innovation</button>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for project in projects %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="h-48 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                {% if project.image_url %}
+                    <img src="{{ project.image_url }}" alt="{{ project.title }}" class="w-full h-full object-cover">
+                {% else %}
+                    <i class="fas fa-project-diagram text-6xl text-white"></i>
+                {% endif %}
+            </div>
+            
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">{{ project.category }}</span>
+                    <span class="text-sm text-gray-500">{{ project.duration_months }} mois</span>
+                </div>
+                
+                <h3 class="text-xl font-semibold mb-2">{{ project.title }}</h3>
+                <p class="text-gray-600 text-sm mb-4 line-clamp-3">{{ project.description }}</p>
+                
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Progression</span>
+                        <span>{{ "%.1f"|format(project.progress_percent) }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ project.progress_percent }}%"></div>
+                    </div>
+                </div>
+                
+                <!-- Financial Info -->
+                <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                    <div>
+                        <div class="text-gray-500">Objectif</div>
+                        <div class="font-semibold">{{ "{:,.0f}".format(project.target_amount) }} USDT</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-500">Collecté</div>
+                        <div class="font-semibold text-green-600">{{ "{:,.0f}".format(project.raised_amount) }} USDT</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-500">ROI attendu</div>
+                        <div class="font-semibold text-blue-600">{{ "%.0f"|format(project.expected_return * 100) }}%</div>
+                    </div>
+                    <div>
+                        <div class="text-gray-500">Min. invest.</div>
+                        <div class="font-semibold">{{ project.min_investment }} USDT</div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                    <a href="{{ url_for('project_detail', project_id=project.id) }}" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-center py-2 px-4 rounded-lg font-medium">
+                        Voir détails
+                    </a>
+                    <button onclick="openInvestModal({{ project.id }}, '{{ project.title }}', {{ project.min_investment }}, {{ project.max_investment }})" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg font-medium">
+                        Investir
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not projects %}
+    <div class="text-center py-12">
+        <i class="fas fa-project-diagram text-6xl text-gray-300 mb-4"></i>
+        <h3 class="text-xl font-semibold text-gray-600 mb-2">Aucun projet disponible</h3>
+        <p class="text-gray-500">De nouveaux projets seront bientôt disponibles.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Investment Modal -->
+<div id="investModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Investir dans le projet</h3>
+            <button onclick="closeInvestModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mb-4">
+            <div class="font-semibold" id="modalProjectTitle"></div>
+            <div class="space-y-1 text-sm mt-2">
+                <div>Investissement min: <span id="modalMinAmount" class="font-semibold"></span> USDT</div>
+                <div>Investissement max: <span id="modalMaxAmount" class="font-semibold"></span> USDT</div>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Montant à investir</label>
+            <input type="number" id="projectInvestAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Montant en USDT">
+        </div>
+        
+        <div class="flex gap-3">
+            <button onclick="closeInvestModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg">
+                Annuler
+            </button>
+            <button onclick="confirmProjectInvestment()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg">
+                Confirmer
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentProjectId = null;
+
+function openInvestModal(projectId, title, minAmount, maxAmount) {
+    currentProjectId = projectId;
+    document.getElementById('modalProjectTitle').textContent = title;
+    document.getElementById('modalMinAmount').textContent = minAmount;
+    document.getElementById('modalMaxAmount').textContent = maxAmount;
+    document.getElementById('investModal').classList.remove('hidden');
+    document.getElementById('investModal').classList.add('flex');
+}
+
+function closeInvestModal() {
+    document.getElementById('investModal').classList.add('hidden');
+    document.getElementById('investModal').classList.remove('flex');
+    document.getElementById('projectInvestAmount').value = '';
+    currentProjectId = null;
+}
+
+async function confirmProjectInvestment() {
+    if (!currentProjectId) return;
+    
+    const amount = parseFloat(document.getElementById('projectInvestAmount').value);
+    
+    if (!amount || amount <= 0) {
+        showNotification('Veuillez saisir un montant valide', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/invest-project', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: currentProjectId,
+                amount: amount
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            closeInvestModal();
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showNotification(data.error || 'Erreur lors de l\'investissement', 'error');
+        }
+    } catch (error) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+</script>
+{% endblock %}
