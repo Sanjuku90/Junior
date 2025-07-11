@@ -137,7 +137,7 @@ def init_telegram_db():
         # Vérifier si la colonne existe
         cursor = conn.execute("PRAGMA table_info(users)")
         columns = [column[1] for column in cursor.fetchall()]
-        
+
         if 'telegram_id' not in columns:
             # Créer une nouvelle table avec la colonne telegram_id
             conn.execute('''
@@ -158,7 +158,7 @@ def init_telegram_db():
                     telegram_id INTEGER UNIQUE
                 )
             ''')
-            
+
             # Copier les données existantes
             conn.execute('''
                 INSERT INTO users_new (id, email, password_hash, first_name, last_name, 
@@ -169,11 +169,11 @@ def init_telegram_db():
                        referral_code, referred_by, created_at, two_fa_enabled
                 FROM users
             ''')
-            
+
             # Supprimer l'ancienne table et renommer
             conn.execute('DROP TABLE users')
             conn.execute('ALTER TABLE users_new RENAME TO users')
-            
+
             conn.commit()
             print("✅ Colonne telegram_id ajoutée avec succès")
         else:
@@ -632,7 +632,7 @@ async def show_roi_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     for plan in plans:
         total_return = (plan['daily_rate'] * plan['duration_days']) * 100
-        
+
         # Émojis selon le plan
         if plan['daily_rate'] <= 0.05:
             emoji = "🥉"
@@ -647,7 +647,7 @@ async def show_roi_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message += f"📊 {plan['daily_rate']*100:.1f}%/jour x {plan['duration_days']}j\n"
         message += f"💰 {plan['min_amount']:.0f}-{plan['max_amount']:.0f} USDT\n"
         message += f"🎯 Total: {total_return:.0f}%\n\n"
-        
+
         keyboard.append([InlineKeyboardButton(f"{emoji} {plan['name']}", callback_data=f"invest_roi_{plan['id']}")])
 
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
@@ -801,11 +801,10 @@ async def show_staking_plans(update: Update, context: ContextTypes.DEFAULT_TYPE)
     for i, plan in enumerate(plans[:3]):  # Limite à 3 plans maximum
         daily_rate = plan['annual_rate'] / 365
         total_return = daily_rate * plan['duration_days'] * 100
-
         message += f"🏆 **{plan['name']}**\n"
         message += f"⏰ {plan['duration_days']}j | 📊 {plan['annual_rate']*100:.0f}%/an\n"
         message += f"💰 {plan['min_amount']:.0f}-{plan['max_amount']:.0f} USDT\n\n"
-        
+
         keyboard.append([InlineKeyboardButton(f"💎 {plan['name']}", callback_data=f"invest_staking_{plan['id']}")])
 
     # Si plus de 3 plans, ajouter un bouton "Plus de plans"
@@ -839,7 +838,7 @@ async def show_frozen_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
         message += f"⏰ {plan['duration_days']}j ({plan['duration_days']//30}m)\n"
         message += f"🎯 Retour: {plan['total_return_rate']*100:.0f}%\n"
         message += f"💰 {plan['min_amount']:.0f}-{plan['max_amount']:.0f} USDT\n\n"
-        
+
         keyboard.append([InlineKeyboardButton(f"💎 {plan['name']}", callback_data=f"invest_frozen_{plan['id']}")])
 
     if len(plans) > 2:
@@ -885,7 +884,7 @@ async def show_projects(update: Update, context: ContextTypes.DEFAULT_TYPE):
             message += f"📊 {project['progress_percent']:.1f}% | 📈 {project['expected_return']*100:.0f}%\n"
             message += f"💰 {project['min_investment']:.0f}-{project['max_investment']:.0f} USDT\n"
             message += f"⏳ {days_left}j restants\n\n"
-            
+
             keyboard.append([InlineKeyboardButton(f"🎯 {project['title'][:15]}", callback_data=f"invest_project_{project['id']}")])
 
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
@@ -1425,45 +1424,51 @@ Démocratiser l'investissement crypto et offrir des rendements exceptionnels à 
     elif data == "help":
         await show_help(update, context)
 
+    elif data == "deposit":
+        await deposit_start(update, context)
+
+    elif data == "withdraw":
+        await withdraw_start(update, context)
+
     elif data.startswith('confirm_withdraw_'):
         await process_withdrawal_confirmation(update, context, data)
-    
+
     elif data.startswith('invest_staking_'):
         await invest_staking_start(update, context)
-    
+
     elif data.startswith('invest_project_'):
         await invest_project_start(update, context)
-    
+
     elif data.startswith('invest_frozen_'):
         await invest_frozen_start(update, context)
-    
+
     elif data == "investment_details_roi":
         await show_investment_details_roi(update, context)
-    
+
     elif data == "investment_details_staking":
         await show_investment_details_staking(update, context)
-    
+
     elif data == "investment_details_frozen":
         await show_investment_details_frozen(update, context)
-    
+
     elif data == "share_referral":
         await share_referral_link(update, context)
-    
+
     elif data == "referral_rewards":
         await show_referral_rewards(update, context)
-    
+
     elif data == "transaction_history":
         await show_transaction_history(update, context)
-    
+
     elif data == "beginner_guide":
         await show_beginner_guide(update, context)
-    
+
     elif data == "faq":
         await show_faq(update, context)
-    
+
     elif data == "change_password":
         await show_change_password(update, context)
-    
+
     elif data == "full_history":
         await show_full_history(update, context)
 
@@ -1702,15 +1707,15 @@ async def invest_staking_start(update: Update, context: ContextTypes.DEFAULT_TYP
     """Début investissement staking"""
     await update.callback_query.answer()
     plan_id = update.callback_query.data.split('_')[-1]
-    
+
     conn = get_db_connection()
     plan = conn.execute('SELECT * FROM staking_plans WHERE id = ?', (plan_id,)).fetchone()
     conn.close()
-    
+
     if not plan:
         await update.callback_query.edit_message_text("❌ Plan de staking non trouvé.")
         return
-    
+
     message = f"""
 💎 **INVESTISSEMENT STAKING - {plan['name'].upper()}**
 
@@ -1720,25 +1725,25 @@ async def invest_staking_start(update: Update, context: ContextTypes.DEFAULT_TYP
 
 Cette fonctionnalité sera bientôt disponible !
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="staking_plans")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def invest_project_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Début investissement projet"""
     await update.callback_query.answer()
     project_id = update.callback_query.data.split('_')[-1]
-    
+
     conn = get_db_connection()
     project = conn.execute('SELECT * FROM projects WHERE id = ?', (project_id,)).fetchone()
     conn.close()
-    
+
     if not project:
         await update.callback_query.edit_message_text("❌ Projet non trouvé.")
         return
-    
+
     message = f"""
 🎯 **INVESTISSEMENT PROJET - {project['title'].upper()}**
 
@@ -1747,25 +1752,25 @@ async def invest_project_start(update: Update, context: ContextTypes.DEFAULT_TYP
 
 Cette fonctionnalité sera bientôt disponible !
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="projects")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def invest_frozen_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Début investissement gelé"""
     await update.callback_query.answer()
     plan_id = update.callback_query.data.split('_')[-1]
-    
+
     conn = get_db_connection()
     plan = conn.execute('SELECT * FROM frozen_plans WHERE id = ?', (plan_id,)).fetchone()
     conn.close()
-    
+
     if not plan:
         await update.callback_query.edit_message_text("❌ Plan gelé non trouvé.")
         return
-    
+
     message = f"""
 🧊 **INVESTISSEMENT GELÉ - {plan['name'].upper()}**
 
@@ -1775,17 +1780,17 @@ async def invest_frozen_start(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 Cette fonctionnalité sera bientôt disponible !
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="frozen_plans")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_investment_details_roi(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher détails investissements ROI"""
     await update.callback_query.answer()
     user = get_user_by_telegram_id(update.effective_user.id)
-    
+
     conn = get_db_connection()
     investments = conn.execute('''
         SELECT ui.*, rp.name as plan_name, rp.daily_rate
@@ -1796,9 +1801,9 @@ async def show_investment_details_roi(update: Update, context: ContextTypes.DEFA
         LIMIT 5
     ''', (user['id'],)).fetchall()
     conn.close()
-    
+
     message = "📈 **DÉTAILS INVESTISSEMENTS ROI**\n\n"
-    
+
     if investments:
         for inv in investments:
             days_remaining = (datetime.fromisoformat(inv['end_date'].replace('Z', '+00:00')) - datetime.now()).days
@@ -1809,49 +1814,49 @@ async def show_investment_details_roi(update: Update, context: ContextTypes.DEFA
             message += f"🎁 Gagné : {inv['total_earned']:.2f} USDT\n\n"
     else:
         message += "😔 Aucun investissement ROI actif."
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="my_investments")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_investment_details_staking(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher détails staking"""
     await update.callback_query.answer()
-    
+
     message = """
 💎 **DÉTAILS STAKING**
 
 Cette fonctionnalité sera bientôt disponible !
 Vous pourrez voir ici tous vos investissements de staking.
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="my_investments")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_investment_details_frozen(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher détails gelés"""
     await update.callback_query.answer()
-    
+
     message = """
 🧊 **DÉTAILS PLANS GELÉS**
 
 Cette fonctionnalité sera bientôt disponible !
 Vous pourrez voir ici tous vos investissements gelés.
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="my_investments")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def share_referral_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Partager le lien de parrainage"""
     await update.callback_query.answer()
     user = get_user_by_telegram_id(update.effective_user.id)
-    
+
     message = f"""
 📤 **PARTAGER MON LIEN DE PARRAINAGE**
 
@@ -1869,16 +1874,16 @@ async def share_referral_link(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 Commencez à investir dès maintenant ! 🚀
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="referral")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_referral_rewards(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher les récompenses de parrainage"""
     await update.callback_query.answer()
-    
+
     message = """
 🏆 **PROGRAMME DE RÉCOMPENSES**
 
@@ -1901,17 +1906,17 @@ async def show_referral_rewards(update: Update, context: ContextTypes.DEFAULT_TY
 • Or (25 filleuls) : +1% commission
 • Diamant (50 filleuls) : +2% commission
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="referral")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_transaction_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher l'historique des transactions"""
     await update.callback_query.answer()
     user = get_user_by_telegram_id(update.effective_user.id)
-    
+
     conn = get_db_connection()
     transactions = conn.execute('''
         SELECT * FROM transactions 
@@ -1920,34 +1925,34 @@ async def show_transaction_history(update: Update, context: ContextTypes.DEFAULT
         LIMIT 10
     ''', (user['id'],)).fetchall()
     conn.close()
-    
+
     message = "📋 **HISTORIQUE DES TRANSACTIONS**\n\n"
-    
+
     if transactions:
         for tx in transactions:
             status_emoji = "✅" if tx['status'] == 'completed' else "⏳" if tx['status'] == 'pending' else "❌"
             type_emoji = "📥" if tx['type'] == 'deposit' else "📤" if tx['type'] == 'withdrawal' else "💎"
-            
+
             try:
                 date_str = datetime.fromisoformat(tx['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
             except:
                 date_str = "Non disponible"
-            
+
             message += f"{status_emoji} {type_emoji} **{tx['amount']:.2f} USDT**\n"
             message += f"📅 {date_str} | {tx['type'].title()}\n"
             message += f"🆔 {tx['transaction_hash'][:16]}...\n\n"
     else:
         message += "😔 Aucune transaction pour le moment."
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="wallet")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_beginner_guide(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher le guide débutant"""
     await update.callback_query.answer()
-    
+
     message = """
 📚 **GUIDE DÉBUTANT**
 
@@ -1979,16 +1984,16 @@ async def show_beginner_guide(update: Update, context: ContextTypes.DEFAULT_TYPE
 • Réinvestissez vos profits
 • Utilisez le parrainage
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="help")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_faq(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher la FAQ"""
     await update.callback_query.answer()
-    
+
     message = """
 ❓ **QUESTIONS FRÉQUENTES**
 
@@ -2013,16 +2018,16 @@ R: Contactez le support avec votre ID Telegram pour récupérer votre compte.
 **Q: Y a-t-il des frais cachés ?**
 R: Non, seuls 2 USDT de frais s'appliquent aux retraits.
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="help")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_change_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher le changement de mot de passe"""
     await update.callback_query.answer()
-    
+
     message = """
 🔄 **CHANGER MOT DE PASSE**
 
@@ -2033,16 +2038,16 @@ Si vous avez des préoccupations de sécurité, contactez le support.
 
 📞 **Support :** @InvestCryptoPro_Support
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="profile")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_full_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher l'historique complet"""
     await update.callback_query.answer()
-    
+
     message = """
 📋 **HISTORIQUE COMPLET**
 
@@ -2056,10 +2061,10 @@ Vous pourrez voir ici :
 
 Pour le moment, utilisez les sections individuelles pour voir vos données.
     """
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="profile")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -2133,23 +2138,67 @@ def setup_user_telegram_bot():
     application.add_handler(withdraw_handler)
     application.add_handler(invest_roi_handler)
     application.add_handler(CallbackQueryHandler(handle_callback))
-    
+
     # Ajouter le gestionnaire d'erreur
     application.add_error_handler(error_handler)
 
     return application
 
+# Initialise les tables avec les nouveaux minimums
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Mettre à jour les plans ROI avec minimum 20 USDT
+    cursor.execute('''
+        INSERT OR IGNORE INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
+        VALUES 
+        ('Plan Débutant', '🚀 Idéal pour débuter dans l''investissement crypto ! Commencez avec seulement 20$ et recevez 5% de profit quotidien automatiquement. Parfait pour tester notre plateforme et comprendre le potentiel des investissements crypto. Retour total de 150% en 30 jours !', 0.05, 30, 20, 1000),
+        ('Plan Intermédiaire', '💎 Notre plan le plus équilibré ! 8% de rendement quotidien garanti pendant 45 jours. Stratégie diversifiée sur plusieurs crypto-monnaies pour optimiser les gains. Capital + profits = 360% de retour total. Idéal pour les investisseurs avisés cherchant un bon équilibre risque/rendement.', 0.08, 45, 20, 5000),
+        ('Plan Premium', '⭐ CHOIX POPULAIRE ! 12% de profit quotidien pendant 60 jours avec notre algorithme de trading avancé. Accès prioritaire aux nouvelles opportunités d''investissement. Support client VIP 24/7. Retour total exceptionnel de 720% ! Recommandé par 95% de nos clients.', 0.12, 60, 20, 10000),
+        ('Plan VIP', '👑 EXCLUSIF pour les gros investisseurs ! 15% de rendement quotidien pendant 90 jours grâce à notre pool de liquidité premium. Gestionnaire de compte personnel, analyses de marché exclusives, accès aux ICO privées. Retour total de 1350% ! Rejoignez l''élite des investisseurs crypto.', 0.15, 90, 20, 50000)
+    ''')
+
+    # Mettre à jour les plans de staking avec minimum 20 USDT
+    cursor.execute('''
+        INSERT OR IGNORE INTO staking_plans (name, description, duration_days, annual_rate, min_amount, max_amount, penalty_rate)
+        VALUES 
+        ('Staking Flexible', '🔄 Parfait pour débuter ! Stakez vos cryptos pendant seulement 15 jours et gagnez 12% par an. Flexibilité maximale avec possibilité de retrait anticipé (3% de pénalité). Idéal pour tester le staking sans engagement long terme. Profits calculés et versés automatiquement !', 15, 0.12, 20, 5000, 0.03),
+        ('Staking Standard', '⚖️ L''équilibre parfait ! 30 jours de staking pour 18% de rendement annuel. Notre plan le plus populaire alliant sécurité et rentabilité. Vos tokens sont sécurisés dans notre pool de validation. Récompenses distribuées proportionnellement à votre participation.', 30, 0.18, 20, 10000, 0.05),
+        ('Staking Premium', '💰 Pour les vrais HODLers ! 90 jours de staking pour un rendement exceptionnel de 25% par an. Participez activement à la sécurisation du réseau blockchain. Bonus de fidélité inclus. Pénalité de 8% pour retrait anticipé car nous privilégions la stabilité long terme.', 90, 0.25, 20, 25000, 0.08)
+    ''')
+
+    # Mettre à jour les plans gelés avec minimum 20 USDT
+    cursor.execute('''
+        INSERT OR IGNORE INTO frozen_plans (name, description, duration_days, total_return_rate, min_amount, max_amount)
+        VALUES 
+        ('Plan Diamant', '💎 INVESTISSEMENT PREMIUM ! Vos fonds sont gelés pendant 6 mois dans notre programme exclusif de yield farming. 250% de retour GARANTI grâce à nos partenariats avec les plus grandes DeFi. Vos tokens travaillent 24/7 dans des pools de liquidité ultra-rentables. Aucun stress, aucune volatilité - juste des gains assurés !', 180, 2.5, 20, 50000),
+        ('Plan Platinum', '🏆 L''ÉLITE DES INVESTISSEMENTS ! 12 mois pour 400% de retour total ! Vos fonds sont déployés dans notre stratégie propriétaire combinant arbitrage, DeFi farming et participation aux gouvernances. Accès exclusif aux projets les plus prometteurs du marché crypto. Un an d''attente pour une vie de profits !', 365, 4.0, 20, 100000)
+    ''')
+
+    # Mettre à jour les projets avec minimum 20 USDT
+    cursor.execute('''
+        INSERT OR IGNORE INTO projects (title, description, category, target_amount, expected_return, duration_months, min_investment, max_investment, deadline)
+        VALUES 
+        ('Ferme Solaire Éco', '☀️ RÉVOLUTIONNEZ L''ÉNERGIE ! Investissez dans la plus grande ferme solaire d''Afrique de l''Ouest. 500 hectares de panneaux dernière génération avec contrats gouvernementaux sur 20 ans. 20% de retour GARANTI grâce aux tarifs de rachat préférentiels. Impact environnemental positif + profits assurés. Déjà 78% financé !', 'Énergie', 50000, 0.20, 18, 20, 5000, datetime("now", "+60 days")),
+        ('Immobilier Résidentiel', '🏠 OPPORTUNITÉ EN OR ! Complexe résidentiel de luxe dans la nouvelle zone économique spéciale. 200 appartements haut de gamme avec pré-ventes déjà à 65%. Promoteur expérimenté avec 15 ans de succès. 25% de retour sur 24 mois grâce à la plus-value et aux loyers. Défiscalisation possible !', 'Immobilier', 100000, 0.25, 24, 20, 10000, datetime("now", "+90 days")),
+        ('Agriculture Bio', '🌱 NOURRISSEZ L''AVENIR ! Ferme bio moderne de 100 hectares avec techniques permaculture avancées. Contrats exclusifs avec grandes chaînes de distribution bio. 18% de retour en 12 mois grâce à la demande croissante pour le bio. Agriculture 4.0 avec IoT et intelligence artificielle. Impact social et environnemental fort !', 'Agriculture', 30000, 0.18, 12, 20, 3000, datetime("now", "+45 days"))
+    ''')
+
+    conn.commit()
+    conn.close()
+
 # Point d'entrée principal
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Gestionnaire d'erreur global pour le bot"""
     logger.error("Exception while handling an update:", exc_info=context.error)
-    
+
     error_message = "❌ Une erreur s'est produite. Veuillez réessayer plus tard."
-    
+
     # Gérer spécifiquement l'erreur de message trop long
     if "Message_too_long" in str(context.error):
         error_message = "❌ Message trop long. Utilisez /start pour revenir au menu."
-    
+
     if update:
         try:
             if update.callback_query:
@@ -2192,27 +2241,30 @@ async def start_user_bot():
             drop_pending_updates=True
         )
         print("✅ Bot utilisateur Telegram démarré avec succès!")
-        
+
+        # Initialiser la base de données
+        init_db()
+
         # Utiliser asyncio pour maintenir le bot en vie
         import asyncio
-        
+
         # Créer un event pour maintenir le bot en vie
         stop_event = asyncio.Event()
-        
+
         # Fonction pour capturer les signaux d'arrêt
         def signal_handler(signum, frame):
             stop_event.set()
-        
+
         import signal
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
-        
+
         # Attendre indéfiniment ou jusqu'à interruption
         try:
             await stop_event.wait()
         except (KeyboardInterrupt, SystemExit):
             stop_event.set()
-        
+
         return True
     except Exception as e:
         logger.error(f"❌ Erreur bot utilisateur: {e}")
