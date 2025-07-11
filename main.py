@@ -220,40 +220,40 @@ def init_db():
         )
     ''')
 
-    # Insert default ROI plans
+    # Insert default ROI plans - Minimum 20 USDT pour tous les plans
     cursor.execute('''
         INSERT OR IGNORE INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
-        ('Plan Débutant', 'Parfait pour commencer', 0.05, 30, 20, 1000),
-        ('Plan Intermédiaire', 'Rendement équilibré', 0.08, 45, 20, 5000),
-        ('Plan Premium', 'Rendement élevé', 0.12, 60, 20, 10000),
-        ('Plan VIP', 'Rendement exceptionnel', 0.15, 90, 20, 50000)
+        ('Plan Débutant', 'Parfait pour commencer avec seulement 20$', 0.05, 30, 20, 1000),
+        ('Plan Intermédiaire', 'Rendement équilibré à partir de 20$', 0.08, 45, 20, 5000),
+        ('Plan Premium', 'Rendement élevé dès 20$', 0.12, 60, 20, 10000),
+        ('Plan VIP', 'Rendement exceptionnel à partir de 20$', 0.15, 90, 20, 50000)
     ''')
     
-    # Insert default Staking plans
+    # Insert default Staking plans - Minimum 20 USDT pour accessibilité
     cursor.execute('''
         INSERT OR IGNORE INTO staking_plans (name, description, duration_days, annual_rate, min_amount, max_amount, penalty_rate)
         VALUES 
-        ('Staking Flexible', 'Staking à court terme', 15, 0.12, 20, 5000, 0.03),
-        ('Staking Standard', 'Équilibre rendement/flexibilité', 30, 0.18, 20, 10000, 0.05),
-        ('Staking Premium', 'Staking à long terme', 90, 0.25, 20, 25000, 0.08)
+        ('Staking Flexible', 'Staking à court terme dès 20$', 15, 0.12, 20, 5000, 0.03),
+        ('Staking Standard', 'Équilibre rendement/flexibilité à partir de 20$', 30, 0.18, 20, 10000, 0.05),
+        ('Staking Premium', 'Staking à long terme accessible dès 20$', 90, 0.25, 20, 25000, 0.08)
     ''')
     
-    # Insert default Frozen plans
+    # Insert default Frozen plans - Minimum 20 USDT pour tous
     cursor.execute('''
         INSERT OR IGNORE INTO frozen_plans (name, description, duration_days, total_return_rate, min_amount, max_amount)
         VALUES 
-        ('Plan Diamant', 'Investissement gelé 6 mois - 250% de retour', 180, 2.5, 20, 50000),
-        ('Plan Platinum', 'Investissement gelé 12 mois - 400% de retour', 365, 4.0, 20, 100000)
+        ('Plan Diamant', 'Investissement gelé 6 mois - 250% de retour - Dès 20$', 180, 2.5, 20, 50000),
+        ('Plan Platinum', 'Investissement gelé 12 mois - 400% de retour - Dès 20$', 365, 4.0, 20, 100000)
     ''')
     
-    # Insert sample projects
+    # Insert sample projects - Minimum 20 USDT pour l'accessibilité
     cursor.execute('''
         INSERT OR IGNORE INTO projects (title, description, category, target_amount, expected_return, duration_months, min_investment, max_investment, deadline)
         VALUES 
-        ('Ferme Solaire Éco', 'Projet de ferme solaire écologique avec retour sur investissement garanti', 'Énergie', 50000, 0.20, 18, 20, 5000, datetime("now", "+60 days")),
-        ('Immobilier Résidentiel', 'Développement immobilier dans une zone en expansion', 'Immobilier', 100000, 0.25, 24, 20, 10000, datetime("now", "+90 days")),
-        ('Agriculture Bio', 'Projet d''agriculture biologique avec débouchés garantis', 'Agriculture', 30000, 0.18, 12, 20, 3000, datetime("now", "+45 days"))
+        ('Ferme Solaire Éco', 'Projet de ferme solaire écologique avec retour sur investissement garanti - Investissement minimum 20$', 'Énergie', 50000, 0.20, 18, 20, 5000, datetime("now", "+60 days")),
+        ('Immobilier Résidentiel', 'Développement immobilier dans une zone en expansion - Accessible dès 20$', 'Immobilier', 100000, 0.25, 24, 20, 10000, datetime("now", "+90 days")),
+        ('Agriculture Bio', 'Projet d''agriculture biologique avec débouchés garantis - Minimum 20$', 'Agriculture', 30000, 0.18, 12, 20, 3000, datetime("now", "+45 days"))
     ''')
     
     conn.commit()
