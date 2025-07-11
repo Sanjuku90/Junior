@@ -13,6 +13,14 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
+# Import du bot Telegram
+try:
+    from telegram_bot import notify_deposit_request, notify_withdrawal_request, setup_telegram_bot
+    TELEGRAM_ENABLED = True
+except ImportError:
+    TELEGRAM_ENABLED = False
+    print("Bot Telegram non disponible - fonctionnalités de confirmation désactivées")
+
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 
@@ -820,6 +828,102 @@ def portfolio_invest():
     
     return jsonify({'success': True, 'message': 'Portfolio diversifié créé avec succès!'})
 
+@app.route('/deposit', methods=['POST'])
+@login_required
+def submit_deposit():
+    """Soumettre une demande de dépôt"""
+    data = request.get_json()
+    amount = float(data.get('amount', 0))
+    transaction_hash = data.get('transaction_hash', '')
+    
+    if not amount or not transaction_hash:
+        return jsonify({'error': 'Montant et hash de transaction requis'}), 400
+    
+    if amount < 10:
+        return jsonify({'error': 'Montant minimum de dépôt: 10 USDT'}), 400
+    
+    conn = get_db_connection()
+    
+    # Créer la transaction en attente
+    cursor = conn.execute('''
+        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+        VALUES (?, 'deposit', ?, 'pending', ?)
+    ''', (session['user_id'], amount, transaction_hash))
+    
+    deposit_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    
+    # Notifier l'admin via Telegram
+    if TELEGRAM_ENABLED:
+        notify_deposit_request(session['user_id'], amount, transaction_hash, deposit_id)
+    
+    # Ajouter une notification à l'utilisateur
+    add_notification(
+        session['user_id'],
+        'Dépôt en cours de vérification',
+        f'Votre dépôt de {amount} USDT est en cours de vérification par notre équipe.',
+        'info'
+    )
+    
+    return jsonify({'success': True, 'message': 'Dépôt soumis pour vérification'})
+
+@app.route('/withdraw', methods=['POST'])
+@login_required
+def submit_withdrawal():
+    """Soumettre une demande de retrait"""
+    data = request.get_json()
+    amount = float(data.get('amount', 0))
+    withdrawal_address = data.get('withdrawal_address', '')
+    
+    if not amount or not withdrawal_address:
+        return jsonify({'error': 'Montant et adresse de retrait requis'}), 400
+    
+    if amount < 10:
+        return jsonify({'error': 'Montant minimum de retrait: 10 USDT'}), 400
+    
+    conn = get_db_connection()
+    
+    # Vérifier le solde utilisateur
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user['balance'] < amount:
+        return jsonify({'error': 'Solde insuffisant'}), 400
+    
+    # Débiter temporairement le solde
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, session['user_id']))
+    
+    # Créer la transaction en attente
+    cursor = conn.execute('''
+        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+        VALUES (?, 'withdrawal', ?, 'pending', ?)
+    ''', (session['user_id'], amount, f"withdrawal_{generate_transaction_hash()[:16]}"))
+    
+    withdrawal_id = cursor.lastrowid
+    
+    # Stocker l'adresse de retrait
+    conn.execute('''
+        UPDATE transactions 
+        SET transaction_hash = ? 
+        WHERE id = ?
+    ''', (f"{withdrawal_address}|{amount}", withdrawal_id))
+    
+    conn.commit()
+    conn.close()
+    
+    # Notifier l'admin via Telegram
+    if TELEGRAM_ENABLED:
+        notify_withdrawal_request(session['user_id'], amount, withdrawal_address, withdrawal_id)
+    
+    # Ajouter une notification à l'utilisateur
+    add_notification(
+        session['user_id'],
+        'Retrait en cours de traitement',
+        f'Votre demande de retrait de {amount} USDT est en cours de traitement.',
+        'info'
+    )
+    
+    return jsonify({'success': True, 'message': 'Demande de retrait soumise pour traitement'})
+
 @app.route('/admin')
 @admin_required
 def admin_dashboard():
@@ -859,6 +963,23 @@ if __name__ == '__main__':
         id='daily_profits'
     )
     scheduler.start()
+    
+    # Setup Telegram bot si disponible
+    if TELEGRAM_ENABLED:
+        telegram_app = setup_telegram_bot()
+        if telegram_app:
+            # Démarrer le bot en arrière-plan
+            def run_telegram_bot():
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                telegram_app.run_polling()
+            
+            telegram_thread = threading.Thread(target=run_telegram_bot, daemon=True)
+            telegram_thread.start()
+            print("✅ Bot Telegram démarré")
+        else:
+            print("❌ Impossible de démarrer le bot Telegram")
     
     # Shutdown scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())

@@ -360,7 +360,7 @@ function copyDepositAddress() {
     });
 }
 
-function submitDeposit() {
+async function submitDeposit() {
     const amount = document.getElementById('depositAmount').value;
     const hash = document.getElementById('transactionHash').value;
     
@@ -369,12 +369,35 @@ function submitDeposit() {
         return;
     }
     
-    // Simulate deposit (in real app, this would verify the transaction)
-    showNotification('Dépôt soumis pour vérification', 'success');
-    hideDepositModal();
+    try {
+        const response = await fetch('/deposit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: parseFloat(amount),
+                transaction_hash: hash
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            hideDepositModal();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showNotification(data.error || 'Erreur lors du dépôt', 'error');
+        }
+    } catch (error) {
+        showNotification('Erreur de connexion', 'error');
+    }
 }
 
-function submitWithdraw() {
+async function submitWithdraw() {
     const address = document.getElementById('withdrawAddress').value;
     const amount = parseFloat(document.getElementById('withdrawAmount').value);
     
@@ -388,9 +411,32 @@ function submitWithdraw() {
         return;
     }
     
-    // Simulate withdraw (in real app, this would process the withdrawal)
-    showNotification('Demande de retrait soumise pour traitement', 'success');
-    hideWithdrawModal();
+    try {
+        const response = await fetch('/withdraw', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: amount,
+                withdrawal_address: address
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(data.message, 'success');
+            hideWithdrawModal();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            showNotification(data.error || 'Erreur lors du retrait', 'error');
+        }
+    } catch (error) {
+        showNotification('Erreur de connexion', 'error');
+    }
 }
 
 // Update net amount calculation for withdrawal
