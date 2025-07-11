@@ -802,7 +802,6 @@ async def show_staking_plans(update: Update, context: ContextTypes.DEFAULT_TYPE)
     message = "💎 **PLANS STAKING**\n\n"
 
     # Limiter le nombre de plans affichés pour éviter les messages trop longs
-    ```python
     for i, plan in enumerate(plans[:3]):  # Limite à 3 plans maximum
         daily_rate = plan['annual_rate'] / 365
         total_return = daily_rate * plan['duration_days'] * 100
