@@ -224,36 +224,36 @@ def init_db():
     cursor.execute('''
         INSERT OR IGNORE INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
-        ('Plan Débutant', 'Parfait pour commencer', 0.05, 30, 50, 1000),
-        ('Plan Intermédiaire', 'Rendement équilibré', 0.08, 45, 500, 5000),
-        ('Plan Premium', 'Rendement élevé', 0.12, 60, 1000, 10000),
-        ('Plan VIP', 'Rendement exceptionnel', 0.15, 90, 5000, 50000)
+        ('Plan Débutant', 'Parfait pour commencer', 0.05, 30, 20, 1000),
+        ('Plan Intermédiaire', 'Rendement équilibré', 0.08, 45, 20, 5000),
+        ('Plan Premium', 'Rendement élevé', 0.12, 60, 20, 10000),
+        ('Plan VIP', 'Rendement exceptionnel', 0.15, 90, 20, 50000)
     ''')
     
     # Insert default Staking plans
     cursor.execute('''
         INSERT OR IGNORE INTO staking_plans (name, description, duration_days, annual_rate, min_amount, max_amount, penalty_rate)
         VALUES 
-        ('Staking Flexible', 'Staking à court terme', 15, 0.12, 100, 5000, 0.03),
-        ('Staking Standard', 'Équilibre rendement/flexibilité', 30, 0.18, 200, 10000, 0.05),
-        ('Staking Premium', 'Staking à long terme', 90, 0.25, 500, 25000, 0.08)
+        ('Staking Flexible', 'Staking à court terme', 15, 0.12, 20, 5000, 0.03),
+        ('Staking Standard', 'Équilibre rendement/flexibilité', 30, 0.18, 20, 10000, 0.05),
+        ('Staking Premium', 'Staking à long terme', 90, 0.25, 20, 25000, 0.08)
     ''')
     
     # Insert default Frozen plans
     cursor.execute('''
         INSERT OR IGNORE INTO frozen_plans (name, description, duration_days, total_return_rate, min_amount, max_amount)
         VALUES 
-        ('Plan Diamant', 'Investissement gelé 6 mois - 250% de retour', 180, 2.5, 1000, 50000),
-        ('Plan Platinum', 'Investissement gelé 12 mois - 400% de retour', 365, 4.0, 2000, 100000)
+        ('Plan Diamant', 'Investissement gelé 6 mois - 250% de retour', 180, 2.5, 20, 50000),
+        ('Plan Platinum', 'Investissement gelé 12 mois - 400% de retour', 365, 4.0, 20, 100000)
     ''')
     
     # Insert sample projects
     cursor.execute('''
         INSERT OR IGNORE INTO projects (title, description, category, target_amount, expected_return, duration_months, min_investment, max_investment, deadline)
         VALUES 
-        ('Ferme Solaire Éco', 'Projet de ferme solaire écologique avec retour sur investissement garanti', 'Énergie', 50000, 0.20, 18, 100, 5000, datetime("now", "+60 days")),
-        ('Immobilier Résidentiel', 'Développement immobilier dans une zone en expansion', 'Immobilier', 100000, 0.25, 24, 500, 10000, datetime("now", "+90 days")),
-        ('Agriculture Bio', 'Projet d''agriculture biologique avec débouchés garantis', 'Agriculture', 30000, 0.18, 12, 200, 3000, datetime("now", "+45 days"))
+        ('Ferme Solaire Éco', 'Projet de ferme solaire écologique avec retour sur investissement garanti', 'Énergie', 50000, 0.20, 18, 20, 5000, datetime("now", "+60 days")),
+        ('Immobilier Résidentiel', 'Développement immobilier dans une zone en expansion', 'Immobilier', 100000, 0.25, 24, 20, 10000, datetime("now", "+90 days")),
+        ('Agriculture Bio', 'Projet d''agriculture biologique avec débouchés garantis', 'Agriculture', 30000, 0.18, 12, 20, 3000, datetime("now", "+45 days"))
     ''')
     
     conn.commit()
