@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,38 +7,44 @@
     <title>{% block title %}InvestCrypto Pro{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e',
-                            950: '#082f49'
-                        },
-                        glass: {
-                            light: 'rgba(255, 255, 255, 0.1)',
-                            dark: 'rgba(0, 0, 0, 0.1)',
-                            border: 'rgba(255, 255, 255, 0.2)'
+                        neo: {
+                            black: '#121212',
+                            cyan: '#00E0FF',
+                            white: '#FFFFFF',
+                            purple: '#5F0A87',
+                            pink: '#A4508B',
+                            gray: {
+                                800: '#1F1F1F',
+                                700: '#2A2A2A',
+                                600: '#404040',
+                                500: '#666666',
+                                400: '#999999',
+                                300: '#CCCCCC'
+                            }
                         }
+                    },
+                    fontFamily: {
+                        'poppins': ['Poppins', 'sans-serif'],
+                        'inter': ['Inter', 'sans-serif']
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
                         'glow': 'glow 2s ease-in-out infinite alternate',
-                        'ripple': 'ripple 0.6s linear',
-                        'parallax': 'parallax 20s linear infinite',
-                        'gradient': 'gradient 15s ease infinite',
-                        'slide-in': 'slideIn 0.5s ease-out',
-                        'fade-in': 'fadeIn 0.8s ease-out'
+                        'pulse-slow': 'pulse 3s ease-in-out infinite',
+                        'slide-up': 'slideUp 0.6s ease-out',
+                        'fade-in': 'fadeIn 0.8s ease-out',
+                        'gradient-x': 'gradient-x 15s ease infinite',
+                        'spin-slow': 'spin 3s linear infinite'
                     },
                     keyframes: {
                         float: {
@@ -45,51 +52,42 @@
                             '50%': { transform: 'translateY(-20px)' }
                         },
                         glow: {
-                            '0%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)' },
-                            '100%': { boxShadow: '0 0 30px rgba(59, 130, 246, 0.8)' }
+                            '0%': { boxShadow: '0 0 20px rgba(0, 224, 255, 0.3)' },
+                            '100%': { boxShadow: '0 0 40px rgba(0, 224, 255, 0.6)' }
                         },
-                        ripple: {
-                            '0%': { transform: 'scale(0)', opacity: '1' },
-                            '100%': { transform: 'scale(4)', opacity: '0' }
-                        },
-                        parallax: {
-                            '0%': { transform: 'translateX(-100%)' },
-                            '100%': { transform: 'translateX(100%)' }
-                        },
-                        gradient: {
-                            '0%, 100%': { backgroundPosition: '0% 50%' },
-                            '50%': { backgroundPosition: '100% 50%' }
-                        },
-                        slideIn: {
-                            '0%': { transform: 'translateX(-100%)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' }
+                        slideUp: {
+                            '0%': { transform: 'translateY(100px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
                         },
                         fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                            '0%': { opacity: '0', transform: 'scale(0.9)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' }
+                        },
+                        'gradient-x': {
+                            '0%, 100%': { backgroundPosition: '0% 50%' },
+                            '50%': { backgroundPosition: '100% 50%' }
                         }
                     },
                     backdropBlur: {
-                        xs: '2px',
-                        sm: '4px',
-                        md: '8px',
-                        lg: '12px',
-                        xl: '16px',
-                        '2xl': '24px',
-                        '3xl': '40px'
+                        xs: '2px'
                     }
                 }
             }
         }
     </script>
+    
     <style>
         :root {
+            --neo-black: #121212;
+            --neo-cyan: #00E0FF;
+            --neo-white: #FFFFFF;
+            --neo-purple: #5F0A87;
+            --neo-pink: #A4508B;
+            --gradient-primary: linear-gradient(135deg, #5F0A87 0%, #A4508B 100%);
+            --gradient-cyber: linear-gradient(135deg, #00E0FF 0%, #5F0A87 100%);
             --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --glass-border: rgba(0, 224, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
         }
 
         * {
@@ -100,38 +98,49 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
+            background: var(--neo-black);
+            color: var(--neo-white);
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
         }
 
-        /* Particles Background */
-        .particles {
+        /* Animated Background */
+        body::before {
+            content: '';
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(95, 10, 135, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 224, 255, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(164, 80, 139, 0.2) 0%, transparent 50%);
+            animation: gradient-x 20s ease infinite;
+            z-index: -2;
+        }
+
+        /* Cyber Grid Background */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 224, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 224, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
             z-index: -1;
         }
 
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
         }
-
-        .particle:nth-child(1) { top: 20%; left: 20%; animation-delay: 0s; }
-        .particle:nth-child(2) { top: 40%; left: 60%; animation-delay: 2s; }
-        .particle:nth-child(3) { top: 60%; left: 10%; animation-delay: 4s; }
-        .particle:nth-child(4) { top: 80%; left: 80%; animation-delay: 1s; }
-        .particle:nth-child(5) { top: 10%; left: 50%; animation-delay: 3s; }
 
         /* Glassmorphism Components */
         .glass-card {
@@ -142,62 +151,66 @@
             box-shadow: var(--glass-shadow);
             border-radius: 20px;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neo-cyan), transparent);
+            opacity: 0.5;
         }
 
         .glass-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
+            box-shadow: 0 20px 60px rgba(0, 224, 255, 0.2);
+            border-color: var(--neo-cyan);
         }
 
         .glass-nav {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(18, 18, 18, 0.9);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(0, 224, 255, 0.1);
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #764ba2, #667eea);
-        }
-
-        /* Button Effects */
-        .btn-ripple {
+        /* Cyber Button Styles */
+        .btn-cyber {
             position: relative;
+            background: var(--gradient-cyber);
+            border: 1px solid var(--neo-cyan);
+            color: var(--neo-black);
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             overflow: hidden;
-            transform: translate3d(0, 0, 0);
+            transition: all 0.3s ease;
         }
 
-        .btn-ripple:before {
-            content: "";
+        .btn-cyber::before {
+            content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            transition: width 0.6s, height 0.6s;
-            transform: translate(-50%, -50%);
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
         }
 
-        .btn-ripple:active:before {
-            width: 300px;
-            height: 300px;
+        .btn-cyber:hover::before {
+            left: 100%;
+        }
+
+        .btn-cyber:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 224, 255, 0.4);
         }
 
         /* Navigation Styles */
@@ -211,14 +224,15 @@
             text-decoration: none;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
         }
 
         .nav-link:hover, .nav-link.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
+            background: linear-gradient(135deg, rgba(0, 224, 255, 0.1), rgba(95, 10, 135, 0.1));
+            color: var(--neo-cyan);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 224, 255, 0.2);
         }
 
         .nav-link::before {
@@ -228,9 +242,10 @@
             left: 0;
             width: 0;
             height: 100%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            background: var(--gradient-cyber);
             border-radius: 15px;
             transition: width 0.3s ease;
+            opacity: 0.1;
         }
 
         .nav-link:hover::before {
@@ -245,77 +260,114 @@
             text-decoration: none;
             border-radius: 12px;
             margin: 8px 0;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 224, 255, 0.05);
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
 
         .mobile-nav-link:hover, .mobile-nav-link.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
+            background: linear-gradient(135deg, rgba(0, 224, 255, 0.15), rgba(95, 10, 135, 0.15));
+            color: var(--neo-cyan);
             transform: translateX(10px);
         }
 
-        /* Dropdown Styles */
-        .dropdown-menu {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
 
-        .dropdown-item {
-            padding: 12px 20px;
-            color: #374151;
-            transition: all 0.3s ease;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 224, 255, 0.1);
+            border-radius: 10px;
         }
 
-        .dropdown-item:hover {
-            background: rgba(59, 130, 246, 0.1);
-            color: #1e40af;
-            transform: translateX(5px);
+        ::-webkit-scrollbar-thumb {
+            background: var(--gradient-cyber);
+            border-radius: 10px;
         }
 
-        /* Floating Elements */
-        .floating-element {
-            position: absolute;
-            pointer-events: none;
-            opacity: 0.1;
-            animation: float 8s ease-in-out infinite;
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #A4508B, #00E0FF);
         }
 
-        .floating-1 { top: 10%; left: 10%; animation-delay: 0s; }
-        .floating-2 { top: 20%; right: 10%; animation-delay: 2s; }
-        .floating-3 { bottom: 20%; left: 15%; animation-delay: 4s; }
-        .floating-4 { bottom: 10%; right: 20%; animation-delay: 6s; }
-
-        /* Content fade-in animation */
-        .content-wrapper {
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        /* Utility Classes */
+        /* Text Gradient */
         .text-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--gradient-cyber);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .bg-gradient-primary {
-            background: var(--gradient-primary);
+        .text-cyber {
+            color: var(--neo-cyan);
+            text-shadow: 0 0 10px rgba(0, 224, 255, 0.5);
         }
 
-        .bg-gradient-secondary {
-            background: var(--gradient-secondary);
+        /* Floating Particles */
+        .cyber-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--neo-cyan);
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 8s ease-in-out infinite;
+            box-shadow: 0 0 10px var(--neo-cyan);
         }
 
-        .bg-gradient-accent {
-            background: var(--gradient-accent);
+        .cyber-particle:nth-child(odd) {
+            animation-delay: -2s;
+        }
+
+        .cyber-particle:nth-child(even) {
+            animation-delay: -4s;
+        }
+
+        /* Hover Effects */
+        .hover-glow:hover {
+            box-shadow: 0 0 30px rgba(0, 224, 255, 0.4);
+            transform: scale(1.02);
+        }
+
+        /* Loading Animation */
+        .loading-ring {
+            border: 3px solid rgba(0, 224, 255, 0.3);
+            border-top: 3px solid var(--neo-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: linear-gradient(135deg, rgba(0, 224, 255, 0.1), rgba(95, 10, 135, 0.1));
+            border: 1px solid rgba(0, 224, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: linear-gradient(135deg, rgba(0, 224, 255, 0.15), rgba(95, 10, 135, 0.15));
+            transform: translateY(-5px);
+        }
+
+        /* Form Styles */
+        .form-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 224, 255, 0.3);
+            color: var(--neo-white);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--neo-cyan);
+            box-shadow: 0 0 20px rgba(0, 224, 255, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
         }
 
         /* Responsive Typography */
@@ -333,50 +385,37 @@
     </style>
 </head>
 <body>
-    <!-- Particles Background -->
-    <div class="particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
-
-    <!-- Floating Elements -->
-    <div class="floating-element floating-1">
-        <i class="fas fa-coins text-6xl text-yellow-400"></i>
-    </div>
-    <div class="floating-element floating-2">
-        <i class="fas fa-chart-line text-6xl text-blue-400"></i>
-    </div>
-    <div class="floating-element floating-3">
-        <i class="fas fa-bitcoin text-6xl text-orange-400"></i>
-    </div>
-    <div class="floating-element floating-4">
-        <i class="fas fa-gem text-6xl text-purple-400"></i>
+    <!-- Cyber Particles -->
+    <div class="fixed inset-0 pointer-events-none z-0">
+        <div class="cyber-particle" style="top: 10%; left: 10%;"></div>
+        <div class="cyber-particle" style="top: 20%; left: 80%;"></div>
+        <div class="cyber-particle" style="top: 60%; left: 15%;"></div>
+        <div class="cyber-particle" style="top: 80%; left: 70%;"></div>
+        <div class="cyber-particle" style="top: 30%; left: 50%;"></div>
+        <div class="cyber-particle" style="top: 70%; left: 30%;"></div>
     </div>
 
     <!-- Navigation -->
-    <nav class="glass-nav fixed w-full top-0 z-50 border-b border-white/10">
+    <nav class="glass-nav fixed w-full top-0 z-50 border-b border-neo-cyan/10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20">
                 <!-- Logo -->
                 <div class="flex items-center">
                     <div class="flex-shrink-0 flex items-center">
-                        <div class="bg-gradient-primary p-3 rounded-2xl mr-4 shadow-lg animate-glow">
-                            <i class="fas fa-chart-line text-2xl text-white"></i>
+                        <div class="bg-gradient-to-r from-neo-cyan to-neo-purple p-3 rounded-2xl mr-4 shadow-lg animate-glow">
+                            <i class="fas fa-chart-line text-2xl text-neo-black"></i>
                         </div>
                         <div class="hidden sm:block">
-                            <h1 class="text-2xl lg:text-3xl font-bold text-white">
+                            <h1 class="text-2xl lg:text-3xl font-bold font-poppins text-neo-white">
                                 InvestCrypto 
                                 <span class="text-gradient">Pro</span>
                             </h1>
-                            <div class="text-sm text-white/70 font-medium tracking-wider hidden lg:block">
-                                PLATEFORME D'INVESTISSEMENT PREMIUM
+                            <div class="text-sm text-neo-cyan font-medium tracking-wider hidden lg:block font-inter">
+                                NEXT-GEN CRYPTO INVESTMENT
                             </div>
                         </div>
                         <div class="sm:hidden">
-                            <span class="text-xl font-bold text-white">IC <span class="text-gradient">Pro</span></span>
+                            <span class="text-xl font-bold font-poppins text-neo-white">IC <span class="text-gradient">Pro</span></span>
                         </div>
                     </div>
                 </div>
@@ -385,7 +424,7 @@
                 <!-- Desktop Navigation -->
                 <div class="hidden lg:flex items-center space-x-2">
                     <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'dashboard' }}">
-                        <div class="bg-blue-500/20 p-2 rounded-lg mr-3">
+                        <div class="bg-neo-cyan/20 p-2 rounded-lg mr-3">
                             <i class="fas fa-tachometer-alt"></i>
                         </div>
                         Dashboard
@@ -403,13 +442,13 @@
                         Staking
                     </a>
                     <a href="{{ url_for('frozen_plans') }}" class="nav-link {{ 'active' if request.endpoint == 'frozen_plans' }}">
-                        <div class="bg-purple-500/20 p-2 rounded-lg mr-3">
+                        <div class="bg-neo-purple/20 p-2 rounded-lg mr-3">
                             <i class="fas fa-gem"></i>
                         </div>
                         Plans Gelés
                     </a>
                     <a href="{{ url_for('projects') }}" class="nav-link {{ 'active' if request.endpoint == 'projects' }}">
-                        <div class="bg-purple-500/20 p-2 rounded-lg mr-3">
+                        <div class="bg-neo-pink/20 p-2 rounded-lg mr-3">
                             <i class="fas fa-project-diagram"></i>
                         </div>
                         Projets
@@ -422,14 +461,14 @@
                     </a>
 
                     <!-- Balance Display -->
-                    <div class="glass-card px-4 py-3 ml-4">
+                    <div class="glass-card px-4 py-3 ml-4 hover-glow">
                         <div class="flex items-center">
-                            <div class="bg-gradient-accent p-2 rounded-full mr-3">
-                                <i class="fas fa-wallet text-white"></i>
+                            <div class="bg-gradient-to-r from-neo-cyan to-neo-purple p-2 rounded-full mr-3">
+                                <i class="fas fa-wallet text-neo-black"></i>
                             </div>
                             <div>
-                                <div class="text-xs text-white/70">Solde</div>
-                                <div class="text-sm font-bold text-white">0.00 USDT</div>
+                                <div class="text-xs text-neo-white/70 font-inter">Solde</div>
+                                <div class="text-sm font-bold text-neo-cyan font-poppins">0.00 USDT</div>
                             </div>
                         </div>
                     </div>
@@ -438,22 +477,24 @@
                     <div class="relative group ml-4">
                         <button class="nav-link">
                             <div class="bg-gray-500/20 p-2 rounded-full mr-3">
-                                <i class="fas fa-user text-white"></i>
+                                <i class="fas fa-user text-neo-cyan"></i>
                             </div>
                             <span>{{ session.first_name }}</span>
                             <i class="fas fa-chevron-down ml-2 text-sm"></i>
                         </button>
 
                         <div class="dropdown-menu absolute right-0 mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                            <a href="{{ url_for('profile') }}" class="dropdown-item flex items-center">
-                                <i class="fas fa-user-circle mr-3 text-gray-500"></i>
-                                Mon Profil
-                            </a>
-                            <div class="border-t border-gray-200"></div>
-                            <a href="{{ url_for('logout') }}" class="dropdown-item flex items-center text-red-600">
-                                <i class="fas fa-sign-out-alt mr-3"></i>
-                                Déconnexion
-                            </a>
+                            <div class="glass-card p-2">
+                                <a href="{{ url_for('profile') }}" class="block px-4 py-3 text-neo-white hover:text-neo-cyan hover:bg-neo-cyan/10 rounded-lg transition-all duration-300 font-inter">
+                                    <i class="fas fa-user-circle mr-3"></i>
+                                    Mon Profil
+                                </a>
+                                <div class="border-t border-neo-cyan/20 my-2"></div>
+                                <a href="{{ url_for('logout') }}" class="block px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all duration-300 font-inter">
+                                    <i class="fas fa-sign-out-alt mr-3"></i>
+                                    Déconnexion
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -461,17 +502,17 @@
                 <!-- Mobile Navigation -->
                 <div class="lg:hidden flex items-center space-x-3">
                     <!-- Mobile Balance -->
-                    <div class="glass-card px-3 py-2">
+                    <div class="glass-card px-3 py-2 hover-glow">
                         <div class="flex items-center">
-                            <div class="bg-gradient-accent p-1.5 rounded-full mr-2">
-                                <i class="fas fa-wallet text-white text-xs"></i>
+                            <div class="bg-gradient-to-r from-neo-cyan to-neo-purple p-1.5 rounded-full mr-2">
+                                <i class="fas fa-wallet text-neo-black text-xs"></i>
                             </div>
-                            <div class="text-xs font-bold text-white">0.00 USDT</div>
+                            <div class="text-xs font-bold text-neo-cyan font-poppins">0.00 USDT</div>
                         </div>
                     </div>
 
                     <!-- Mobile Menu Button -->
-                    <button id="mobile-menu-button" class="glass-card p-3 text-white hover:bg-white/10 transition-all duration-300">
+                    <button id="mobile-menu-button" class="glass-card p-3 text-neo-cyan hover:bg-neo-cyan/10 transition-all duration-300">
                         <i class="fas fa-bars text-lg"></i>
                     </button>
                 </div>
@@ -481,10 +522,10 @@
                     <a href="{{ url_for('login') }}" class="nav-link hidden sm:flex">
                         <i class="fas fa-sign-in-alt mr-2"></i>Connexion
                     </a>
-                    <a href="{{ url_for('login') }}" class="sm:hidden glass-card p-3 text-white">
+                    <a href="{{ url_for('login') }}" class="sm:hidden glass-card p-3 text-neo-cyan">
                         <i class="fas fa-sign-in-alt"></i>
                     </a>
-                    <a href="{{ url_for('register') }}" class="btn-ripple bg-gradient-accent hover:shadow-lg text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105">
+                    <a href="{{ url_for('register') }}" class="btn-cyber px-6 py-3 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105">
                         <span class="hidden sm:inline"><i class="fas fa-user-plus mr-2"></i>Inscription</span>
                         <span class="sm:hidden"><i class="fas fa-user-plus"></i></span>
                     </a>
@@ -495,7 +536,7 @@
 
         {% if session.user_id %}
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="lg:hidden hidden glass-nav border-t border-white/10">
+        <div id="mobile-menu" class="lg:hidden hidden glass-nav border-t border-neo-cyan/10">
             <div class="px-4 py-6 space-y-3">
                 <a href="{{ url_for('dashboard') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'dashboard' }}">
                     <i class="fas fa-tachometer-alt mr-3"></i>
@@ -521,7 +562,7 @@
                     <i class="fas fa-user mr-3"></i>
                     Profil
                 </a>
-                <div class="border-t border-white/20 my-4"></div>
+                <div class="border-t border-neo-cyan/20 my-4"></div>
                 <a href="{{ url_for('logout') }}" class="mobile-nav-link text-red-300 hover:text-red-100 hover:bg-red-500/20">
                     <i class="fas fa-sign-out-alt mr-3"></i>
                     Déconnexion
@@ -536,10 +577,10 @@
         {% if messages %}
             <div class="fixed top-24 right-4 z-50 space-y-3">
                 {% for category, message in messages %}
-                    <div class="glass-card p-4 border-l-4 border-{{ 'red' if category == 'error' else 'green' if category == 'success' else 'blue' }}-400 animate-slide-in">
+                    <div class="glass-card p-4 border-l-4 border-{{ 'red' if category == 'error' else 'green' if category == 'success' else 'neo-cyan' }}-400 animate-slide-up" data-aos="slide-left">
                         <div class="flex items-center">
-                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} text-{{ 'red' if category == 'error' else 'green' if category == 'success' else 'blue' }}-400 mr-3"></i>
-                            <span class="text-white">{{ message }}</span>
+                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} text-{{ 'red' if category == 'error' else 'green' if category == 'success' else 'neo-cyan' }}-400 mr-3"></i>
+                            <span class="text-neo-white font-inter">{{ message }}</span>
                         </div>
                     </div>
                 {% endfor %}
@@ -548,85 +589,77 @@
     {% endwith %}
 
     <!-- Main Content -->
-    <main class="content-wrapper pt-24 min-h-screen">
+    <main class="pt-24 min-h-screen relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {% block content %}{% endblock %}
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="glass-nav border-t border-white/10 mt-16">
+    <footer class="glass-nav border-t border-neo-cyan/10 mt-16 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
                 <div class="col-span-2 lg:col-span-1">
-                    <h3 class="text-xl font-bold text-white mb-4">
+                    <h3 class="text-xl font-bold text-neo-white mb-4 font-poppins">
                         InvestCrypto <span class="text-gradient">Pro</span>
                     </h3>
-                    <p class="text-white/70 text-sm leading-relaxed">
-                        Plateforme d'investissement crypto sécurisée avec rendements garantis et technologie blockchain avancée.
+                    <p class="text-neo-white/70 text-sm leading-relaxed font-inter">
+                        Plateforme d'investissement crypto nouvelle génération avec technologie blockchain avancée et IA.
                     </p>
                 </div>
                 <div>
-                    <h4 class="text-lg font-semibold text-white mb-4">Investissements</h4>
-                    <ul class="space-y-3 text-white/70 text-sm">
-                        <li><a href="{{ url_for('roi_plans') }}" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-percentage mr-2"></i>Plans ROI</a></li>
-                        <li><a href="{{ url_for('projects') }}" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-project-diagram mr-2"></i>Crowdfunding</a></li>
+                    <h4 class="text-lg font-semibold text-neo-cyan mb-4 font-poppins">Investissements</h4>
+                    <ul class="space-y-3 text-neo-white/70 text-sm font-inter">
+                        <li><a href="{{ url_for('roi_plans') }}" class="hover:text-neo-cyan transition-colors duration-300 flex items-center"><i class="fas fa-percentage mr-2"></i>Plans ROI</a></li>
+                        <li><a href="{{ url_for('projects') }}" class="hover:text-neo-cyan transition-colors duration-300 flex items-center"><i class="fas fa-project-diagram mr-2"></i>Crowdfunding</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="text-lg font-semibold text-white mb-4">Support</h4>
-                    <ul class="space-y-3 text-white/70 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-question-circle mr-2"></i>FAQ</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-envelope mr-2"></i>Contact</a></li>
+                    <h4 class="text-lg font-semibold text-neo-cyan mb-4 font-poppins">Support</h4>
+                    <ul class="space-y-3 text-neo-white/70 text-sm font-inter">
+                        <li><a href="#" class="hover:text-neo-cyan transition-colors duration-300 flex items-center"><i class="fas fa-question-circle mr-2"></i>FAQ</a></li>
+                        <li><a href="#" class="hover:text-neo-cyan transition-colors duration-300 flex items-center"><i class="fas fa-envelope mr-2"></i>Contact</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="text-lg font-semibold text-white mb-4">Sécurité</h4>
-                    <ul class="space-y-3 text-white/70 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-shield-alt mr-2"></i>KYC</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-file-contract mr-2"></i>Conditions</a></li>
+                    <h4 class="text-lg font-semibold text-neo-cyan mb-4 font-poppins">Sécurité</h4>
+                    <ul class="space-y-3 text-neo-white/70 text-sm font-inter">
+                        <li><a href="#" class="hover:text-neo-cyan transition-colors duration-300 flex items-center"><i class="fas fa-shield-alt mr-2"></i>KYC</a></li>
+                        <li><a href="#" class="hover:text-neo-cyan transition-colors duration-300 flex items-center"><i class="fas fa-file-contract mr-2"></i>Conditions</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="border-t border-white/20 mt-8 pt-8 text-center">
-                <p class="text-white/70 text-sm">
+            <div class="border-t border-neo-cyan/20 mt-8 pt-8 text-center">
+                <p class="text-neo-white/70 text-sm font-inter">
                     &copy; 2024 InvestCrypto Pro. Tous droits réservés. 
-                    <span class="text-gradient font-semibold">Powered by Blockchain Technology</span>
+                    <span class="text-gradient font-semibold">Powered by Next-Gen Technology</span>
                 </p>
             </div>
         </div>
     </footer>
 
     <script>
-        // Enhanced JavaScript functionality
-
-        // Intersection Observer for scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-fade-in');
-                }
-            });
-        }, observerOptions);
+        // Initialize AOS (Animate On Scroll)
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out-cubic',
+            once: true,
+            offset: 100
+        });
 
         // Enhanced notification system
         function showNotification(message, type = 'info', duration = 5000) {
             const notification = document.createElement('div');
-            notification.className = `fixed top-28 right-4 glass-card p-4 border-l-4 border-${type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue'}-400 z-50 animate-slide-in max-w-md`;
+            notification.className = `fixed top-28 right-4 glass-card p-4 border-l-4 border-${type === 'error' ? 'red' : type === 'success' ? 'green' : 'neo-cyan'}-400 z-50 animate-slide-up max-w-md`;
 
             const icon = type === 'error' ? 'exclamation-triangle' : type === 'success' ? 'check-circle' : 'info-circle';
-            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue';
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'neo-cyan';
 
             notification.innerHTML = `
                 <div class="flex items-center">
                     <i class="fas fa-${icon} text-${color}-400 mr-3"></i>
-                    <span class="text-white flex-1">${message}</span>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white/70 hover:text-white ml-3">
+                    <span class="text-neo-white flex-1 font-inter">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-neo-white/70 hover:text-neo-white ml-3">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -691,66 +724,33 @@
                 });
             }
 
-            // Initialize scroll animations
-            const animatedElements = document.querySelectorAll('.glass-card, .content-wrapper > *');
-            animatedElements.forEach(el => observer.observe(el));
+            // Add cyber glow effect to cards
+            const cards = document.querySelectorAll('.glass-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.boxShadow = '0 0 50px rgba(0, 224, 255, 0.3)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.boxShadow = '';
+                });
+            });
 
-            // Add ripple effect to buttons
-            const rippleButtons = document.querySelectorAll('.btn-ripple');
-            rippleButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
+            // Parallax effect for particles
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                const particles = document.querySelectorAll('.cyber-particle');
 
-                    ripple.style.width = ripple.style.height = size + 'px';
-                    ripple.style.left = x + 'px';
-                    ripple.style.top = y + 'px';
-                    ripple.classList.add('animate-ripple');
-
-                    this.appendChild(ripple);
-
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
+                particles.forEach((particle, index) => {
+                    const speed = 0.1 + (index * 0.05);
+                    particle.style.transform = `translateY(${scrolled * speed}px)`;
                 });
             });
         });
 
-        // Parallax effect for floating elements
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const parallaxElements = document.querySelectorAll('.floating-element');
-
-            parallaxElements.forEach((element, index) => {
-                const speed = 0.5 + (index * 0.1);
-                element.style.transform = `translateY(${scrolled * speed}px)`;
-            });
-        });
-
-        // Enhanced form validation
-        function validateForm(formElement) {
-            const inputs = formElement.querySelectorAll('input[required]');
-            let isValid = true;
-
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    input.classList.add('border-red-400');
-                    isValid = false;
-                } else {
-                    input.classList.remove('border-red-400');
-                    input.classList.add('border-green-400');
-                }
-            });
-
-            return isValid;
-        }
-
         // Auto-hide flash messages
         setTimeout(() => {
-            const flashMessages = document.querySelectorAll('.animate-slide-in');
+            const flashMessages = document.querySelectorAll('.animate-slide-up');
             flashMessages.forEach(message => {
                 message.style.opacity = '0';
                 message.style.transform = 'translateX(100%)';
