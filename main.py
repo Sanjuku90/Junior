@@ -1003,7 +1003,7 @@ if __name__ == '__main__':
 
                 user_thread = threading.Thread(target=run_user_bot, daemon=True)
                 user_thread.start()
-            print("✅ Bot Telegram utilisateur démarré")
+                print("✅ Bot Telegram utilisateur démarré")
         else:
             print("❌ Échec de la configuration du bot utilisateur")
     else:
