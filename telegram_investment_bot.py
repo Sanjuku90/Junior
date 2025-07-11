@@ -53,32 +53,53 @@ def add_notification(user_id, title, message, type='info'):
 def get_or_create_user_by_telegram_id(telegram_id, first_name=None, last_name=None, username=None):
     conn = get_db_connection()
 
-    # Vérifier si l'utilisateur existe avec telegram_id
-    user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    try:
+        # Vérifier si l'utilisateur existe avec telegram_id
+        user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    except sqlite3.OperationalError as e:
+        if "no such column: telegram_id" in str(e):
+            print("⚠️ Colonne telegram_id manquante, initialisation...")
+            conn.close()
+            init_telegram_db()
+            conn = get_db_connection()
+            try:
+                user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+            except sqlite3.OperationalError:
+                print("❌ Impossible d'accéder à la colonne telegram_id après initialisation")
+                conn.close()
+                return None
+        else:
+            print(f"❌ Erreur base de données: {e}")
+            conn.close()
+            return None
 
     if not user and first_name:
-        # Créer automatiquement un nouvel utilisateur
-        referral_code = generate_referral_code()
-        email = f"telegram_{telegram_id}@temp.local"  # Email temporaire
+        try:
+            # Créer automatiquement un nouvel utilisateur
+            referral_code = generate_referral_code()
+            email = f"telegram_{telegram_id}@temp.local"  # Email temporaire
 
-        cursor = conn.execute('''
-            INSERT INTO users (email, password_hash, first_name, last_name, referral_code, telegram_id, balance)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (email, 'telegram_user', first_name or 'Utilisateur', last_name or '', referral_code, telegram_id, 10.0))
+            cursor = conn.execute('''
+                INSERT INTO users (email, password_hash, first_name, last_name, referral_code, telegram_id, balance)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (email, 'telegram_user', first_name or 'Utilisateur', last_name or '', referral_code, telegram_id, 10.0))
 
-        user_id = cursor.lastrowid
-        conn.commit()
+            user_id = cursor.lastrowid
+            conn.commit()
 
-        # Récupérer l'utilisateur nouvellement créé
-        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+            # Récupérer l'utilisateur nouvellement créé
+            user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
 
-        # Ajouter notification de bienvenue
-        add_notification(
-            user_id,
-            'Bienvenue sur InvestCrypto Pro !',
-            'Votre compte a été créé automatiquement. Vous avez reçu 10 USDT de bonus de bienvenue !',
-            'success'
-        )
+            # Ajouter notification de bienvenue
+            add_notification(
+                user_id,
+                'Bienvenue sur InvestCrypto Pro !',
+                'Votre compte a été créé automatiquement. Vous avez reçu 10 USDT de bonus de bienvenue !',
+                'success'
+            )
+        except Exception as e:
+            print(f"❌ Erreur création utilisateur: {e}")
+            user = None
 
     conn.close()
     return user
@@ -93,10 +114,20 @@ def get_user_by_telegram_id(telegram_id):
             conn.close()
             init_telegram_db()
             conn = get_db_connection()
-            user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+            try:
+                user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+            except sqlite3.OperationalError:
+                # Si toujours une erreur, retourner None
+                print("❌ Impossible d'accéder à la colonne telegram_id")
+                user = None
         else:
-            raise e
-    conn.close()
+            print(f"❌ Erreur base de données: {e}")
+            user = None
+    except Exception as e:
+        print(f"❌ Erreur inattendue: {e}")
+        user = None
+    finally:
+        conn.close()
     return user
 
 # Ajouter une colonne telegram_id à la table users si elle n'existe pas
@@ -108,13 +139,54 @@ def init_telegram_db():
         columns = [column[1] for column in cursor.fetchall()]
         
         if 'telegram_id' not in columns:
-            conn.execute('ALTER TABLE users ADD COLUMN telegram_id INTEGER UNIQUE')
+            # Créer une nouvelle table avec la colonne telegram_id
+            conn.execute('''
+                CREATE TABLE users_new (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    email TEXT UNIQUE,
+                    password_hash TEXT,
+                    first_name TEXT NOT NULL,
+                    last_name TEXT,
+                    wallet_address TEXT,
+                    balance REAL DEFAULT 0.0,
+                    pending_balance REAL DEFAULT 0.0,
+                    kyc_status TEXT DEFAULT 'pending',
+                    referral_code TEXT UNIQUE,
+                    referred_by TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    two_fa_enabled BOOLEAN DEFAULT 0,
+                    telegram_id INTEGER UNIQUE
+                )
+            ''')
+            
+            # Copier les données existantes
+            conn.execute('''
+                INSERT INTO users_new (id, email, password_hash, first_name, last_name, 
+                                     wallet_address, balance, pending_balance, kyc_status, 
+                                     referral_code, referred_by, created_at, two_fa_enabled)
+                SELECT id, email, password_hash, first_name, last_name, 
+                       wallet_address, balance, pending_balance, kyc_status, 
+                       referral_code, referred_by, created_at, two_fa_enabled
+                FROM users
+            ''')
+            
+            # Supprimer l'ancienne table et renommer
+            conn.execute('DROP TABLE users')
+            conn.execute('ALTER TABLE users_new RENAME TO users')
+            
             conn.commit()
             print("✅ Colonne telegram_id ajoutée avec succès")
         else:
             print("✅ Colonne telegram_id existe déjà")
     except sqlite3.OperationalError as e:
         print(f"⚠️ Erreur lors de l'ajout de la colonne telegram_id: {e}")
+        # En cas d'erreur, essayer une approche alternative
+        try:
+            conn.execute('ALTER TABLE users ADD COLUMN telegram_id INTEGER')
+            conn.commit()
+            print("✅ Colonne telegram_id ajoutée sans contrainte UNIQUE")
+        except sqlite3.OperationalError:
+            print("❌ Impossible d'ajouter la colonne telegram_id")
     conn.close()
 
 # === COMMANDES PRINCIPALES ===
@@ -1665,10 +1737,25 @@ def setup_user_telegram_bot():
     application.add_handler(withdraw_handler)
     application.add_handler(invest_roi_handler)
     application.add_handler(CallbackQueryHandler(handle_callback))
+    
+    # Ajouter le gestionnaire d'erreur
+    application.add_error_handler(error_handler)
 
     return application
 
 # Point d'entrée principal
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Gestionnaire d'erreur global pour le bot"""
+    logger.error("Exception while handling an update:", exc_info=context.error)
+    
+    if update and update.effective_message:
+        try:
+            await update.effective_message.reply_text(
+                "❌ Une erreur s'est produite. Veuillez réessayer plus tard."
+            )
+        except:
+            pass
+
 async def start_user_bot():
     """Démarre le bot utilisateur"""
     if not TELEGRAM_BOT_TOKEN:
@@ -1679,6 +1766,9 @@ async def start_user_bot():
     if not app:
         print("❌ Échec de la configuration du bot utilisateur")
         return False
+
+    # Ajouter le gestionnaire d'erreur
+    app.add_error_handler(error_handler)
 
     try:
         print("🚀 Démarrage du bot utilisateur Telegram...")
