@@ -1669,20 +1669,27 @@ async def start_user_bot():
             drop_pending_updates=True
         )
         print("✅ Bot utilisateur Telegram démarré avec succès!")
-        import signal
+        
+        # Utiliser asyncio pour maintenir le bot en vie
         import asyncio
-
+        
         # Créer un event pour maintenir le bot en vie
         stop_event = asyncio.Event()
-
-        def signal_handler():
+        
+        # Fonction pour capturer les signaux d'arrêt
+        def signal_handler(signum, frame):
             stop_event.set()
-
+        
+        import signal
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        
         # Attendre indéfiniment ou jusqu'à interruption
         try:
             await stop_event.wait()
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, SystemExit):
             stop_event.set()
+        
         return True
     except Exception as e:
         logger.error(f"❌ Erreur bot utilisateur: {e}")
@@ -1690,6 +1697,7 @@ async def start_user_bot():
         return False
     finally:
         try:
+            await app.updater.stop()
             await app.stop()
             print("🛑 Bot utilisateur arrêté")
         except:

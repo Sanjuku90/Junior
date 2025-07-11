@@ -996,13 +996,15 @@ if __name__ == '__main__':
                                 drop_pending_updates=True
                             )
                             
-                            # Garder le bot en vie
-                            await user_bot_app.updater.idle()
+                            # Garder le bot en vie avec un simple sleep infini
+                            while True:
+                                await asyncio.sleep(1)
                             
                         except Exception as e:
                             print(f"❌ Erreur bot utilisateur: {e}")
                         finally:
                             try:
+                                await user_bot_app.updater.stop()
                                 await user_bot_app.stop()
                             except:
                                 pass
