@@ -987,11 +987,10 @@ if __name__ == '__main__':
                         try:
                             await telegram_app.initialize()
                             await telegram_app.start()
-                            await telegram_app.updater.start_polling(
+                            await telegram_app.run_polling(
                                 allowed_updates=["message", "callback_query"],
                                 drop_pending_updates=True
                             )
-                            await telegram_app.updater.idle()
                         except Exception as e:
                             print(f"❌ Erreur bot admin: {e}")
                         finally:
@@ -1026,12 +1025,11 @@ if __name__ == '__main__':
                                     print("🚀 Initialisation du bot utilisateur...")
                                     await user_bot_app.initialize()
                                     await user_bot_app.start()
-                                    await user_bot_app.updater.start_polling(
+                                    await user_bot_app.run_polling(
                                         allowed_updates=["message", "callback_query"],
                                         drop_pending_updates=True
                                     )
                                     print("✅ Bot utilisateur en cours d'exécution")
-                                    await user_bot_app.updater.idle()
                                 except Exception as e:
                                     print(f"❌ Erreur bot utilisateur: {e}")
                                 finally:

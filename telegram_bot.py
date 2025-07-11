@@ -488,7 +488,7 @@ async def start_bot_polling():
     global _bot_instance
     if not _bot_instance:
         return False
-    
+
     try:
         await _bot_instance.initialize()
         await _bot_instance.start()
@@ -501,7 +501,7 @@ async def start_bot_polling():
         return False
     finally:
         await _bot_instance.stop()
-    
+
     return True
 
 def run_bot_sync():
