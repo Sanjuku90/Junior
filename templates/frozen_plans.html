@@ -103,17 +103,15 @@
 <!-- Frozen Investment Modal -->
 <div id="frozenModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg w-full max-w-md max-h-screen overflow-y-auto">
-            <div class="sticky top-0 bg-white p-6 pb-4 border-b border-gray-200">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-semibold" id="frozenModalTitle">Investissement Gelé</h3>
-                    <button onclick="hideFrozenModal()" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold" id="frozenModalTitle">Investissement Gelé</h3>
+                <button onclick="hideFrozenModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
 
-            <div class="p-6 space-y-4">
+            <div class="space-y-4">
                 <div class="bg-red-50 border border-red-200 rounded-lg p-3">
                     <div class="text-sm text-red-600 mb-2">⚠️ Conditions importantes</div>
                     <ul class="text-xs text-red-700 space-y-1">
@@ -144,14 +142,12 @@
                     <div class="text-xs text-green-600">à l'échéance</div>
                 </div>
 
-                <div class="flex items-start">
-                    <input type="checkbox" id="acceptTerms" class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
-                    <label for="acceptTerms" class="ml-2 text-sm text-gray-700">
-                        J'accepte que mes fonds soient bloqués pendant toute la durée du plan et je comprends qu'aucun retrait anticipé n'est possible.
-                    </label>
+                <div class="flex items-center">
+                    <input type="checkbox" id="acceptTerms" class="mr-2">
+                    <label for="acceptTerms" class="text-sm text-gray-600">J'accepte que mes fonds soient bloqués pendant toute la durée</label>
                 </div>
 
-                <button onclick="submitFrozenInvestment()" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                <button onclick="submitFrozenInvestment()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md">
                     Confirmer l'investissement gelé
                 </button>
             </div>
@@ -197,7 +193,9 @@ document.getElementById('frozenInvestAmount').addEventListener('input', function
     }
 });
 
-function submitFrozenInvestment() {
+async function submitFrozenInvestment() {
+    if (!currentFrozenPlan) return;
+
     const amount = parseFloat(document.getElementById('frozenInvestAmount').value);
     const acceptTerms = document.getElementById('acceptTerms').checked;
 
