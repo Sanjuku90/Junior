@@ -653,6 +653,10 @@ async def show_roi_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
 
+    # Limiter la longueur du message
+    if len(message) > 4000:
+        message = message[:3900] + "\n\n✂️ Message tronqué..."
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def invest_roi_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1041,9 +1045,13 @@ async def show_referral_system(update: Update, context: ContextTypes.DEFAULT_TYP
 async def deposit_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Début du processus de dépôt"""
     await update.callback_query.answer()
+    user = get_user_by_telegram_id(update.effective_user.id)
+    
+    if not user:
+        await update.callback_query.edit_message_text("❌ Veuillez vous connecter d'abord.")
+        return ConversationHandler.END
 
-    message = f"""
-💳 **EFFECTUER UN DÉPÔT**
+    message = """💳 **EFFECTUER UN DÉPÔT**
 
 🔹 **Adresse de dépôt USDT (TRC20) :**
 `TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6`
@@ -1060,8 +1068,7 @@ async def deposit_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 • Toute autre crypto sera perdue
 • Vérifiez l'adresse avant envoi
 
-💰 **Entrez le montant déposé (en USDT) :**
-    """
+💰 **Entrez le montant déposé (en USDT) :**"""
 
     await update.callback_query.edit_message_text(message, parse_mode='Markdown')
     return DEPOSIT_AMOUNT
@@ -1565,17 +1572,23 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         created_date = "Non disponible"
 
-    message = f"""
-👤 **MON PROFIL**
+    # Sécuriser les valeurs pour éviter les erreurs Markdown
+    first_name = user['first_name'] or 'Utilisateur'
+    last_name = user['last_name'] or ''
+    email = user['email'] or 'Non renseigné'
+    kyc_status = user['kyc_status'] or 'pending'
+    referred_by = user['referred_by'] or 'Aucun'
+    
+    message = f"""👤 **MON PROFIL**
 
 **Informations personnelles :**
-• Nom : {user['first_name']} {user['last_name'] or ''}
-• Email : {user['email'] or 'Non renseigné'}
+• Nom : {first_name} {last_name}
+• Email : {email}
 • Inscription : {created_date}
 
 **Statut compte :**
 • Niveau : {level}
-• KYC : {user['kyc_status']}
+• KYC : {kyc_status}
 • Solde : {user['balance']:.2f} USDT
 
 **Statistiques :**
@@ -1586,8 +1599,7 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 **Parrainage :**
 • Code : `{user['referral_code']}`
-• Parrainé par : {user['referred_by'] or 'Aucun'}
-    """
+• Parrainé par : {referred_by}"""
 
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
