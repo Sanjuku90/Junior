@@ -50,18 +50,43 @@ def add_notification(user_id, title, message, type='info'):
     conn.commit()
     conn.close()
 
-# Fonction pour obtenir l'utilisateur depuis Telegram ID
-def get_user_by_telegram_id(telegram_id):
+# Fonction pour obtenir ou créer l'utilisateur depuis Telegram ID
+def get_or_create_user_by_telegram_id(telegram_id, first_name=None, last_name=None, username=None):
     conn = get_db_connection()
     
-    # Vérifier d'abord si l'utilisateur existe avec telegram_id
+    # Vérifier si l'utilisateur existe avec telegram_id
     user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
     
-    if not user:
-        # Si pas de telegram_id, chercher par email si l'utilisateur s'est connecté récemment
-        conn.close()
-        return None
+    if not user and first_name:
+        # Créer automatiquement un nouvel utilisateur
+        referral_code = generate_referral_code()
+        email = f"telegram_{telegram_id}@temp.local"  # Email temporaire
+        
+        cursor = conn.execute('''
+            INSERT INTO users (email, password_hash, first_name, last_name, referral_code, telegram_id, balance)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (email, 'telegram_user', first_name or 'Utilisateur', last_name or '', referral_code, telegram_id, 10.0))
+        
+        user_id = cursor.lastrowid
+        conn.commit()
+        
+        # Récupérer l'utilisateur nouvellement créé
+        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        
+        # Ajouter notification de bienvenue
+        add_notification(
+            user_id,
+            'Bienvenue sur InvestCrypto Pro !',
+            'Votre compte a été créé automatiquement. Vous avez reçu 10 USDT de bonus de bienvenue !',
+            'success'
+        )
     
+    conn.close()
+    return user
+
+def get_user_by_telegram_id(telegram_id):
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
     conn.close()
     return user
 
@@ -79,47 +104,39 @@ def init_telegram_db():
 # === COMMANDES PRINCIPALES ===
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Commande /start - Menu principal"""
-    user = get_user_by_telegram_id(update.effective_user.id)
+    """Commande /start - Menu principal avec création automatique d'utilisateur"""
+    telegram_user = update.effective_user
+    
+    # Obtenir ou créer l'utilisateur automatiquement
+    user = get_or_create_user_by_telegram_id(
+        telegram_user.id,
+        telegram_user.first_name,
+        telegram_user.last_name,
+        telegram_user.username
+    )
     
     if not user:
-        # Utilisateur non connecté
-        keyboard = [
-            [InlineKeyboardButton("🔐 Se connecter", callback_data="login")],
-            [InlineKeyboardButton("📝 S'inscrire", callback_data="register")],
-            [InlineKeyboardButton("ℹ️ À propos", callback_data="about")],
-            [InlineKeyboardButton("📞 Support", url="https://t.me/InvestCryptoPro_Support")]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
+        # Si l'utilisateur existe déjà, le récupérer
+        user = get_user_by_telegram_id(telegram_user.id)
+    
+    if user:
+        # Afficher le menu principal directement
+        await show_main_menu(update, context, user)
+    else:
+        # Erreur de création d'utilisateur
         message = """
-🚀 **BIENVENUE SUR INVESTCRYPTO PRO**
+❌ **ERREUR DE CONNEXION**
 
-💎 **Plateforme d'investissement crypto nouvelle génération**
+Une erreur s'est produite lors de la création de votre compte.
+Veuillez réessayer dans quelques instants.
 
-📈 **Nos plans d'investissement :**
-• Plans ROI : jusqu'à 15% par jour
-• Staking : rendements annuels jusqu'à 25%
-• Projets crowdfunding : 18-25% de retour
-• Plans gelés : jusqu'à 400% sur 12 mois
-
-🔒 **Sécurité maximale :**
-• Fonds protégés en cold storage
-• Vérifications KYC strictes
-• Support client 24/7
-
-💰 **Commencez avec seulement 20 USDT !**
-
-Connectez-vous ou créez un compte pour commencer :
+📞 **Support :** @InvestCryptoPro_Support
         """
         
         if hasattr(update, 'message') and update.message:
-            await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+            await update.message.reply_text(message, parse_mode='Markdown')
         else:
-            await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
-    else:
-        # Utilisateur connecté - Menu principal
-        await show_main_menu(update, context, user)
+            await update.callback_query.edit_message_text(message, parse_mode='Markdown')
 
 async def show_main_menu(update, context, user):
     """Affiche le menu principal pour un utilisateur connecté"""
@@ -419,7 +436,7 @@ async def show_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_user_by_telegram_id(update.effective_user.id)
     
     if not user:
-        await update.callback_query.edit_message_text("❌ Veuillez vous connecter d'abord.")
+        await update.callback_query.edit_message_text("❌ Erreur lors de la récupération de vos données.")
         return
     
     conn = get_db_connection()
@@ -1250,13 +1267,10 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = get_user_by_telegram_id(update.effective_user.id)
     
     if data == "main_menu":
-        if user:
-            await show_main_menu(update, context, user)
-        else:
-            await start(update, context)
+        await start(update, context)
     
     elif data == "about":
-        keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="start")]]
+        keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="main_menu")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         message = """
@@ -1591,28 +1605,7 @@ def setup_user_telegram_bot():
         print(f"❌ Erreur configuration bot utilisateur: {e}")
         return None
     
-    # Handlers de conversation pour l'inscription
-    register_handler = ConversationHandler(
-        entry_points=[CallbackQueryHandler(register_start, pattern="^register$")],
-        states={
-            REGISTER_EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, register_email)],
-            REGISTER_PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, register_password)],
-            REGISTER_FIRSTNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, register_firstname)],
-            REGISTER_LASTNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, register_lastname)],
-            REGISTER_REFERRAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, register_referral)],
-        },
-        fallbacks=[CommandHandler('cancel', cancel)]
-    )
-    
-    # Handlers de conversation pour la connexion
-    login_handler = ConversationHandler(
-        entry_points=[CallbackQueryHandler(login_start, pattern="^login$")],
-        states={
-            LOGIN_EMAIL: [MessageHandler(filters.TEXT & ~filters.COMMAND, login_email)],
-            LOGIN_PASSWORD: [MessageHandler(filters.TEXT & ~filters.COMMAND, login_password)],
-        },
-        fallbacks=[CommandHandler('cancel', cancel)]
-    )
+    # Plus besoin de handlers d'inscription/connexion - authentification automatique via Telegram ID
     
     # Handlers de conversation pour les dépôts
     deposit_handler = ConversationHandler(
@@ -1645,8 +1638,6 @@ def setup_user_telegram_bot():
     
     # Ajouter tous les handlers
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(register_handler)
-    application.add_handler(login_handler)
     application.add_handler(deposit_handler)
     application.add_handler(withdraw_handler)
     application.add_handler(invest_roi_handler)
