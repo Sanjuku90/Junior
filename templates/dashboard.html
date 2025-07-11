@@ -1,182 +1,144 @@
-
 {% extends "base.html" %}
 
 {% block title %}Dashboard - InvestCrypto Pro{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
-    <!-- Welcome Header -->
-    <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-        <div class="flex items-center justify-between">
+    <!-- Welcome Card -->
+    <div class="balance-card">
+        <div class="flex items-center justify-between mb-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Bienvenue, {{ user.first_name }}!</h1>
-                <p class="text-gray-800 font-medium">Voici un aperçu de vos investissements</p>
+                <h1 class="text-xl font-bold text-white">Bienvenue, {{ user.first_name }}!</h1>
+                <p class="text-white/80">Voici vos investissements</p>
             </div>
             <div class="text-right">
-                <div class="text-sm text-gray-700 font-medium">KYC Status</div>
-                <div class="text-lg font-bold {{ 'text-green-600' if user.kyc_status == 'approved' else 'text-yellow-600' if user.kyc_status == 'pending' else 'text-red-600' }}">
+                <div class="text-sm text-white/80">KYC Status</div>
+                <div class="text-lg font-bold {{ 'text-green-300' if user.kyc_status == 'approved' else 'text-yellow-300' if user.kyc_status == 'pending' else 'text-red-300' }}">
                     {{ user.kyc_status.title() }}
                 </div>
             </div>
         </div>
+
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-4">
+            <div class="text-white/80 text-sm mb-1">Solde disponible</div>
+            <div class="text-3xl font-bold text-white">{{ "%.2f"|format(user.balance) }} USDT</div>
+        </div>
     </div>
 
-    <!-- Balance Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-            <div class="flex items-center">
-                <div class="bg-green-100 p-3 rounded-full">
-                    <i class="fas fa-wallet text-green-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <div class="text-sm text-gray-700 font-semibold">Solde disponible</div>
-                    <div class="text-2xl font-bold text-gray-900">{{ "%.2f"|format(user.balance) }} USDT</div>
-                </div>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 gap-4">
+        <div class="stat-card text-center">
+            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-chart-line text-blue-600 text-xl"></i>
             </div>
+            <div class="text-2xl font-bold text-gray-900 mb-1">{{ investments|length }}</div>
+            <div class="text-sm text-gray-600">Investissements actifs</div>
         </div>
-        
-        <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-            <div class="flex items-center">
-                <div class="bg-blue-100 p-3 rounded-full">
-                    <i class="fas fa-chart-line text-blue-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <div class="text-sm text-gray-700 font-semibold">Investissements actifs</div>
-                    <div class="text-2xl font-bold text-gray-900">{{ investments|length }}</div>
-                </div>
+
+        <div class="stat-card text-center">
+            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-coins text-green-600 text-xl"></i>
             </div>
-        </div>
-        
-        <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-            <div class="flex items-center">
-                <div class="bg-purple-100 p-3 rounded-full">
-                    <i class="fas fa-coins text-purple-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <div class="text-sm text-gray-700 font-semibold">Profits totaux</div>
-                    <div class="text-2xl font-bold text-gray-900">
-                        {{ "%.2f"|format(investments|sum(attribute='total_earned')) }} USDT
-                    </div>
-                </div>
-            </div>
+            <div class="text-2xl font-bold text-gray-900 mb-1">{{ "%.2f"|format(investments|sum(attribute='total_earned')) }}</div>
+            <div class="text-sm text-gray-600">Profits totaux</div>
         </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Actions rapides</h2>
-        <div class="flex flex-wrap gap-4">
-            <a href="{{ url_for('roi_plans') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
+    <div class="card p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Actions rapides</h2>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{{ url_for('roi_plans') }}" class="btn btn-primary text-center">
                 <i class="fas fa-plus mr-2"></i>
                 Plans ROI
             </a>
-            <a href="{{ url_for('staking_plans') }}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
-                <i class="fas fa-lock mr-2"></i>
-                Staking
-            </a>
-            <a href="{{ url_for('frozen_plans') }}" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
-                <i class="fas fa-gem mr-2"></i>
-                Plans Gelés
-            </a>
-            <a href="{{ url_for('projects') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
+            <a href="{{ url_for('projects') }}" class="btn btn-secondary text-center">
                 <i class="fas fa-project-diagram mr-2"></i>
                 Projets
             </a>
-            <button onclick="showDepositModal()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
-                <i class="fas fa-deposit mr-2"></i>
-                Déposer des fonds
+            <button onclick="showDepositModal()" class="btn btn-success text-center">
+                <i class="fas fa-plus mr-2"></i>
+                Déposer
             </button>
+            <a href="{{ url_for('staking_plans') }}" class="btn btn-secondary text-center">
+                <i class="fas fa-lock mr-2"></i>
+                Staking
+            </a>
         </div>
     </div>
 
     <!-- Active Investments -->
-    <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Investissements ROI actifs</h2>
+    <div class="card p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Investissements actifs</h2>
         {% if investments %}
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="border-b-2 border-gray-300">
-                            <th class="text-left py-3 text-gray-800 font-bold">Plan</th>
-                            <th class="text-left py-3 text-gray-800 font-bold">Montant</th>
-                            <th class="text-left py-3 text-gray-800 font-bold">Rendement quotidien</th>
-                            <th class="text-left py-3 text-gray-800 font-bold">Total gagné</th>
-                            <th class="text-left py-3 text-gray-800 font-bold">Date de fin</th>
-                            <th class="text-left py-3 text-gray-800 font-bold">Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for investment in investments %}
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 text-gray-900 font-medium">{{ investment.plan_name }}</td>
-                            <td class="py-3 text-gray-900 font-semibold">{{ "%.2f"|format(investment.amount) }} USDT</td>
-                            <td class="py-3 text-green-700 font-bold">{{ "%.2f"|format(investment.daily_profit) }} USDT</td>
-                            <td class="py-3 text-blue-700 font-bold">{{ "%.2f"|format(investment.total_earned) }} USDT</td>
-                            <td class="py-3 text-gray-900">{{ investment.end_date.strftime('%d/%m/%Y') if investment.end_date else 'N/A' }}</td>
-                            <td class="py-3">
-                                <span class="bg-green-200 text-green-900 px-3 py-1 rounded-full text-sm font-bold">
-                                    {{ 'Actif' if investment.is_active else 'Terminé' }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="space-y-4">
+                {% for investment in investments %}
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="font-semibold text-gray-900">{{ investment.plan_name }}</h3>
+                            <p class="text-sm text-gray-600">{{ "%.2f"|format(investment.amount) }} USDT investi</p>
+                        </div>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                            {{ 'Actif' if investment.is_active else 'Terminé' }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <div class="text-gray-600">Profit quotidien</div>
+                            <div class="font-bold text-green-600">{{ "%.2f"|format(investment.daily_profit) }} USDT</div>
+                        </div>
+                        <div>
+                            <div class="text-gray-600">Total gagné</div>
+                            <div class="font-bold text-blue-600">{{ "%.2f"|format(investment.total_earned) }} USDT</div>
+                        </div>
+                    </div>
+
+                    {% if investment.end_date %}
+                    <div class="mt-3 pt-3 border-t border-gray-200">
+                        <div class="text-xs text-gray-600">
+                            Fin le {{ investment.end_date.strftime('%d/%m/%Y') }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
             </div>
         {% else %}
-            <div class="text-center py-8 bg-gray-50 rounded-lg">
-                <i class="fas fa-chart-line text-4xl mb-4 text-gray-600"></i>
-                <p class="text-gray-800 font-medium text-lg mb-2">Aucun investissement ROI actif</p>
-                <a href="{{ url_for('roi_plans') }}" class="text-blue-600 hover:text-blue-800 font-semibold underline">Découvrir nos plans</a>
+            <div class="text-center py-8">
+                <i class="fas fa-chart-line text-4xl text-gray-300 mb-4"></i>
+                <p class="text-gray-600 mb-4">Aucun investissement actif</p>
+                <a href="{{ url_for('roi_plans') }}" class="btn btn-primary">Découvrir nos plans</a>
             </div>
         {% endif %}
     </div>
 
     <!-- Project Investments -->
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Investissements dans les projets</h2>
-        {% if project_investments %}
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="border-b">
-                            <th class="text-left py-2">Projet</th>
-                            <th class="text-left py-2">Montant investi</th>
-                            <th class="text-left py-2">Rendement attendu</th>
-                            <th class="text-left py-2">Date d'investissement</th>
-                            <th class="text-left py-2">Statut</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for investment in project_investments %}
-                        <tr class="border-b">
-                            <td class="py-3">{{ investment.title }}</td>
-                            <td class="py-3">{{ "%.2f"|format(investment.amount) }} USDT</td>
-                            <td class="py-3 text-green-600">{{ "%.0f"|format(investment.expected_return * 100) }}%</td>
-                            <td class="py-3">{{ investment.investment_date.strftime('%d/%m/%Y') if investment.investment_date else 'N/A' }}</td>
-                            <td class="py-3">
-                                <span class="bg-{{ 'blue' if investment.status == 'collecting' else 'green' if investment.status == 'active' else 'gray' }}-100 text-{{ 'blue' if investment.status == 'collecting' else 'green' if investment.status == 'active' else 'gray' }}-800 px-2 py-1 rounded text-sm">
-                                    {{ investment.status.title() }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    {% if project_investments %}
+    <div class="card p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Projets financés</h2>
+        <div class="space-y-3">
+            {% for investment in project_investments %}
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                <div>
+                    <div class="font-medium text-gray-900">{{ investment.title }}</div>
+                    <div class="text-sm text-gray-600">{{ "%.2f"|format(investment.amount) }} USDT</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm font-bold text-green-600">+{{ "%.0f"|format(investment.expected_return * 100) }}%</div>
+                    <div class="text-xs text-gray-500">{{ investment.status.title() }}</div>
+                </div>
             </div>
-        {% else %}
-            <div class="text-center py-8 text-gray-500">
-                <i class="fas fa-project-diagram text-4xl mb-4"></i>
-                <p>Aucun investissement dans les projets</p>
-                <a href="{{ url_for('projects') }}" class="text-blue-500 hover:text-blue-700">Découvrir les projets</a>
-            </div>
-        {% endif %}
+            {% endfor %}
+        </div>
     </div>
+    {% endif %}
 
     <!-- Notifications -->
     {% if notifications %}
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Notifications récentes</h2>
+    <div class="card p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">Notifications récentes</h2>
         <div class="space-y-3">
             {% for notification in notifications %}
             <div class="flex items-start p-3 bg-gray-50 rounded-lg">
@@ -196,41 +158,38 @@
 </div>
 
 <!-- Deposit Modal -->
-<div id="depositModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Déposer des fonds</h3>
-                <button onclick="hideDepositModal()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
+<div id="depositModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-gray-900">Déposer des fonds</h3>
+            <button onclick="hideDepositModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <div class="bg-blue-50 p-4 rounded-xl">
+                <div class="text-sm text-blue-800 mb-2">
+                    <strong>Adresse USDT (TRC20):</strong>
+                </div>
+                <div class="bg-white p-3 rounded-lg font-mono text-sm break-all">
+                    TUWxxx...example
+                </div>
             </div>
-            
-            <div class="space-y-4">
-                <div class="bg-yellow-50 p-4 rounded-lg">
-                    <div class="flex items-center">
-                        <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
-                        <div class="text-sm text-yellow-800">
-                            <strong>Adresse de dépôt USDT (TRC20):</strong><br>
-                            <code class="bg-gray-100 px-2 py-1 rounded">TUWxxx...example</code>
-                        </div>
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Montant à déposer</label>
-                    <input type="number" id="depositAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Montant en USDT">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Hash de transaction</label>
-                    <input type="text" id="transactionHash" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Hash de la transaction">
-                </div>
-                
-                <button onclick="submitDeposit()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">
-                    Confirmer le dépôt
-                </button>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Montant (USDT)</label>
+                <input type="number" id="depositAmount" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00">
             </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Hash de transaction</label>
+                <input type="text" id="transactionHash" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Hash de la transaction">
+            </div>
+
+            <button onclick="submitDeposit()" class="w-full btn btn-primary">
+                Confirmer le dépôt
+            </button>
         </div>
     </div>
 </div>
@@ -238,24 +197,29 @@
 <script>
 function showDepositModal() {
     document.getElementById('depositModal').classList.remove('hidden');
+    document.getElementById('depositModal').classList.add('flex');
 }
 
 function hideDepositModal() {
     document.getElementById('depositModal').classList.add('hidden');
+    document.getElementById('depositModal').classList.remove('flex');
 }
 
 function submitDeposit() {
     const amount = document.getElementById('depositAmount').value;
     const hash = document.getElementById('transactionHash').value;
-    
+
     if (!amount || !hash) {
         showNotification('Veuillez remplir tous les champs', 'error');
         return;
     }
-    
-    // Simulate deposit (in real app, this would verify the transaction)
+
     showNotification('Dépôt soumis pour vérification', 'success');
     hideDepositModal();
+
+    // Clear form
+    document.getElementById('depositAmount').value = '';
+    document.getElementById('transactionHash').value = '';
 }
 </script>
 {% endblock %}

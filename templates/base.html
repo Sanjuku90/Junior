@@ -22,741 +22,401 @@
                             700: '#0369a1',
                             800: '#075985',
                             900: '#0c4a6e',
-                            950: '#082f49'
                         },
-                        glass: {
-                            light: 'rgba(255, 255, 255, 0.1)',
-                            dark: 'rgba(0, 0, 0, 0.1)',
-                            border: 'rgba(255, 255, 255, 0.2)'
-                        }
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                        'ripple': 'ripple 0.6s linear',
-                        'parallax': 'parallax 20s linear infinite',
-                        'gradient': 'gradient 15s ease infinite',
-                        'slide-in': 'slideIn 0.5s ease-out',
-                        'fade-in': 'fadeIn 0.8s ease-out'
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-20px)' }
-                        },
-                        glow: {
-                            '0%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)' },
-                            '100%': { boxShadow: '0 0 30px rgba(59, 130, 246, 0.8)' }
-                        },
-                        ripple: {
-                            '0%': { transform: 'scale(0)', opacity: '1' },
-                            '100%': { transform: 'scale(4)', opacity: '0' }
-                        },
-                        parallax: {
-                            '0%': { transform: 'translateX(-100%)' },
-                            '100%': { transform: 'translateX(100%)' }
-                        },
-                        gradient: {
-                            '0%, 100%': { backgroundPosition: '0% 50%' },
-                            '50%': { backgroundPosition: '100% 50%' }
-                        },
-                        slideIn: {
-                            '0%': { transform: 'translateX(-100%)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' }
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' }
-                        }
-                    },
-                    backdropBlur: {
-                        xs: '2px',
-                        sm: '4px',
-                        md: '8px',
-                        lg: '12px',
-                        xl: '16px',
-                        '2xl': '24px',
-                        '3xl': '40px'
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                        dark: '#1f2937',
+                        light: '#f9fafb'
                     }
                 }
             }
         }
     </script>
     <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-size: 400% 400%;
-            animation: gradient 15s ease infinite;
-            min-height: 100vh;
-            overflow-x: hidden;
+            background: #f8fafc;
         }
 
-        /* Particles Background */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .particle:nth-child(1) { top: 20%; left: 20%; animation-delay: 0s; }
-        .particle:nth-child(2) { top: 40%; left: 60%; animation-delay: 2s; }
-        .particle:nth-child(3) { top: 60%; left: 10%; animation-delay: 4s; }
-        .particle:nth-child(4) { top: 80%; left: 80%; animation-delay: 1s; }
-        .particle:nth-child(5) { top: 10%; left: 50%; animation-delay: 3s; }
-
-        /* Glassmorphism Components */
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
-        }
-
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #764ba2, #667eea);
-        }
-
-        /* Button Effects */
-        .btn-ripple {
-            position: relative;
-            overflow: hidden;
-            transform: translate3d(0, 0, 0);
-        }
-
-        .btn-ripple:before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            transition: width 0.6s, height 0.6s;
-            transform: translate(-50%, -50%);
-        }
-
-        .btn-ripple:active:before {
-            width: 300px;
-            height: 300px;
-        }
-
-        /* Navigation Styles */
-        .nav-link {
-            position: relative;
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            border-radius: 15px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 0;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
-            border-radius: 15px;
-            transition: width 0.3s ease;
-        }
-
-        .nav-link:hover::before {
-            width: 100%;
-        }
-
-        /* Mobile Navigation */
-        .mobile-nav-link {
-            display: block;
-            padding: 15px 20px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            border-radius: 12px;
-            margin: 8px 0;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .mobile-nav-link:hover, .mobile-nav-link.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            transform: translateX(10px);
-        }
-
-        /* Dropdown Styles */
-        .dropdown-menu {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .dropdown-item {
-            padding: 12px 20px;
-            color: #374151;
-            transition: all 0.3s ease;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .dropdown-item:hover {
-            background: rgba(59, 130, 246, 0.1);
-            color: #1e40af;
-            transform: translateX(5px);
-        }
-
-        /* Floating Elements */
-        .floating-element {
-            position: absolute;
-            pointer-events: none;
-            opacity: 0.1;
-            animation: float 8s ease-in-out infinite;
-        }
-
-        .floating-1 { top: 10%; left: 10%; animation-delay: 0s; }
-        .floating-2 { top: 20%; right: 10%; animation-delay: 2s; }
-        .floating-3 { bottom: 20%; left: 15%; animation-delay: 4s; }
-        .floating-4 { bottom: 10%; right: 20%; animation-delay: 6s; }
-
-        /* Content fade-in animation */
-        .content-wrapper {
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        /* Utility Classes */
-        .text-gradient {
+        .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
-        .bg-gradient-primary {
-            background: var(--gradient-primary);
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
         }
 
-        .bg-gradient-secondary {
-            background: var(--gradient-secondary);
+        .nav-mobile {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            z-index: 50;
+            padding: 8px 0;
         }
 
-        .bg-gradient-accent {
-            background: var(--gradient-accent);
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            color: #6b7280;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-radius: 12px;
+            margin: 0 4px;
         }
 
-        /* Responsive Typography */
-        @media (max-width: 768px) {
-            .text-responsive-lg { font-size: 1.5rem; }
-            .text-responsive-xl { font-size: 1.875rem; }
-            .text-responsive-2xl { font-size: 2.25rem; }
+        .nav-item.active {
+            color: #0ea5e9;
+            background: #f0f9ff;
         }
 
-        @media (min-width: 769px) {
-            .text-responsive-lg { font-size: 1.875rem; }
-            .text-responsive-xl { font-size: 2.25rem; }
-            .text-responsive-2xl { font-size: 3rem; }
+        .nav-item:hover {
+            color: #0ea5e9;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .nav-item span {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #0ea5e9;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0284c7;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .bottom-safe {
+            padding-bottom: 90px;
+        }
+
+        @media (min-width: 768px) {
+            .nav-mobile {
+                display: none;
+            }
+            .bottom-safe {
+                padding-bottom: 20px;
+            }
+        }
+
+        .desktop-nav {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 60;
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            border-left: 4px solid #10b981;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+        }
+
+        .notification.error {
+            border-left-color: #ef4444;
+        }
+
+        .notification.warning {
+            border-left-color: #f59e0b;
         }
     </style>
 </head>
-<body>
-    <!-- Particles Background -->
-    <div class="particles">
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-        <div class="particle"></div>
-    </div>
-
-    <!-- Floating Elements -->
-    <div class="floating-element floating-1">
-        <i class="fas fa-coins text-6xl text-yellow-400"></i>
-    </div>
-    <div class="floating-element floating-2">
-        <i class="fas fa-chart-line text-6xl text-blue-400"></i>
-    </div>
-    <div class="floating-element floating-3">
-        <i class="fas fa-bitcoin text-6xl text-orange-400"></i>
-    </div>
-    <div class="floating-element floating-4">
-        <i class="fas fa-gem text-6xl text-purple-400"></i>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="glass-nav fixed w-full top-0 z-50 border-b border-white/10">
+<body class="bg-gray-50">
+    <!-- Desktop Navigation -->
+    <nav class="desktop-nav hidden md:block">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20">
+            <div class="flex justify-between items-center h-16">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center">
-                        <div class="bg-gradient-primary p-3 rounded-2xl mr-4 shadow-lg animate-glow">
-                            <i class="fas fa-chart-line text-2xl text-white"></i>
-                        </div>
-                        <div class="hidden sm:block">
-                            <h1 class="text-2xl lg:text-3xl font-bold text-white">
-                                InvestCrypto 
-                                <span class="text-gradient">Pro</span>
-                            </h1>
-                            <div class="text-sm text-white/70 font-medium tracking-wider hidden lg:block">
-                                PLATEFORME D'INVESTISSEMENT PREMIUM
-                            </div>
-                        </div>
-                        <div class="sm:hidden">
-                            <span class="text-xl font-bold text-white">IC <span class="text-gradient">Pro</span></span>
-                        </div>
+                    <div class="bg-primary-500 p-2 rounded-xl mr-3">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">InvestCrypto Pro</h1>
                     </div>
                 </div>
 
                 {% if session.user_id %}
-                <!-- Desktop Navigation -->
-                <div class="hidden lg:flex items-center space-x-2">
-                    <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'dashboard' }}">
-                        <div class="bg-blue-500/20 p-2 rounded-lg mr-3">
-                            <i class="fas fa-tachometer-alt"></i>
-                        </div>
-                        Dashboard
-                    </a>
-                    <a href="{{ url_for('roi_plans') }}" class="nav-link {{ 'active' if request.endpoint == 'roi_plans' }}">
-                        <div class="bg-green-500/20 p-2 rounded-lg mr-3">
-                            <i class="fas fa-percentage"></i>
-                        </div>
-                        Plans ROI
-                    </a>
-                    <a href="{{ url_for('staking_plans') }}" class="nav-link {{ 'active' if request.endpoint == 'staking_plans' }}">
-                        <div class="bg-yellow-500/20 p-2 rounded-lg mr-3">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                        Staking
-                    </a>
-                    <a href="{{ url_for('frozen_plans') }}" class="nav-link {{ 'active' if request.endpoint == 'frozen_plans' }}">
-                        <div class="bg-purple-500/20 p-2 rounded-lg mr-3">
-                            <i class="fas fa-gem"></i>
-                        </div>
-                        Plans Gelés
-                    </a>
-                    <a href="{{ url_for('projects') }}" class="nav-link {{ 'active' if request.endpoint == 'projects' }}">
-                        <div class="bg-purple-500/20 p-2 rounded-lg mr-3">
-                            <i class="fas fa-project-diagram"></i>
-                        </div>
-                        Projets
-                    </a>
-                    <a href="{{ url_for('profile') }}" class="nav-link {{ 'active' if request.endpoint == 'profile' }}">
-                        <div class="bg-indigo-500/20 p-2 rounded-lg mr-3">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        Profil
-                    </a>
+                <!-- Desktop Menu -->
+                <div class="flex items-center space-x-6">
+                    <a href="{{ url_for('dashboard') }}" class="text-gray-700 hover:text-primary-600 font-medium">Dashboard</a>
+                    <a href="{{ url_for('roi_plans') }}" class="text-gray-700 hover:text-primary-600 font-medium">Plans ROI</a>
+                    <a href="{{ url_for('projects') }}" class="text-gray-700 hover:text-primary-600 font-medium">Projets</a>
+                    <a href="{{ url_for('profile') }}" class="text-gray-700 hover:text-primary-600 font-medium">Profil</a>
 
-                    <!-- Balance Display -->
-                    <div class="glass-card px-4 py-3 ml-4">
-                        <div class="flex items-center">
-                            <div class="bg-gradient-accent p-2 rounded-full mr-3">
-                                <i class="fas fa-wallet text-white"></i>
-                            </div>
-                            <div>
-                                <div class="text-xs text-white/70">Solde</div>
-                                <div class="text-sm font-bold text-white">0.00 USDT</div>
-                            </div>
-                        </div>
+                    <!-- Balance -->
+                    <div class="bg-gray-100 px-4 py-2 rounded-xl">
+                        <span class="text-sm text-gray-600">Solde:</span>
+                        <span class="font-bold text-gray-900">0.00 USDT</span>
                     </div>
 
                     <!-- User Menu -->
-                    <div class="relative group ml-4">
-                        <button class="nav-link">
-                            <div class="bg-gray-500/20 p-2 rounded-full mr-3">
-                                <i class="fas fa-user text-white"></i>
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 text-gray-700 hover:text-primary-600">
+                            <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-white text-sm"></i>
                             </div>
-                            <span>{{ session.first_name }}</span>
-                            <i class="fas fa-chevron-down ml-2 text-sm"></i>
+                            <span class="font-medium">{{ session.first_name }}</span>
+                            <i class="fas fa-chevron-down text-sm"></i>
                         </button>
 
-                        <div class="dropdown-menu absolute right-0 mt-2 w-56 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                            <a href="{{ url_for('profile') }}" class="dropdown-item flex items-center">
-                                <i class="fas fa-user-circle mr-3 text-gray-500"></i>
-                                Mon Profil
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                            <a href="{{ url_for('profile') }}" class="block px-4 py-3 text-gray-700 hover:bg-gray-50">
+                                <i class="fas fa-user mr-2"></i>Mon Profil
                             </a>
-                            <div class="border-t border-gray-200"></div>
-                            <a href="{{ url_for('logout') }}" class="dropdown-item flex items-center text-red-600">
-                                <i class="fas fa-sign-out-alt mr-3"></i>
-                                Déconnexion
+                            <div class="border-t"></div>
+                            <a href="{{ url_for('logout') }}" class="block px-4 py-3 text-red-600 hover:bg-gray-50">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
                             </a>
                         </div>
                     </div>
-                </div>
-
-                <!-- Mobile Navigation -->
-                <div class="lg:hidden flex items-center space-x-3">
-                    <!-- Mobile Balance -->
-                    <div class="glass-card px-3 py-2">
-                        <div class="flex items-center">
-                            <div class="bg-gradient-accent p-1.5 rounded-full mr-2">
-                                <i class="fas fa-wallet text-white text-xs"></i>
-                            </div>
-                            <div class="text-xs font-bold text-white">0.00 USDT</div>
-                        </div>
-                    </div>
-
-                    <!-- Mobile Menu Button -->
-                    <button id="mobile-menu-button" class="glass-card p-3 text-white hover:bg-white/10 transition-all duration-300">
-                        <i class="fas fa-bars text-lg"></i>
-                    </button>
                 </div>
                 {% else %}
-                <!-- Guest Navigation -->
-                <div class="flex items-center space-x-3">
-                    <a href="{{ url_for('login') }}" class="nav-link hidden sm:flex">
-                        <i class="fas fa-sign-in-alt mr-2"></i>Connexion
-                    </a>
-                    <a href="{{ url_for('login') }}" class="sm:hidden glass-card p-3 text-white">
-                        <i class="fas fa-sign-in-alt"></i>
-                    </a>
-                    <a href="{{ url_for('register') }}" class="btn-ripple bg-gradient-accent hover:shadow-lg text-white px-6 py-3 rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105">
-                        <span class="hidden sm:inline"><i class="fas fa-user-plus mr-2"></i>Inscription</span>
-                        <span class="sm:hidden"><i class="fas fa-user-plus"></i></span>
-                    </a>
+                <!-- Guest Menu -->
+                <div class="flex items-center space-x-4">
+                    <a href="{{ url_for('login') }}" class="btn btn-secondary">Connexion</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">Inscription</a>
                 </div>
                 {% endif %}
             </div>
         </div>
-
-        {% if session.user_id %}
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="lg:hidden hidden glass-nav border-t border-white/10">
-            <div class="px-4 py-6 space-y-3">
-                <a href="{{ url_for('dashboard') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'dashboard' }}">
-                    <i class="fas fa-tachometer-alt mr-3"></i>
-                    Dashboard
-                </a>
-                <a href="{{ url_for('roi_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'roi_plans' }}">
-                    <i class="fas fa-percentage mr-3"></i>
-                    Plans ROI
-                </a>
-                 <a href="{{ url_for('staking_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'staking_plans' }}">
-                    <i class="fas fa-lock mr-3"></i>
-                    Staking
-                </a>
-                <a href="{{ url_for('frozen_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'frozen_plans' }}">
-                    <i class="fas fa-gem mr-3"></i>
-                    Plans Gelés
-                </a>
-                <a href="{{ url_for('projects') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'projects' }}">
-                    <i class="fas fa-project-diagram mr-3"></i>
-                    Projets
-                </a>
-                <a href="{{ url_for('profile') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'profile' }}">
-                    <i class="fas fa-user mr-3"></i>
-                    Profil
-                </a>
-                <div class="border-t border-white/20 my-4"></div>
-                <a href="{{ url_for('logout') }}" class="mobile-nav-link text-red-300 hover:text-red-100 hover:bg-red-500/20">
-                    <i class="fas fa-sign-out-alt mr-3"></i>
-                    Déconnexion
-                </a>
-            </div>
-        </div>
-        {% endif %}
     </nav>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden bg-white border-b sticky top-0 z-40">
+        <div class="flex items-center justify-between p-4">
+            <div class="flex items-center">
+                <div class="bg-primary-500 p-2 rounded-xl mr-3">
+                    <i class="fas fa-chart-line text-white"></i>
+                </div>
+                <h1 class="text-lg font-bold text-gray-900">InvestCrypto Pro</h1>
+            </div>
+
+            {% if session.user_id %}
+            <div class="flex items-center space-x-3">
+                <!-- Balance Mobile -->
+                <div class="bg-gray-100 px-3 py-2 rounded-lg">
+                    <div class="text-xs text-gray-600">Solde</div>
+                    <div class="font-bold text-sm">0.00 USDT</div>
+                </div>
+
+                <!-- Notifications -->
+                <button class="p-2 text-gray-600">
+                    <i class="fas fa-bell"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="fixed top-24 right-4 z-50 space-y-3">
-                {% for category, message in messages %}
-                    <div class="glass-card p-4 border-l-4 border-{{ 'red' if category == 'error' else 'green' if category == 'success' else 'blue' }}-400 animate-slide-in">
-                        <div class="flex items-center">
-                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} text-{{ 'red' if category == 'error' else 'green' if category == 'success' else 'blue' }}-400 mr-3"></i>
-                            <span class="text-white">{{ message }}</span>
+            {% for category, message in messages %}
+                <div class="notification {{ 'error' if category == 'error' else 'warning' if category == 'warning' else '' }}">
+                    <div class="flex items-start">
+                        <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} {{ 'text-red-500' if category == 'error' else 'text-green-500' if category == 'success' else 'text-blue-500' }} mr-3 mt-0.5"></i>
+                        <div class="flex-1">
+                            <p class="text-gray-900 font-medium">{{ message }}</p>
                         </div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600 ml-2">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                {% endfor %}
-            </div>
+                </div>
+            {% endfor %}
         {% endif %}
     {% endwith %}
 
     <!-- Main Content -->
-    <main class="content-wrapper pt-24 min-h-screen">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="bottom-safe">
+        <div class="max-w-7xl mx-auto px-4 py-6">
             {% block content %}{% endblock %}
         </div>
     </main>
 
+    {% if session.user_id %}
+    <!-- Mobile Navigation -->
+    <nav class="nav-mobile md:hidden">
+        <div class="flex justify-around">
+            <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }}">
+                <i class="fas fa-home"></i>
+                <span>Accueil</span>
+            </a>
+            <a href="{{ url_for('roi_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'roi_plans' }}">
+                <i class="fas fa-chart-line"></i>
+                <span>ROI</span>
+            </a>
+            <a href="{{ url_for('staking_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'staking_plans' }}">
+                <i class="fas fa-lock"></i>
+                <span>Staking</span>
+            </a>
+            <a href="{{ url_for('projects') }}" class="nav-item {{ 'active' if request.endpoint == 'projects' }}">
+                <i class="fas fa-project-diagram"></i>
+                <span>Projets</span>
+            </a>
+            <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }}">
+                <i class="fas fa-user"></i>
+                <span>Profil</span>
+            </a>
+        </div>
+    </nav>
+    {% endif %}
+
     <!-- Footer -->
-    <footer class="glass-nav border-t border-white/10 mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="col-span-2 lg:col-span-1">
-                    <h3 class="text-xl font-bold text-white mb-4">
-                        InvestCrypto <span class="text-gradient">Pro</span>
-                    </h3>
-                    <p class="text-white/70 text-sm leading-relaxed">
-                        Plateforme d'investissement crypto sécurisée avec rendements garantis et technologie blockchain avancée.
-                    </p>
+    <footer class="bg-white border-t mt-16 bottom-safe">
+        <div class="max-w-7xl mx-auto px-4 py-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="col-span-2 md:col-span-1">
+                    <h3 class="font-bold text-gray-900 mb-3">InvestCrypto Pro</h3>
+                    <p class="text-sm text-gray-600">Plateforme d'investissement crypto sécurisée avec rendements garantis.</p>
                 </div>
                 <div>
-                    <h4 class="text-lg font-semibold text-white mb-4">Investissements</h4>
-                    <ul class="space-y-3 text-white/70 text-sm">
-                        <li><a href="{{ url_for('roi_plans') }}" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-percentage mr-2"></i>Plans ROI</a></li>
-                        <li><a href="{{ url_for('projects') }}" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-project-diagram mr-2"></i>Crowdfunding</a></li>
+                    <h4 class="font-semibold text-gray-900 mb-3">Investissements</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="{{ url_for('roi_plans') }}">Plans ROI</a></li>
+                        <li><a href="{{ url_for('projects') }}">Crowdfunding</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="text-lg font-semibold text-white mb-4">Support</h4>
-                    <ul class="space-y-3 text-white/70 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-question-circle mr-2"></i>FAQ</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-envelope mr-2"></i>Contact</a></li>
+                    <h4 class="font-semibold text-gray-900 mb-3">Support</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Contact</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="text-lg font-semibold text-white mb-4">Sécurité</h4>
-                    <ul class="space-y-3 text-white/70 text-sm">
-                        <li><a href="#" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-shield-alt mr-2"></i>KYC</a></li>
-                        <li><a href="#" class="hover:text-white transition-colors duration-300 flex items-center"><i class="fas fa-file-contract mr-2"></i>Conditions</a></li>
+                    <h4 class="font-semibold text-gray-900 mb-3">Sécurité</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#">KYC</a></li>
+                        <li><a href="#">Conditions</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="border-t border-white/20 mt-8 pt-8 text-center">
-                <p class="text-white/70 text-sm">
-                    &copy; 2024 InvestCrypto Pro. Tous droits réservés. 
-                    <span class="text-gradient font-semibold">Powered by Blockchain Technology</span>
-                </p>
+            <div class="border-t mt-6 pt-6 text-center">
+                <p class="text-sm text-gray-600">&copy; 2024 InvestCrypto Pro. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
 
     <script>
-        // Enhanced JavaScript functionality
-
-        // Intersection Observer for scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-fade-in');
-                }
+        // Auto-hide notifications
+        setTimeout(() => {
+            const notifications = document.querySelectorAll('.notification');
+            notifications.forEach(notification => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
             });
-        }, observerOptions);
+        }, 5000);
 
-        // Enhanced notification system
-        function showNotification(message, type = 'info', duration = 5000) {
+        // Show notification function
+        function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
-            notification.className = `fixed top-28 right-4 glass-card p-4 border-l-4 border-${type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue'}-400 z-50 animate-slide-in max-w-md`;
-
-            const icon = type === 'error' ? 'exclamation-triangle' : type === 'success' ? 'check-circle' : 'info-circle';
-            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue';
-
+            notification.className = `notification ${type}`;
             notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-${icon} text-${color}-400 mr-3"></i>
-                    <span class="text-white flex-1">${message}</span>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-white/70 hover:text-white ml-3">
+                <div class="flex items-start">
+                    <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'} ${type === 'error' ? 'text-red-500' : 'text-green-500'} mr-3 mt-0.5"></i>
+                    <div class="flex-1">
+                        <p class="text-gray-900 font-medium">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-400 hover:text-gray-600 ml-2">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
             `;
-
             document.body.appendChild(notification);
 
             setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.style.opacity = '0';
-                    notification.style.transform = 'translateX(100%)';
-                    setTimeout(() => notification.remove(), 300);
-                }
-            }, duration);
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
         }
 
-        // Enhanced currency formatting
-        function formatCurrency(amount, currency = 'USD') {
+        // Format currency
+        function formatCurrency(amount, currency = 'USDT') {
             return new Intl.NumberFormat('fr-FR', {
-                style: 'currency',
-                currency: currency,
                 minimumFractionDigits: 2,
-                maximumFractionDigits: 8
-            }).format(amount);
+                maximumFractionDigits: 2
+            }).format(amount) + ' ' + currency;
         }
-
-        // Mobile menu functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-
-            if (mobileMenuButton && mobileMenu) {
-                mobileMenuButton.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    mobileMenu.classList.toggle('hidden');
-
-                    const icon = mobileMenuButton.querySelector('i');
-                    if (mobileMenu.classList.contains('hidden')) {
-                        icon.className = 'fas fa-bars text-lg';
-                    } else {
-                        icon.className = 'fas fa-times text-lg';
-                    }
-                });
-
-                // Close menu when clicking on a link
-                const mobileLinks = mobileMenu.querySelectorAll('a');
-                mobileLinks.forEach(link => {
-                    link.addEventListener('click', function() {
-                        mobileMenu.classList.add('hidden');
-                        const icon = mobileMenuButton.querySelector('i');
-                        icon.className = 'fas fa-bars text-lg';
-                    });
-                });
-
-                // Close menu when clicking outside
-                document.addEventListener('click', function(event) {
-                    if (!mobileMenuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
-                        mobileMenu.classList.add('hidden');
-                        const icon = mobileMenuButton.querySelector('i');
-                        icon.className = 'fas fa-bars text-lg';
-                    }
-                });
-            }
-
-            // Initialize scroll animations
-            const animatedElements = document.querySelectorAll('.glass-card, .content-wrapper > *');
-            animatedElements.forEach(el => observer.observe(el));
-
-            // Add ripple effect to buttons
-            const rippleButtons = document.querySelectorAll('.btn-ripple');
-            rippleButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-
-                    ripple.style.width = ripple.style.height = size + 'px';
-                    ripple.style.left = x + 'px';
-                    ripple.style.top = y + 'px';
-                    ripple.classList.add('animate-ripple');
-
-                    this.appendChild(ripple);
-
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                });
-            });
-        });
-
-        // Parallax effect for floating elements
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const parallaxElements = document.querySelectorAll('.floating-element');
-
-            parallaxElements.forEach((element, index) => {
-                const speed = 0.5 + (index * 0.1);
-                element.style.transform = `translateY(${scrolled * speed}px)`;
-            });
-        });
-
-        // Enhanced form validation
-        function validateForm(formElement) {
-            const inputs = formElement.querySelectorAll('input[required]');
-            let isValid = true;
-
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    input.classList.add('border-red-400');
-                    isValid = false;
-                } else {
-                    input.classList.remove('border-red-400');
-                    input.classList.add('border-green-400');
-                }
-            });
-
-            return isValid;
-        }
-
-        // Auto-hide flash messages
-        setTimeout(() => {
-            const flashMessages = document.querySelectorAll('.animate-slide-in');
-            flashMessages.forEach(message => {
-                message.style.opacity = '0';
-                message.style.transform = 'translateX(100%)';
-                setTimeout(() => message.remove(), 300);
-            });
-        }, 8000);
     </script>
 </body>
 </html>
