@@ -318,17 +318,120 @@
             background: var(--gradient-accent);
         }
 
-        /* Responsive Typography */
+        /* Mobile Optimizations */
         @media (max-width: 768px) {
             .text-responsive-lg { font-size: 1.5rem; }
             .text-responsive-xl { font-size: 1.875rem; }
             .text-responsive-2xl { font-size: 2.25rem; }
+            
+            /* Mobile-specific glass cards */
+            .glass-card {
+                padding: 1rem;
+                margin: 0.5rem;
+                border-radius: 16px;
+            }
+            
+            /* Better mobile navigation */
+            .nav-link {
+                padding: 16px 20px;
+                font-size: 16px;
+                border-radius: 12px;
+            }
+            
+            /* Mobile-optimized buttons */
+            .btn-mobile {
+                min-height: 48px;
+                font-size: 16px;
+                padding: 12px 24px;
+                border-radius: 12px;
+            }
+            
+            /* Touch-friendly spacing */
+            .mobile-spacing {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            /* Mobile grid improvements */
+            .mobile-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            /* Mobile table scrolling */
+            .mobile-table {
+                font-size: 14px;
+            }
+            
+            .mobile-table th,
+            .mobile-table td {
+                padding: 8px 4px;
+                min-width: 100px;
+            }
         }
 
         @media (min-width: 769px) {
             .text-responsive-lg { font-size: 1.875rem; }
             .text-responsive-xl { font-size: 2.25rem; }
             .text-responsive-2xl { font-size: 3rem; }
+        }
+        
+        /* Professional enhancements */
+        .professional-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .professional-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-active {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+        }
+        
+        .status-pending {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white;
+        }
+        
+        .status-completed {
+            background: linear-gradient(135deg, #6366F1, #4F46E5);
+            color: white;
+        }
+        
+        /* Enhanced mobile menu */
+        .mobile-nav-enhanced {
+            backdrop-filter: blur(30px);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Professional color scheme */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            --warning-gradient: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            --error-gradient: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            --info-gradient: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
         }
     </style>
 </head>
@@ -459,9 +562,9 @@
                 </div>
 
                 <!-- Mobile Navigation -->
-                <div class="lg:hidden flex items-center space-x-3">
+                <div class="lg:hidden flex items-center space-x-2">
                     <!-- Mobile Balance -->
-                    <div class="glass-card px-3 py-2">
+                    <div class="professional-card px-3 py-2 border border-white/20">
                         <div class="flex items-center">
                             <div class="bg-gradient-accent p-1.5 rounded-full mr-2">
                                 <i class="fas fa-wallet text-white text-xs"></i>
@@ -471,7 +574,7 @@
                     </div>
 
                     <!-- Mobile Menu Button -->
-                    <button id="mobile-menu-button" class="glass-card p-3 text-white hover:bg-white/10 transition-all duration-300">
+                    <button id="mobile-menu-button" class="professional-card p-3 text-white hover:bg-white/10 transition-all duration-300 border border-white/20">
                         <i class="fas fa-bars text-lg"></i>
                     </button>
                 </div>
@@ -495,36 +598,83 @@
 
         {% if session.user_id %}
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="lg:hidden hidden glass-nav border-t border-white/10">
-            <div class="px-4 py-6 space-y-3">
-                <a href="{{ url_for('dashboard') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'dashboard' }}">
-                    <i class="fas fa-tachometer-alt mr-3"></i>
-                    Dashboard
+        <div id="mobile-menu" class="lg:hidden hidden mobile-nav-enhanced border-t border-white/10 fixed inset-x-0 bottom-0 z-40 transform translate-y-full transition-transform duration-300">
+            <div class="px-4 py-6 space-y-2 max-h-96 overflow-y-auto">
+                <div class="text-center mb-4">
+                    <div class="w-12 h-1 bg-gray-300 rounded mx-auto mb-4"></div>
+                    <h3 class="text-lg font-semibold text-gray-800">Menu Navigation</h3>
+                </div>
+                
+                <a href="{{ url_for('dashboard') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'dashboard' }} flex items-center">
+                    <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-tachometer-alt text-blue-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-800">Dashboard</div>
+                        <div class="text-xs text-gray-500">Vue d'ensemble</div>
+                    </div>
                 </a>
-                <a href="{{ url_for('roi_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'roi_plans' }}">
-                    <i class="fas fa-percentage mr-3"></i>
-                    Plans ROI
+                
+                <a href="{{ url_for('roi_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'roi_plans' }} flex items-center">
+                    <div class="bg-green-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-percentage text-green-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-800">Plans ROI</div>
+                        <div class="text-xs text-gray-500">Rendements garantis</div>
+                    </div>
                 </a>
-                 <a href="{{ url_for('staking_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'staking_plans' }}">
-                    <i class="fas fa-lock mr-3"></i>
-                    Staking
+                
+                <a href="{{ url_for('staking_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'staking_plans' }} flex items-center">
+                    <div class="bg-yellow-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-lock text-yellow-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-800">Staking</div>
+                        <div class="text-xs text-gray-500">Intérêts composés</div>
+                    </div>
                 </a>
-                <a href="{{ url_for('frozen_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'frozen_plans' }}">
-                    <i class="fas fa-gem mr-3"></i>
-                    Plans Gelés
+                
+                <a href="{{ url_for('frozen_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'frozen_plans' }} flex items-center">
+                    <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-gem text-purple-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-800">Plans Gelés</div>
+                        <div class="text-xs text-gray-500">Investissements bloqués</div>
+                    </div>
                 </a>
-                <a href="{{ url_for('projects') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'projects' }}">
-                    <i class="fas fa-project-diagram mr-3"></i>
-                    Projets
+                
+                <a href="{{ url_for('projects') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'projects' }} flex items-center">
+                    <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-project-diagram text-indigo-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-800">Projets</div>
+                        <div class="text-xs text-gray-500">Crowdfunding</div>
+                    </div>
                 </a>
-                <a href="{{ url_for('profile') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'profile' }}">
-                    <i class="fas fa-user mr-3"></i>
-                    Profil
+                
+                <a href="{{ url_for('profile') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'profile' }} flex items-center">
+                    <div class="bg-gray-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-user text-gray-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium text-gray-800">Profil</div>
+                        <div class="text-xs text-gray-500">Paramètres compte</div>
+                    </div>
                 </a>
-                <div class="border-t border-white/20 my-4"></div>
-                <a href="{{ url_for('logout') }}" class="mobile-nav-link text-red-300 hover:text-red-100 hover:bg-red-500/20">
-                    <i class="fas fa-sign-out-alt mr-3"></i>
-                    Déconnexion
+                
+                <div class="border-t border-gray-200 my-4"></div>
+                
+                <a href="{{ url_for('logout') }}" class="mobile-nav-link flex items-center text-red-600 hover:bg-red-50">
+                    <div class="bg-red-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-sign-out-alt text-red-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-medium">Déconnexion</div>
+                        <div class="text-xs text-red-400">Se déconnecter</div>
+                    </div>
                 </a>
             </div>
         </div>
@@ -653,7 +803,7 @@
             }).format(amount);
         }
 
-        // Mobile menu functionality
+        // Enhanced mobile menu functionality
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
@@ -661,30 +811,67 @@
             if (mobileMenuButton && mobileMenu) {
                 mobileMenuButton.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    mobileMenu.classList.toggle('hidden');
+                    
+                    const isHidden = mobileMenu.classList.contains('hidden');
+                    
+                    if (isHidden) {
+                        mobileMenu.classList.remove('hidden');
+                        setTimeout(() => {
+                            mobileMenu.style.transform = 'translateY(0)';
+                        }, 10);
+                    } else {
+                        mobileMenu.style.transform = 'translateY(100%)';
+                        setTimeout(() => {
+                            mobileMenu.classList.add('hidden');
+                        }, 300);
+                    }
 
                     const icon = mobileMenuButton.querySelector('i');
-                    if (mobileMenu.classList.contains('hidden')) {
-                        icon.className = 'fas fa-bars text-lg';
-                    } else {
-                        icon.className = 'fas fa-times text-lg';
-                    }
+                    icon.className = isHidden ? 'fas fa-times text-lg' : 'fas fa-bars text-lg';
                 });
 
                 // Close menu when clicking on a link
                 const mobileLinks = mobileMenu.querySelectorAll('a');
                 mobileLinks.forEach(link => {
                     link.addEventListener('click', function() {
-                        mobileMenu.classList.add('hidden');
+                        mobileMenu.style.transform = 'translateY(100%)';
+                        setTimeout(() => {
+                            mobileMenu.classList.add('hidden');
+                        }, 300);
                         const icon = mobileMenuButton.querySelector('i');
                         icon.className = 'fas fa-bars text-lg';
                     });
                 });
 
-                // Close menu when clicking outside
+                // Close menu when clicking outside or on overlay
                 document.addEventListener('click', function(event) {
                     if (!mobileMenuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
-                        mobileMenu.classList.add('hidden');
+                        if (!mobileMenu.classList.contains('hidden')) {
+                            mobileMenu.style.transform = 'translateY(100%)';
+                            setTimeout(() => {
+                                mobileMenu.classList.add('hidden');
+                            }, 300);
+                            const icon = mobileMenuButton.querySelector('i');
+                            icon.className = 'fas fa-bars text-lg';
+                        }
+                    }
+                });
+
+                // Handle swipe down to close on mobile
+                let startY = 0;
+                mobileMenu.addEventListener('touchstart', function(e) {
+                    startY = e.touches[0].clientY;
+                });
+
+                mobileMenu.addEventListener('touchmove', function(e) {
+                    const currentY = e.touches[0].clientY;
+                    const diff = currentY - startY;
+                    
+                    if (diff > 50) { // Swipe down threshold
+                        mobileMenu.style.transform = 'translateY(100%)';
+                        setTimeout(() => {
+                            mobileMenu.classList.add('hidden');
+                        }, 300);
                         const icon = mobileMenuButton.querySelector('i');
                         icon.className = 'fas fa-bars text-lg';
                     }
