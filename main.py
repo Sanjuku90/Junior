@@ -494,7 +494,7 @@ def dashboard():
         SELECT ui.*, rp.name as plan_name, rp.daily_rate
         FROM user_investments ui
         JOIN roi_plans rp ON ui.plan_id = rp.id
-        WHERE ui.user_id = ? AND ui.is_active = 1
+        WHERE ui.user_id = ? AND ui.is_active = 1 AND (ui.end_date > datetime('now') OR ui.end_date IS NULL)
         ORDER BY ui.start_date DESC
     ''', (session['user_id'],)).fetchall()
 
@@ -527,6 +527,11 @@ def dashboard():
         notifications.append(notif_dict)
 
     conn.close()
+
+    # Debug info
+    print(f"DEBUG: User {session['user_id']} has {len(investments)} active investments")
+    for inv in investments:
+        print(f"DEBUG: Investment {inv['id']}: {inv['plan_name']}, amount: {inv['amount']}, active: {inv['is_active']}")
 
     return render_template('dashboard.html', 
                          user=user, 

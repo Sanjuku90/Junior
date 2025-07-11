@@ -57,7 +57,11 @@
                 <div class="ml-4 flex-1">
                     <div class="text-sm text-gray-600 font-medium uppercase tracking-wide">Profits totaux</div>
                     <div class="text-xl md:text-2xl font-bold text-gray-900">
-                        {{ "%.2f"|format(investments|sum(attribute='total_earned')) }} USDT
+                        {% set total_earned = 0 %}
+                        {% for inv in investments %}
+                            {% set total_earned = total_earned + (inv.total_earned or 0) %}
+                        {% endfor %}
+                        {{ "%.2f"|format(total_earned) }} USDT
                     </div>
                     <div class="text-xs text-purple-600 font-medium">Gains cumulés</div>
                 </div>
@@ -123,7 +127,15 @@
                         </div>
                     </div>
                     <div class="mt-3 text-xs text-gray-500 text-center">
-                        Fin: {{ investment.end_date.strftime('%d/%m/%Y') if investment.end_date else 'N/A' }}
+                        Fin: {% if investment.end_date %}
+                            {% if investment.end_date is string %}
+                                {{ investment.end_date[:10] | replace('-', '/') }}
+                            {% else %}
+                                {{ investment.end_date.strftime('%d/%m/%Y') }}
+                            {% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -149,7 +161,17 @@
                             <td class="py-4 text-gray-900 font-semibold">{{ "%.2f"|format(investment.amount) }} USDT</td>
                             <td class="py-4 text-green-600 font-bold">{{ "%.2f"|format(investment.daily_profit) }} USDT</td>
                             <td class="py-4 text-blue-600 font-bold">{{ "%.2f"|format(investment.total_earned) }} USDT</td>
-                            <td class="py-4 text-gray-600">{{ investment.end_date.strftime('%d/%m/%Y') if investment.end_date else 'N/A' }}</td>
+                            <td class="py-4 text-gray-600">
+                                {% if investment.end_date %}
+                                    {% if investment.end_date is string %}
+                                        {{ investment.end_date[:10] | replace('-', '/') }}
+                                    {% else %}
+                                        {{ investment.end_date.strftime('%d/%m/%Y') }}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
                             <td class="py-4">
                                 <span class="status-badge status-{{ 'active' if investment.is_active else 'completed' }}">
                                     {{ 'Actif' if investment.is_active else 'Terminé' }}
