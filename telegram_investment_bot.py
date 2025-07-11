@@ -1427,6 +1427,45 @@ Démocratiser l'investissement crypto et offrir des rendements exceptionnels à 
 
     elif data.startswith('confirm_withdraw_'):
         await process_withdrawal_confirmation(update, context, data)
+    
+    elif data.startswith('invest_staking_'):
+        await invest_staking_start(update, context)
+    
+    elif data.startswith('invest_project_'):
+        await invest_project_start(update, context)
+    
+    elif data.startswith('invest_frozen_'):
+        await invest_frozen_start(update, context)
+    
+    elif data == "investment_details_roi":
+        await show_investment_details_roi(update, context)
+    
+    elif data == "investment_details_staking":
+        await show_investment_details_staking(update, context)
+    
+    elif data == "investment_details_frozen":
+        await show_investment_details_frozen(update, context)
+    
+    elif data == "share_referral":
+        await share_referral_link(update, context)
+    
+    elif data == "referral_rewards":
+        await show_referral_rewards(update, context)
+    
+    elif data == "transaction_history":
+        await show_transaction_history(update, context)
+    
+    elif data == "beginner_guide":
+        await show_beginner_guide(update, context)
+    
+    elif data == "faq":
+        await show_faq(update, context)
+    
+    elif data == "change_password":
+        await show_change_password(update, context)
+    
+    elif data == "full_history":
+        await show_full_history(update, context)
 
 async def show_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher les notifications"""
@@ -1471,6 +1510,10 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher le profil utilisateur"""
     user = get_user_by_telegram_id(update.effective_user.id)
 
+    if not user:
+        await update.callback_query.edit_message_text("❌ Veuillez vous connecter d'abord.")
+        return
+
     conn = get_db_connection()
 
     # Stats utilisateur
@@ -1511,13 +1554,19 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         level = "💎 Diamant"
 
+    # Formatage sécurisé des dates
+    try:
+        created_date = datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).strftime('%d/%m/%Y')
+    except:
+        created_date = "Non disponible"
+
     message = f"""
 👤 **MON PROFIL**
 
 **Informations personnelles :**
-• Nom : {user['first_name']} {user['last_name']}
-• Email : {user['email']}
-• Inscription : {datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).strftime('%d/%m/%Y')}
+• Nom : {user['first_name']} {user['last_name'] or ''}
+• Email : {user['email'] or 'Non renseigné'}
+• Inscription : {created_date}
 
 **Statut compte :**
 • Niveau : {level}
@@ -1648,6 +1697,370 @@ Utilisez /start pour retourner au menu.
         """,
         parse_mode='Markdown'
     )
+
+async def invest_staking_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Début investissement staking"""
+    await update.callback_query.answer()
+    plan_id = update.callback_query.data.split('_')[-1]
+    
+    conn = get_db_connection()
+    plan = conn.execute('SELECT * FROM staking_plans WHERE id = ?', (plan_id,)).fetchone()
+    conn.close()
+    
+    if not plan:
+        await update.callback_query.edit_message_text("❌ Plan de staking non trouvé.")
+        return
+    
+    message = f"""
+💎 **INVESTISSEMENT STAKING - {plan['name'].upper()}**
+
+📈 **Rendement annuel :** {plan['annual_rate']*100:.1f}%
+⏰ **Durée :** {plan['duration_days']} jours
+💰 **Limites :** {plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT
+
+Cette fonctionnalité sera bientôt disponible !
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="staking_plans")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def invest_project_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Début investissement projet"""
+    await update.callback_query.answer()
+    project_id = update.callback_query.data.split('_')[-1]
+    
+    conn = get_db_connection()
+    project = conn.execute('SELECT * FROM projects WHERE id = ?', (project_id,)).fetchone()
+    conn.close()
+    
+    if not project:
+        await update.callback_query.edit_message_text("❌ Projet non trouvé.")
+        return
+    
+    message = f"""
+🎯 **INVESTISSEMENT PROJET - {project['title'].upper()}**
+
+📊 **Rendement attendu :** {project['expected_return']*100:.1f}%
+💰 **Limites :** {project['min_investment']:.0f} - {project['max_investment']:.0f} USDT
+
+Cette fonctionnalité sera bientôt disponible !
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="projects")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def invest_frozen_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Début investissement gelé"""
+    await update.callback_query.answer()
+    plan_id = update.callback_query.data.split('_')[-1]
+    
+    conn = get_db_connection()
+    plan = conn.execute('SELECT * FROM frozen_plans WHERE id = ?', (plan_id,)).fetchone()
+    conn.close()
+    
+    if not plan:
+        await update.callback_query.edit_message_text("❌ Plan gelé non trouvé.")
+        return
+    
+    message = f"""
+🧊 **INVESTISSEMENT GELÉ - {plan['name'].upper()}**
+
+🎯 **Retour total :** {plan['total_return_rate']*100:.1f}%
+⏰ **Durée :** {plan['duration_days']} jours
+💰 **Limites :** {plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT
+
+Cette fonctionnalité sera bientôt disponible !
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="frozen_plans")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_investment_details_roi(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher détails investissements ROI"""
+    await update.callback_query.answer()
+    user = get_user_by_telegram_id(update.effective_user.id)
+    
+    conn = get_db_connection()
+    investments = conn.execute('''
+        SELECT ui.*, rp.name as plan_name, rp.daily_rate
+        FROM user_investments ui
+        JOIN roi_plans rp ON ui.plan_id = rp.id
+        WHERE ui.user_id = ? AND ui.is_active = 1
+        ORDER BY ui.start_date DESC
+        LIMIT 5
+    ''', (user['id'],)).fetchall()
+    conn.close()
+    
+    message = "📈 **DÉTAILS INVESTISSEMENTS ROI**\n\n"
+    
+    if investments:
+        for inv in investments:
+            days_remaining = (datetime.fromisoformat(inv['end_date'].replace('Z', '+00:00')) - datetime.now()).days
+            message += f"💎 **{inv['plan_name']}**\n"
+            message += f"💰 {inv['amount']:.2f} USDT\n"
+            message += f"📊 {inv['daily_profit']:.2f} USDT/jour\n"
+            message += f"⏰ {max(0, days_remaining)} jours restants\n"
+            message += f"🎁 Gagné : {inv['total_earned']:.2f} USDT\n\n"
+    else:
+        message += "😔 Aucun investissement ROI actif."
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="my_investments")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_investment_details_staking(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher détails staking"""
+    await update.callback_query.answer()
+    
+    message = """
+💎 **DÉTAILS STAKING**
+
+Cette fonctionnalité sera bientôt disponible !
+Vous pourrez voir ici tous vos investissements de staking.
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="my_investments")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_investment_details_frozen(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher détails gelés"""
+    await update.callback_query.answer()
+    
+    message = """
+🧊 **DÉTAILS PLANS GELÉS**
+
+Cette fonctionnalité sera bientôt disponible !
+Vous pourrez voir ici tous vos investissements gelés.
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="my_investments")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def share_referral_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Partager le lien de parrainage"""
+    await update.callback_query.answer()
+    user = get_user_by_telegram_id(update.effective_user.id)
+    
+    message = f"""
+📤 **PARTAGER MON LIEN DE PARRAINAGE**
+
+🎁 **Votre code :** `{user['referral_code']}`
+
+📋 **Message à partager :**
+
+🚀 Rejoignez InvestCrypto Pro !
+💰 Plateforme d'investissement crypto sécurisée
+🎁 Bonus de bienvenue : 10 USDT offerts
+💎 Plans ROI, Staking, Projets et plus !
+
+👥 Utilisez mon code de parrainage : `{user['referral_code']}`
+🤖 Bot Telegram : @InvestCryptoProBot
+
+Commencez à investir dès maintenant ! 🚀
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="referral")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_referral_rewards(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les récompenses de parrainage"""
+    await update.callback_query.answer()
+    
+    message = """
+🏆 **PROGRAMME DE RÉCOMPENSES**
+
+💰 **Récompenses immédiates :**
+• 5 USDT par nouveau filleul
+• 10 USDT bonus pour votre filleul
+
+📈 **Commissions sur investissements :**
+• 2% sur tous les investissements de vos filleuls
+• Commissions versées instantanément
+
+🎯 **Bonus mensuels :**
+• 1-5 filleuls : 10 USDT bonus
+• 6-10 filleuls : 25 USDT bonus
+• 11-25 filleuls : 50 USDT bonus
+• 25+ filleuls : 100 USDT bonus
+
+👑 **Statuts VIP :**
+• Argent (10 filleuls) : +0.5% commission
+• Or (25 filleuls) : +1% commission
+• Diamant (50 filleuls) : +2% commission
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="referral")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_transaction_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher l'historique des transactions"""
+    await update.callback_query.answer()
+    user = get_user_by_telegram_id(update.effective_user.id)
+    
+    conn = get_db_connection()
+    transactions = conn.execute('''
+        SELECT * FROM transactions 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT 10
+    ''', (user['id'],)).fetchall()
+    conn.close()
+    
+    message = "📋 **HISTORIQUE DES TRANSACTIONS**\n\n"
+    
+    if transactions:
+        for tx in transactions:
+            status_emoji = "✅" if tx['status'] == 'completed' else "⏳" if tx['status'] == 'pending' else "❌"
+            type_emoji = "📥" if tx['type'] == 'deposit' else "📤" if tx['type'] == 'withdrawal' else "💎"
+            
+            try:
+                date_str = datetime.fromisoformat(tx['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
+            except:
+                date_str = "Non disponible"
+            
+            message += f"{status_emoji} {type_emoji} **{tx['amount']:.2f} USDT**\n"
+            message += f"📅 {date_str} | {tx['type'].title()}\n"
+            message += f"🆔 {tx['transaction_hash'][:16]}...\n\n"
+    else:
+        message += "😔 Aucune transaction pour le moment."
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="wallet")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_beginner_guide(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher le guide débutant"""
+    await update.callback_query.answer()
+    
+    message = """
+📚 **GUIDE DÉBUTANT**
+
+🚀 **Étapes pour commencer :**
+
+1️⃣ **Effectuez votre premier dépôt**
+   • Minimum : 10 USDT
+   • Réseau : TRC20 uniquement
+   • Vérification sous 24h
+
+2️⃣ **Choisissez un plan d'investissement**
+   • Plans ROI : 5-15% par jour
+   • Staking : 12-25% par an
+   • Projets : 18-25% de retour
+
+3️⃣ **Suivez vos profits**
+   • Gains crédités automatiquement
+   • Notifications en temps réel
+   • Historique complet
+
+4️⃣ **Parrainez vos amis**
+   • 5 USDT par filleul
+   • 2% de commission
+   • Bonus mensuels
+
+💡 **Conseils :**
+• Commencez petit pour tester
+• Diversifiez vos investissements
+• Réinvestissez vos profits
+• Utilisez le parrainage
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="help")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_faq(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher la FAQ"""
+    await update.callback_query.answer()
+    
+    message = """
+❓ **QUESTIONS FRÉQUENTES**
+
+**Q: Combien puis-je gagner ?**
+R: Cela dépend de votre investissement. Nos plans ROI offrent 5-15% par jour.
+
+**Q: Quand reçois-je mes profits ?**
+R: Les profits ROI sont crédités automatiquement chaque jour à minuit UTC.
+
+**Q: Puis-je retirer à tout moment ?**
+R: Oui, votre solde disponible peut être retiré 24h/24 avec 2 USDT de frais.
+
+**Q: Mes fonds sont-ils sécurisés ?**
+R: Oui, nous utilisons un stockage à froid et des audits de sécurité réguliers.
+
+**Q: Comment fonctionne le parrainage ?**
+R: Partagez votre code et gagnez 5 USDT par nouveau membre + 2% sur leurs investissements.
+
+**Q: Que se passe-t-il si j'oublie mon mot de passe ?**
+R: Contactez le support avec votre ID Telegram pour récupérer votre compte.
+
+**Q: Y a-t-il des frais cachés ?**
+R: Non, seuls 2 USDT de frais s'appliquent aux retraits.
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="help")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_change_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher le changement de mot de passe"""
+    await update.callback_query.answer()
+    
+    message = """
+🔄 **CHANGER MOT DE PASSE**
+
+Cette fonctionnalité sera bientôt disponible !
+
+Pour le moment, votre compte est sécurisé par votre ID Telegram.
+Si vous avez des préoccupations de sécurité, contactez le support.
+
+📞 **Support :** @InvestCryptoPro_Support
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="profile")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_full_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher l'historique complet"""
+    await update.callback_query.answer()
+    
+    message = """
+📋 **HISTORIQUE COMPLET**
+
+Cette fonctionnalité sera bientôt disponible !
+
+Vous pourrez voir ici :
+• Tous vos investissements
+• Historique des profits
+• Transactions détaillées
+• Rapports mensuels
+
+Pour le moment, utilisez les sections individuelles pour voir vos données.
+    """
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="profile")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Annuler une conversation"""
