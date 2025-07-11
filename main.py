@@ -12,13 +12,14 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
-# Import du bot Telegram
+# Import du bot Telegram utilisateur uniquement
+TELEGRAM_ENABLED = False
 try:
-    from telegram_bot import notify_deposit_request, notify_withdrawal_request, setup_telegram_bot, stop_telegram_bot
-    TELEGRAM_ENABLED = True
+    from telegram_investment_bot import setup_user_telegram_bot
+    TELEGRAM_USER_BOT_ENABLED = True
 except ImportError:
-    TELEGRAM_ENABLED = False
-    print("Bot Telegram non disponible - fonctionnalités de confirmation désactivées")
+    TELEGRAM_USER_BOT_ENABLED = False
+    print("Bot Telegram utilisateur non disponible")
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -864,9 +865,7 @@ def submit_deposit():
     conn.commit()
     conn.close()
 
-    # Notifier l'admin via Telegram
-    if TELEGRAM_ENABLED:
-        notify_deposit_request(session['user_id'], amount, transaction_hash, deposit_id)
+    # Notification admin supprimée - traitement manuel requis
 
     # Ajouter une notification à l'utilisateur
     add_notification(
@@ -920,9 +919,7 @@ def submit_withdrawal():
     conn.commit()
     conn.close()
 
-    # Notifier l'admin via Telegram
-    if TELEGRAM_ENABLED:
-        notify_withdrawal_request(session['user_id'], amount, withdrawal_address, withdrawal_id)
+    # Notification admin supprimée - traitement manuel requis
 
     # Ajouter une notification à l'utilisateur
     add_notification(
@@ -974,87 +971,51 @@ if __name__ == '__main__':
     )
     scheduler.start()
 
-    # Setup Telegram bots si disponibles
-    if TELEGRAM_ENABLED:
-        # Bot admin
-        telegram_app = setup_telegram_bot()
-        if telegram_app:
-            def run_admin_bot():
-                try:
-                    import asyncio
+    # Setup du bot utilisateur uniquement
+    if TELEGRAM_USER_BOT_ENABLED:
+        # Vérifier si le token utilisateur est configuré
+        user_token = os.getenv('TELEGRAM_BOT_TOKEN_USER')
+        if not user_token:
+            print("⚠️  TELEGRAM_BOT_TOKEN_USER non configuré - Bot utilisateur désactivé")
+            print("💡 Ajoutez votre token de bot dans les Secrets pour activer le bot utilisateur")
+        else:
+            user_bot_app = setup_user_telegram_bot()
+            if user_bot_app:
+                def run_user_bot():
+                    try:
+                        import asyncio
 
-                    async def start_admin_bot():
-                        try:
-                            await telegram_app.initialize()
-                            await telegram_app.start()
-                            await telegram_app.run_polling(
-                                allowed_updates=["message", "callback_query"],
-                                drop_pending_updates=True
-                            )
-                        except Exception as e:
-                            print(f"❌ Erreur bot admin: {e}")
-                        finally:
-                            await telegram_app.stop()
-
-                    asyncio.run(start_admin_bot())
-                except Exception as e:
-                    print(f"❌ Erreur Telegram bot admin: {e}")
-
-            admin_thread = threading.Thread(target=run_admin_bot, daemon=True)
-            admin_thread.start()
-            print("✅ Bot Telegram d'administration démarré")
-
-        # Bot utilisateur
-        try:
-            from telegram_investment_bot import setup_user_telegram_bot
-            
-            # Vérifier si le token utilisateur est configuré
-            user_token = os.getenv('TELEGRAM_BOT_TOKEN_USER')
-            if not user_token:
-                print("⚠️  TELEGRAM_BOT_TOKEN_USER non configuré - Bot utilisateur désactivé")
-                print("💡 Ajoutez votre token de bot dans les Secrets pour activer le bot utilisateur")
-            else:
-                user_bot_app = setup_user_telegram_bot()
-                if user_bot_app:
-                    def run_user_bot():
-                        try:
-                            import asyncio
-
-                            async def start_user_bot():
+                        async def start_user_bot():
+                            try:
+                                print("🚀 Initialisation du bot utilisateur...")
+                                await user_bot_app.initialize()
+                                await user_bot_app.start()
+                                await user_bot_app.run_polling(
+                                    allowed_updates=["message", "callback_query"],
+                                    drop_pending_updates=True
+                                )
+                                print("✅ Bot utilisateur en cours d'exécution")
+                            except Exception as e:
+                                print(f"❌ Erreur bot utilisateur: {e}")
+                            finally:
                                 try:
-                                    print("🚀 Initialisation du bot utilisateur...")
-                                    await user_bot_app.initialize()
-                                    await user_bot_app.start()
-                                    await user_bot_app.run_polling(
-                                        allowed_updates=["message", "callback_query"],
-                                        drop_pending_updates=True
-                                    )
-                                    print("✅ Bot utilisateur en cours d'exécution")
-                                except Exception as e:
-                                    print(f"❌ Erreur bot utilisateur: {e}")
-                                finally:
-                                    try:
-                                        await user_bot_app.stop()
-                                    except:
-                                        pass
+                                    await user_bot_app.stop()
+                                except:
+                                    pass
 
-                            asyncio.run(start_user_bot())
-                        except Exception as e:
-                            print(f"❌ Erreur Telegram bot utilisateur: {e}")
+                        asyncio.run(start_user_bot())
+                    except Exception as e:
+                        print(f"❌ Erreur Telegram bot utilisateur: {e}")
 
-                    user_thread = threading.Thread(target=run_user_bot, daemon=True)
-                    user_thread.start()
-                    print("✅ Thread du bot Telegram utilisateur démarré")
-                else:
-                    print("❌ Échec de la configuration du bot utilisateur")
-        except ImportError as e:
-            print(f"❌ Module bot utilisateur non disponible: {e}")
+                user_thread = threading.Thread(target=run_user_bot, daemon=True)
+                user_thread.start()
+                print("✅ Bot Telegram utilisateur démarré")
+            else:
+                print("❌ Échec de la configuration du bot utilisateur")
     else:
-        print("❌ Telegram non activé")
+        print("❌ Bot Telegram utilisateur non disponible")
 
-    # Shutdown scheduler and telegram bot when exiting the app
+    # Shutdown scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
-    if TELEGRAM_ENABLED:
-        atexit.register(lambda: stop_telegram_bot())
 
     app.run(host='0.0.0.0', port=5000, debug=True)
