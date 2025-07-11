@@ -19,7 +19,7 @@ if not TELEGRAM_BOT_TOKEN:
 DATABASE = 'investment_platform.db'
 
 # Liste des administrateurs (IDs Telegram)
-ADMIN_IDS = [123456789, 7474306991]  # IDs Telegram des administrateurs
+ADMIN_IDS = [123456789, 7474306991, 8186612060]  # IDs Telegram des administrateurs
 
 # États de conversation
 REGISTER_EMAIL, REGISTER_PASSWORD, REGISTER_FIRSTNAME, REGISTER_LASTNAME, REGISTER_REFERRAL = range(5)
