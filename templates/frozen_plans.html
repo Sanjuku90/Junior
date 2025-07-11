@@ -112,22 +112,28 @@
             </div>
 
             <div class="space-y-4">
-                <div class="bg-red-50 border border-red-200 rounded-lg p-3">
-                    <div class="text-sm text-red-600 mb-2">⚠️ Conditions importantes</div>
-                    <ul class="text-xs text-red-700 space-y-1">
-                        <li>• Fonds complètement bloqués pendant <span id="modalDurationDays" class="font-semibold"></span> jours</li>
-                        <li>• Aucun retrait possible avant l'échéance</li>
-                        <li>• Paiement unique à la fin de la période</li>
-                    </ul>
+                <!-- Conditions importantes -->
+                <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-triangle text-red-600 mt-1 mr-2"></i>
+                        <div>
+                            <h4 class="font-semibold text-red-800 mb-2">Conditions importantes</h4>
+                            <ul class="text-sm text-red-700 space-y-1">
+                                <li>• Fonds complètement bloqués pendant <span id="frozenModalDurationText" class="font-semibold">180 jours</span></li>
+                                <li>• Aucun retrait possible avant l'échéance</li>
+                                <li>• Paiement unique à la fin de la période</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="bg-purple-50 p-4 rounded-lg">
                     <div class="text-sm text-purple-600 mb-2">Détails du plan</div>
                     <div class="space-y-1 text-sm">
-                        <div>Retour total: <span id="modalTotalReturn" class="font-semibold"></span></div>
-                        <div>Durée: <span id="modalDuration" class="font-semibold"></span> jours</div>
-                        <div>Montant min: <span id="modalMinAmount" class="font-semibold"></span> USDT</div>
-                        <div>Montant max: <span id="modalMaxAmount" class="font-semibold"></span> USDT</div>
+                        <div>Retour total: <span id="frozenModalReturnRate" class="font-semibold"></span></div>
+                        <div>Durée: <span id="frozenModalDuration" class="font-semibold"></span></div>
+                        <div>Montant min: <span id="frozenModalMinAmount" class="font-semibold"></span> USDT</div>
+                        <div>Montant max: <span id="frozenModalMaxAmount" class="font-semibold"></span> USDT</div>
                     </div>
                 </div>
 
@@ -138,13 +144,8 @@
 
                 <div class="bg-green-50 p-3 rounded-lg">
                     <div class="text-sm text-green-600 mb-1">Vous recevrez</div>
-                    <div class="text-2xl font-bold text-green-700" id="modalFinalAmount">0 USDT</div>
+                    <div class="text-xl font-bold text-green-700" id="frozenModalFinalAmount">0 USDT</div>
                     <div class="text-xs text-green-600">à l'échéance</div>
-                </div>
-
-                <div class="flex items-center">
-                    <input type="checkbox" id="acceptTerms" class="mr-2">
-                    <label for="acceptTerms" class="text-sm text-gray-600">J'accepte que mes fonds soient bloqués pendant toute la durée</label>
                 </div>
 
                 <button onclick="submitFrozenInvestment()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md">
