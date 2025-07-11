@@ -974,7 +974,7 @@ if __name__ == '__main__':
     # Setup du bot utilisateur uniquement
     if TELEGRAM_USER_BOT_ENABLED:
         user_bot_app = setup_user_telegram_bot()
-            if user_bot_app:
+        if user_bot_app:
                 def run_user_bot():
                     try:
                         import asyncio
