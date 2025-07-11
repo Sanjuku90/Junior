@@ -978,6 +978,7 @@ if __name__ == '__main__':
             def run_user_bot():
                 try:
                     import asyncio
+                    import signal
                     
                     # Créer un nouveau loop pour ce thread
                     loop = asyncio.new_event_loop()
@@ -990,22 +991,35 @@ if __name__ == '__main__':
                             await user_bot_app.start()
                             print("✅ Bot utilisateur en cours d'exécution")
                             
-                            # Utiliser l'updater pour le polling
+                            # Utiliser l'updater pour le polling avec gestion d'erreur
                             await user_bot_app.updater.start_polling(
                                 allowed_updates=["message", "callback_query"],
-                                drop_pending_updates=True
+                                drop_pending_updates=True,
+                                error_callback=lambda exc: print(f"⚠️ Erreur bot ignorée: {exc}")
                             )
                             
-                            # Garder le bot en vie avec un simple sleep infini
-                            while True:
-                                await asyncio.sleep(1)
+                            # Garder le bot en vie
+                            stop_event = asyncio.Event()
+                            
+                            def signal_handler():
+                                stop_event.set()
+                            
+                            # Attendre indéfiniment ou jusqu'à interruption
+                            try:
+                                await stop_event.wait()
+                            except (KeyboardInterrupt, SystemExit):
+                                stop_event.set()
                             
                         except Exception as e:
-                            print(f"❌ Erreur bot utilisateur: {e}")
+                            if "Conflict" in str(e):
+                                print(f"⚠️ Bot déjà en cours d'exécution elsewhere: {e}")
+                            else:
+                                print(f"❌ Erreur bot utilisateur: {e}")
                         finally:
                             try:
                                 await user_bot_app.updater.stop()
                                 await user_bot_app.stop()
+                                print("🛑 Bot utilisateur arrêté")
                             except:
                                 pass
                     
@@ -1013,11 +1027,12 @@ if __name__ == '__main__':
                     loop.run_until_complete(start_user_bot())
                     
                 except Exception as e:
-                    print(f"❌ Erreur Telegram bot utilisateur: {e}")
+                    if "Conflict" not in str(e):
+                        print(f"❌ Erreur Telegram bot utilisateur: {e}")
 
             user_thread = threading.Thread(target=run_user_bot, daemon=True)
             user_thread.start()
-            print("✅ Bot Telegram utilisateur démarré")
+            print("✅ Thread bot Telegram utilisateur démarré")
         else:
             print("❌ Échec de la configuration du bot utilisateur")
     else:
