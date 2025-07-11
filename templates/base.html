@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -40,67 +39,80 @@
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 shadow-2xl border-b border-gray-700">
+    <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 shadow-xl border-b border-blue-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <!-- Logo Section -->
+            <div class="flex justify-between h-20">
                 <div class="flex items-center">
-                    <a href="{{ url_for('index') }}" class="flex items-center group">
-                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg mr-3 group-hover:shadow-lg transition-all duration-300">
-                            <i class="fas fa-chart-line text-white text-lg"></i>
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="bg-gradient-to-br from-yellow-400 to-orange-500 p-2 rounded-lg mr-3 shadow-lg">
+                            <i class="fas fa-chart-line text-2xl text-white"></i>
                         </div>
-                        <div class="text-white">
-                            <div class="text-xl font-bold tracking-tight">InvestCrypto</div>
-                            <div class="text-xs text-blue-300 -mt-1">PRO</div>
+                        <div>
+                            <span class="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">InvestCrypto</span>
+                            <span class="text-xl font-light text-blue-100 ml-1">Pro</span>
+                            <div class="text-xs text-blue-300 font-medium tracking-wider">PLATEFORME D'INVESTISSEMENT</div>
                         </div>
-                    </a>
+                    </div>
                 </div>
-                
-                <!-- Main Navigation -->
+
                 {% if session.user_id %}
-                <div class="hidden md:flex items-center space-x-1">
-                    <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'dashboard' else '' }}">
-                        <i class="fas fa-tachometer-alt mr-2"></i>
-                        <span>Dashboard</span>
+                <div class="flex items-center space-x-1">
+                    <a href="{{ url_for('dashboard') }}" class="group flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ 'bg-blue-700/50 text-white' if request.endpoint == 'dashboard' }}">
+                        <div class="bg-blue-600 group-hover:bg-blue-500 p-1.5 rounded-md mr-2 transition-colors">
+                            <i class="fas fa-tachometer-alt text-xs"></i>
+                        </div>
+                        Dashboard
                     </a>
-                    <a href="{{ url_for('roi_plans') }}" class="nav-link {{ 'active' if request.endpoint == 'roi_plans' else '' }}">
-                        <i class="fas fa-percentage mr-2"></i>
-                        <span>Plans ROI</span>
+                    <a href="{{ url_for('roi_plans') }}" class="group flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ 'bg-blue-700/50 text-white' if request.endpoint == 'roi_plans' }}">
+                        <div class="bg-green-600 group-hover:bg-green-500 p-1.5 rounded-md mr-2 transition-colors">
+                            <i class="fas fa-percentage text-xs"></i>
+                        </div>
+                        Plans ROI
                     </a>
-                    <a href="{{ url_for('projects') }}" class="nav-link {{ 'active' if request.endpoint == 'projects' else '' }}">
-                        <i class="fas fa-project-diagram mr-2"></i>
-                        <span>Projets</span>
+                    <a href="{{ url_for('projects') }}" class="group flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ 'bg-blue-700/50 text-white' if request.endpoint == 'projects' }}">
+                        <div class="bg-purple-600 group-hover:bg-purple-500 p-1.5 rounded-md mr-2 transition-colors">
+                            <i class="fas fa-project-diagram text-xs"></i>
+                        </div>
+                        Projets
                     </a>
-                    
-                    <!-- User Menu Dropdown -->
+                    <a href="{{ url_for('profile') }}" class="group flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ 'bg-blue-700/50 text-white' if request.endpoint == 'profile' }}">
+                        <div class="bg-indigo-600 group-hover:bg-indigo-500 p-1.5 rounded-md mr-2 transition-colors">
+                            <i class="fas fa-user text-xs"></i>
+                        </div>
+                        Profil
+                    </a>
+
+                    <div class="h-6 w-px bg-blue-600 mx-2"></div>
+
+                    <div class="flex items-center bg-blue-800/50 rounded-lg px-3 py-2 mr-3">
+                        <div class="bg-yellow-500 p-1 rounded-full mr-2">
+                            <i class="fas fa-wallet text-xs text-white"></i>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-blue-300">Solde</div>
+                            <div class="text-sm font-bold text-white">0.00 USDT</div>
+                        </div>
+                    </div>
+
                     <div class="relative group">
-                        <button class="nav-link flex items-center">
-                            <i class="fas fa-user-circle mr-2 text-lg"></i>
-                            <span>{{ session.first_name }}</span>
+                        <button class="flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                            <div class="bg-gray-600 p-1.5 rounded-full mr-2">
+                                <i class="fas fa-user text-xs text-white"></i>
+                            </div>
+                            <span class="hidden md:block">{{ session.first_name }}</span>
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
-                        
-                        <!-- Dropdown Menu -->
+
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-2">
-                                <a href="{{ url_for('profile') }}" class="dropdown-item">
-                                    <i class="fas fa-user mr-2"></i>Mon Profil
+                                <a href="{{ url_for('profile') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user-circle mr-3 text-gray-500"></i>
+                                    Mon Profil
                                 </a>
-                                <a href="#" class="dropdown-item">
-                                    <i class="fas fa-bell mr-2"></i>Notifications
-                                </a>
-                                <a href="#" class="dropdown-item">
-                                    <i class="fas fa-cog mr-2"></i>Paramètres
-                                </a>
-                                {% if session.is_admin %}
-                                <div class="border-t border-gray-200 my-1"></div>
-                                <a href="{{ url_for('admin_dashboard') }}" class="dropdown-item text-yellow-600">
-                                    <i class="fas fa-crown mr-2"></i>Administration
-                                </a>
-                                {% endif %}
-                                <div class="border-t border-gray-200 my-1"></div>
-                                <a href="{{ url_for('logout') }}" class="dropdown-item text-red-600">
-                                    <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <a href="{{ url_for('logout') }}" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-3"></i>
+                                    Déconnexion
                                 </a>
                             </div>
                         </div>
@@ -108,53 +120,16 @@
                 </div>
                 {% else %}
                 <div class="flex items-center space-x-3">
-                    <a href="{{ url_for('login') }}" class="text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                    <a href="{{ url_for('login') }}" class="text-blue-100 hover:text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                         <i class="fas fa-sign-in-alt mr-2"></i>Connexion
                     </a>
-                    <a href="{{ url_for('register') }}" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <a href="{{ url_for('register') }}" class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-2 rounded-lg text-sm font-semibold shadow-lg transform hover:scale-105 transition-all duration-200">
                         <i class="fas fa-user-plus mr-2"></i>Inscription
                     </a>
                 </div>
                 {% endif %}
-
-                <!-- Mobile menu button -->
-                {% if session.user_id %}
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-button" class="text-gray-300 hover:text-white p-2 rounded-lg">
-                        <i class="fas fa-bars text-lg"></i>
-                    </button>
-                </div>
-                {% endif %}
             </div>
         </div>
-
-        <!-- Mobile Navigation Menu -->
-        {% if session.user_id %}
-        <div id="mobile-menu" class="md:hidden bg-gray-800 border-t border-gray-700 hidden">
-            <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="{{ url_for('dashboard') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'dashboard' else '' }}">
-                    <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
-                </a>
-                <a href="{{ url_for('roi_plans') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'roi_plans' else '' }}">
-                    <i class="fas fa-percentage mr-3"></i>Plans ROI
-                </a>
-                <a href="{{ url_for('projects') }}" class="mobile-nav-link {{ 'active' if request.endpoint == 'projects' else '' }}">
-                    <i class="fas fa-project-diagram mr-3"></i>Projets
-                </a>
-                <a href="{{ url_for('profile') }}" class="mobile-nav-link">
-                    <i class="fas fa-user mr-3"></i>Mon Profil
-                </a>
-                {% if session.is_admin %}
-                <a href="{{ url_for('admin_dashboard') }}" class="mobile-nav-link text-yellow-300">
-                    <i class="fas fa-crown mr-3"></i>Administration
-                </a>
-                {% endif %}
-                <a href="{{ url_for('logout') }}" class="mobile-nav-link text-red-300">
-                    <i class="fas fa-sign-out-alt mr-3"></i>Déconnexion
-                </a>
-            </div>
-        </div>
-        {% endif %}
     </nav>
 
     <!-- Flash Messages -->
@@ -218,7 +193,7 @@
             notification.className = `fixed top-4 right-4 bg-${type === 'error' ? 'red' : type === 'success' ? 'green' : 'blue'}-500 text-white px-6 py-3 rounded-lg shadow-lg z-50`;
             notification.textContent = message;
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.remove();
             }, 5000);
@@ -236,7 +211,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
-            
+
             if (mobileMenuButton && mobileMenu) {
                 mobileMenuButton.addEventListener('click', function() {
                     mobileMenu.classList.toggle('hidden');

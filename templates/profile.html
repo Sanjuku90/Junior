@@ -25,7 +25,13 @@
             </div>
             <div class="text-right">
                 <div class="text-sm text-gray-500">Membre depuis</div>
-                <div class="text-lg font-semibold">{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</div>
+                <div class="text-lg font-semibold">
+                    {% if user.created_at %}
+                        {{ user.created_at[:10].split('-')[::-1] | join('/') }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

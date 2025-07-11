@@ -84,7 +84,13 @@
                     </div>
                     <div>
                         <span class="text-gray-600">Date limite:</span>
-                        <span class="font-semibold ml-2">{{ project.deadline.strftime('%d/%m/%Y') if project.deadline else 'Non définie' }}</span>
+                        <span class="font-semibold ml-2">
+                            {% if project.deadline %}
+                                {{ project.deadline[:10].split('-')[::-1] | join('/') }}
+                            {% else %}
+                                Non définie
+                            {% endif %}
+                        </span>
                     </div>
                 </div>
             </div>

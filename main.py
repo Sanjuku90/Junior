@@ -548,9 +548,12 @@ def profile():
         WHERE referred_by = ?
     ''', (user['referral_code'],)).fetchone()
     
+    # Get user balance for navbar
+    user_balance = user['balance'] if user['balance'] else 0.0
+    
     conn.close()
     
-    return render_template('profile.html', user=user, referrals=referrals)
+    return render_template('profile.html', user=user, referrals=referrals, user_balance=user_balance)
 
 @app.route('/admin')
 @admin_required
