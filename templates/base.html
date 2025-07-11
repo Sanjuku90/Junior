@@ -949,6 +949,12 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
+        // Supprime l'avertissement de développement
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {};
+        }
+    </script>
+    <script>
         if (typeof tailwind !== 'undefined') {
             tailwind.config = {
                 theme: {

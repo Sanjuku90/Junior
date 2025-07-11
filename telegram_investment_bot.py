@@ -797,17 +797,20 @@ async def show_staking_plans(update: Update, context: ContextTypes.DEFAULT_TYPE)
     keyboard = []
     message = "💎 **PLANS STAKING**\n\n"
 
-    for plan in plans:
+    # Limiter le nombre de plans affichés pour éviter les messages trop longs
+    for i, plan in enumerate(plans[:3]):  # Limite à 3 plans maximum
         daily_rate = plan['annual_rate'] / 365
         total_return = daily_rate * plan['duration_days'] * 100
 
         message += f"🏆 **{plan['name']}**\n"
-        message += f"⏰ {plan['duration_days']} jours\n"
-        message += f"📊 {plan['annual_rate']*100:.0f}%/an\n"
-        message += f"💰 {plan['min_amount']:.0f}-{plan['max_amount']:.0f} USDT\n"
-        message += f"⚠️ Pénalité: {plan['penalty_rate']*100:.0f}%\n\n"
+        message += f"⏰ {plan['duration_days']}j | 📊 {plan['annual_rate']*100:.0f}%/an\n"
+        message += f"💰 {plan['min_amount']:.0f}-{plan['max_amount']:.0f} USDT\n\n"
         
         keyboard.append([InlineKeyboardButton(f"💎 {plan['name']}", callback_data=f"invest_staking_{plan['id']}")])
+
+    # Si plus de 3 plans, ajouter un bouton "Plus de plans"
+    if len(plans) > 3:
+        message += f"📋 **{len(plans) - 3} autres plans disponibles...**\n"
 
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -825,23 +828,22 @@ async def show_frozen_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.close()
 
     keyboard = []
-    message = "🧊 **PLANS D'INVESTISSEMENT GELÉS**\n\n"
-    message += "💎 **Investissements à long terme avec rendements exceptionnels !**\n\n"
+    message = "🧊 **PLANS GELÉS**\n\n"
+    message += "💎 **Investissements long terme !**\n\n"
 
-    for plan in plans:
+    # Limiter à 2 plans pour éviter les messages trop longs
+    for plan in plans[:2]:
         annual_return = ((plan['total_return_rate'] - 1) / (plan['duration_days'] / 365)) * 100
 
-        message += f"""
-💎 **{plan['name'].upper()}**
-⏰ **Durée :** {plan['duration_days']} jours ({plan['duration_days']//30} mois)
-🎯 **Retour total :** {plan['total_return_rate']*100:.0f}%
-📊 **Rendement annuel équivalent :** {annual_return:.0f}%
-💰 **{plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT**
+        message += f"💎 **{plan['name']}**\n"
+        message += f"⏰ {plan['duration_days']}j ({plan['duration_days']//30}m)\n"
+        message += f"🎯 Retour: {plan['total_return_rate']*100:.0f}%\n"
+        message += f"💰 {plan['min_amount']:.0f}-{plan['max_amount']:.0f} USDT\n\n"
+        
+        keyboard.append([InlineKeyboardButton(f"💎 {plan['name']}", callback_data=f"invest_frozen_{plan['id']}")])
 
-{plan['description'][:120]}...
-
-"""
-        keyboard.append([InlineKeyboardButton(f"💎 Investir - {plan['name']}", callback_data=f"invest_frozen_{plan['id']}")])
+    if len(plans) > 2:
+        message += f"📋 **{len(plans) - 2} autres plans...**\n"
 
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -862,31 +864,29 @@ async def show_projects(update: Update, context: ContextTypes.DEFAULT_TYPE):
         FROM projects 
         WHERE status = 'collecting' AND deadline > datetime('now')
         ORDER BY created_at DESC
-        LIMIT 5
+        LIMIT 3
     ''').fetchall()
     conn.close()
 
     keyboard = []
-    message = "🎯 **PROJETS DE CROWDFUNDING**\n\n"
-    message += "🚀 **Investissez dans l'avenir et générez des profits !**\n\n"
+    message = "🎯 **PROJETS CROWDFUNDING**\n\n"
 
     if not projects:
-        message += "😔 **Aucun projet disponible actuellement.**\n"
-        message += "Revenez bientôt pour découvrir de nouvelles opportunités !"
+        message += "😔 **Aucun projet disponible.**\n"
+        message += "Revenez bientôt !"
     else:
         for project in projects:
-            days_left = (datetime.fromisoformat(project['deadline'].replace('Z', '+00:00')) - datetime.now()).days
+            try:
+                days_left = (datetime.fromisoformat(project['deadline'].replace('Z', '+00:00')) - datetime.now()).days
+            except:
+                days_left = 30
 
-            message += f"""
-🏆 **{project['title'].upper()}**
-📊 **Progression :** {project['progress_percent']:.1f}% ({project['raised_amount']:.0f}/{project['target_amount']:.0f} USDT)
-📈 **Retour attendu :** {project['expected_return']*100:.0f}%
-⏰ **Durée :** {project['duration_months']} mois
-💰 **{project['min_investment']:.0f} - {project['max_investment']:.0f} USDT**
-⏳ **Temps restant :** {days_left} jours
-
-"""
-            keyboard.append([InlineKeyboardButton(f"🎯 Investir - {project['title'][:20]}", callback_data=f"invest_project_{project['id']}")])
+            message += f"🏆 **{project['title'][:25]}**\n"
+            message += f"📊 {project['progress_percent']:.1f}% | 📈 {project['expected_return']*100:.0f}%\n"
+            message += f"💰 {project['min_investment']:.0f}-{project['max_investment']:.0f} USDT\n"
+            message += f"⏳ {days_left}j restants\n\n"
+            
+            keyboard.append([InlineKeyboardButton(f"🎯 {project['title'][:15]}", callback_data=f"invest_project_{project['id']}")])
 
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1731,13 +1731,30 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Gestionnaire d'erreur global pour le bot"""
     logger.error("Exception while handling an update:", exc_info=context.error)
     
-    if update and update.effective_message:
+    error_message = "❌ Une erreur s'est produite. Veuillez réessayer plus tard."
+    
+    # Gérer spécifiquement l'erreur de message trop long
+    if "Message_too_long" in str(context.error):
+        error_message = "❌ Message trop long. Utilisez /start pour revenir au menu."
+    
+    if update:
         try:
-            await update.effective_message.reply_text(
-                "❌ Une erreur s'est produite. Veuillez réessayer plus tard."
-            )
-        except:
-            pass
+            if update.callback_query:
+                await update.callback_query.answer()
+                await update.callback_query.edit_message_text(error_message)
+            elif update.effective_message:
+                await update.effective_message.reply_text(error_message)
+        except Exception as e:
+            logger.error(f"Erreur dans le gestionnaire d'erreur: {e}")
+            # En dernier recours, essayer d'envoyer un message simple
+            try:
+                if update.effective_chat:
+                    await context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text="❌ Erreur système. Tapez /start"
+                    )
+            except:
+                pass
 
 async def start_user_bot():
     """Démarre le bot utilisateur"""
