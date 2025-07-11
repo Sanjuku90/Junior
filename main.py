@@ -1002,10 +1002,10 @@ if __name__ == '__main__':
                         print(f"❌ Erreur Telegram bot utilisateur: {e}")
 
                 user_thread = threading.Thread(target=run_user_bot, daemon=True)
-                user_thread.start()
-                print("✅ Bot Telegram utilisateur démarré")
-            else:
-                print("❌ Échec de la configuration du bot utilisateur")
+            user_thread.start()
+            print("✅ Bot Telegram utilisateur démarré")
+        else:
+            print("❌ Échec de la configuration du bot utilisateur")
     else:
         print("❌ Bot Telegram utilisateur non disponible")
 
