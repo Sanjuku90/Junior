@@ -1572,32 +1572,32 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         created_date = "Non disponible"
 
-    # Sécuriser les valeurs pour éviter les erreurs Markdown
-    first_name = user['first_name'] or 'Utilisateur'
-    last_name = user['last_name'] or ''
-    email = user['email'] or 'Non renseigné'
-    kyc_status = user['kyc_status'] or 'pending'
-    referred_by = user['referred_by'] or 'Aucun'
+    # Sécuriser les valeurs pour éviter les erreurs Markdown - échapper les caractères spéciaux
+    first_name = str(user['first_name'] or 'Utilisateur').replace('_', '\\_').replace('*', '\\*').replace('[', '\\[').replace(']', '\\]').replace('(', '\\(').replace(')', '\\)')
+    last_name = str(user['last_name'] or '').replace('_', '\\_').replace('*', '\\*').replace('[', '\\[').replace(']', '\\]').replace('(', '\\(').replace(')', '\\)')
+    email = str(user['email'] or 'Non renseigné').replace('_', '\\_').replace('*', '\\*').replace('[', '\\[').replace(']', '\\]').replace('(', '\\(').replace(')', '\\)')
+    kyc_status = str(user['kyc_status'] or 'pending').replace('_', '\\_').replace('*', '\\*').replace('[', '\\[').replace(']', '\\]').replace('(', '\\(').replace(')', '\\)')
+    referred_by = str(user['referred_by'] or 'Aucun').replace('_', '\\_').replace('*', '\\*').replace('[', '\\[').replace(']', '\\]').replace('(', '\\(').replace(')', '\\)')
 
-    message = f"""👤 **MON PROFIL**
+    message = f"""👤 *MON PROFIL*
 
-**Informations personnelles :**
+*Informations personnelles :*
 • Nom : {first_name} {last_name}
 • Email : {email}
 • Inscription : {created_date}
 
-**Statut compte :**
+*Statut compte :*
 • Niveau : {level}
 • KYC : {kyc_status}
 • Solde : {user['balance']:.2f} USDT
 
-**Statistiques :**
+*Statistiques :*
 • Total investi : {total_investments['total']:.2f} USDT
 • Total gagné : {total_earnings['total']:.2f} USDT
 • Investissements : {total_investments['count']}
 • Filleuls : {referral_count['count']}
 
-**Parrainage :**
+*Parrainage :*
 • Code : `{user['referral_code']}`
 • Parrainé par : {referred_by}"""
 
@@ -1613,39 +1613,37 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    message = """
-❓ **CENTRE D'AIDE**
+    message = """❓ *CENTRE D'AIDE*
 
-🚀 **Comment commencer :**
-1. Effectuez votre premier dépôt (min. 10 USDT)
-2. Choisissez un plan d'investissement
-3. Regardez vos profits grandir !
+🚀 *Comment commencer :*
+1\\. Effectuez votre premier dépôt \\(min\\. 10 USDT\\)
+2\\. Choisissez un plan d'investissement
+3\\. Regardez vos profits grandir \\!
 
-💡 **Questions fréquentes :**
+💡 *Questions fréquentes :*
 
-**Q: Quand reçois-je mes profits ?**
-R: Les profits ROI sont crédités automatiquement chaque jour à minuit UTC.
+*Q: Quand reçois\\-je mes profits ?*
+R: Les profits ROI sont crédités automatiquement chaque jour à minuit UTC\\.
 
-**Q: Puis-je retirer à tout moment ?**
-R: Oui, votre solde disponible peut être retiré 24h/24.
+*Q: Puis\\-je retirer à tout moment ?*
+R: Oui, votre solde disponible peut être retiré 24h/24\\.
 
-**Q: Y a-t-il des frais cachés ?**
-R: Non, seuls 2 USDT de frais s'appliquent aux retraits.
+*Q: Y a\\-t\\-il des frais cachés ?*
+R: Non, seuls 2 USDT de frais s'appliquent aux retraits\\.
 
-**Q: Mesfonds sont-ils sécurisés ?**
-R: Oui, nous utilisons un stockage à froid et des audits réguliers.
+*Q: Mes fonds sont\\-ils sécurisés ?*
+R: Oui, nous utilisons un stockage à froid et des audits réguliers\\.
 
-**Q: Comment fonctionne le parrainage ?**
-R: Partagez votre code et gagnez sur chaque nouveau membre !
+*Q: Comment fonctionne le parrainage ?*
+R: Partagez votre code et gagnez sur chaque nouveau membre \\!
 
-📞 **Besoin d'aide personnalisée ?**
+📞 *Besoin d'aide personnalisée ?*
 Contactez notre support 24/7 :
-@InvestCryptoPro_Support
+@InvestCryptoPro\\_Support
 
-⏰ **Temps de réponse moyen : 2 heures**
-    """
+⏰ *Temps de réponse moyen : 2 heures*"""
 
-    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='MarkdownV2')
 
 async def process_withdrawal_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE, data: str):
     """Traiter la confirmation de retrait"""
