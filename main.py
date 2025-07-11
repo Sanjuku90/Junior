@@ -15,7 +15,7 @@ import atexit
 
 # Import du bot Telegram
 try:
-    from telegram_bot import notify_deposit_request, notify_withdrawal_request, setup_telegram_bot
+    from telegram_bot import notify_deposit_request, notify_withdrawal_request, setup_telegram_bot, stop_telegram_bot
     TELEGRAM_ENABLED = True
 except ImportError:
     TELEGRAM_ENABLED = False
@@ -979,32 +979,40 @@ if __name__ == '__main__':
     if TELEGRAM_ENABLED:
         telegram_app = setup_telegram_bot()
         if telegram_app:
-            # Démarrer le bot en arrière-plan de manière asynchrone
+            # Démarrer le bot en arrière-plan de manière plus stable
             def run_telegram_bot():
                 try:
                     import asyncio
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    # Utiliser start_polling au lieu de run_polling pour éviter les problèmes de signal
-                    async def start_bot():
-                        await telegram_app.initialize()
-                        await telegram_app.start()
-                        await telegram_app.updater.start_polling()
-                        # Garder le bot en marche
-                        while True:
-                            await asyncio.sleep(1)
                     
-                    loop.run_until_complete(start_bot())
+                    async def start_bot():
+                        try:
+                            await telegram_app.initialize()
+                            await telegram_app.start()
+                            await telegram_app.updater.start_polling(
+                                allowed_updates=["message", "callback_query"],
+                                drop_pending_updates=True  # Ignore les anciens messages
+                            )
+                            # Maintenir le bot actif
+                            await telegram_app.updater.idle()
+                        except Exception as e:
+                            print(f"❌ Erreur bot polling: {e}")
+                        finally:
+                            await telegram_app.stop()
+                    
+                    # Utiliser un nouveau loop pour éviter les conflits
+                    asyncio.run(start_bot())
                 except Exception as e:
                     print(f"❌ Erreur Telegram bot: {e}")
             
             telegram_thread = threading.Thread(target=run_telegram_bot, daemon=True)
             telegram_thread.start()
-            print("✅ Bot Telegram démarré")
+            print("✅ Bot Telegram d'administration démarré")
         else:
             print("❌ Impossible de démarrer le bot Telegram")
     
-    # Shutdown scheduler when exiting the app
+    # Shutdown scheduler and telegram bot when exiting the app
     atexit.register(lambda: scheduler.shutdown())
+    if TELEGRAM_ENABLED:
+        atexit.register(lambda: stop_telegram_bot())
     
     app.run(host='0.0.0.0', port=5000, debug=True)
