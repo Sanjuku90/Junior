@@ -968,12 +968,24 @@ if __name__ == '__main__':
     if TELEGRAM_ENABLED:
         telegram_app = setup_telegram_bot()
         if telegram_app:
-            # Démarrer le bot en arrière-plan
+            # Démarrer le bot en arrière-plan de manière asynchrone
             def run_telegram_bot():
-                import asyncio
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                telegram_app.run_polling()
+                try:
+                    import asyncio
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    # Utiliser start_polling au lieu de run_polling pour éviter les problèmes de signal
+                    async def start_bot():
+                        await telegram_app.initialize()
+                        await telegram_app.start()
+                        await telegram_app.updater.start_polling()
+                        # Garder le bot en marche
+                        while True:
+                            await asyncio.sleep(1)
+                    
+                    loop.run_until_complete(start_bot())
+                except Exception as e:
+                    print(f"❌ Erreur Telegram bot: {e}")
             
             telegram_thread = threading.Thread(target=run_telegram_bot, daemon=True)
             telegram_thread.start()
