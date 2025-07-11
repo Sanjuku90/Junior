@@ -20,7 +20,7 @@ REGISTER_EMAIL, REGISTER_PASSWORD, REGISTER_FIRSTNAME, REGISTER_LASTNAME, REGIST
 LOGIN_EMAIL, LOGIN_PASSWORD = range(2)
 DEPOSIT_AMOUNT, DEPOSIT_HASH = range(2)
 WITHDRAW_AMOUNT, WITHDRAW_ADDRESS = range(2)
-INVEST_ROI_AMOUNT, INVEST_STAKING_AMOUNT, INVEST_PROJECT_AMOUNT = range(3)
+INVEST_ROI_AMOUNT, INVEST_STAKING_AMOUNT, INVEST_PROJECT_AMOUNT, INVEST_FROZEN_AMOUNT = range(4)
 
 # Configuration du logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -83,19 +83,36 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [
             [InlineKeyboardButton("🔐 Se connecter", callback_data="login")],
             [InlineKeyboardButton("📝 S'inscrire", callback_data="register")],
-            [InlineKeyboardButton("ℹ️ À propos", callback_data="about")]
+            [InlineKeyboardButton("ℹ️ À propos", callback_data="about")],
+            [InlineKeyboardButton("📞 Support", url="https://t.me/InvestCryptoPro_Support")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
-        await update.message.reply_text(
-            "🚀 **Bienvenue sur InvestCrypto Pro**\n\n"
-            "💎 Plateforme d'investissement crypto sécurisée\n"
-            "📈 Rendements garantis jusqu'à 15% par jour\n"
-            "🔒 Technologie blockchain avancée\n\n"
-            "Connectez-vous ou créez un compte pour commencer :",
-            reply_markup=reply_markup,
-            parse_mode='Markdown'
-        )
+        message = """
+🚀 **BIENVENUE SUR INVESTCRYPTO PRO**
+
+💎 **Plateforme d'investissement crypto nouvelle génération**
+
+📈 **Nos plans d'investissement :**
+• Plans ROI : jusqu'à 15% par jour
+• Staking : rendements annuels jusqu'à 25%
+• Projets crowdfunding : 18-25% de retour
+• Plans gelés : jusqu'à 400% sur 12 mois
+
+🔒 **Sécurité maximale :**
+• Fonds protégés en cold storage
+• Vérifications KYC strictes
+• Support client 24/7
+
+💰 **Commencez avec seulement 20 USDT !**
+
+Connectez-vous ou créez un compte pour commencer :
+        """
+        
+        if hasattr(update, 'message') and update.message:
+            await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+        else:
+            await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
     else:
         # Utilisateur connecté - Menu principal
         await show_main_menu(update, context, user)
@@ -111,22 +128,56 @@ async def show_main_menu(update, context, user):
         [InlineKeyboardButton("💳 Dépôt", callback_data="deposit"),
          InlineKeyboardButton("💸 Retrait", callback_data="withdraw")],
         [InlineKeyboardButton("📊 Mes investissements", callback_data="my_investments")],
-        [InlineKeyboardButton("👤 Profil", callback_data="profile"),
+        [InlineKeyboardButton("👥 Parrainage", callback_data="referral"),
          InlineKeyboardButton("🔔 Notifications", callback_data="notifications")],
-        [InlineKeyboardButton("❓ Aide", callback_data="help")]
+        [InlineKeyboardButton("👤 Profil", callback_data="profile"),
+         InlineKeyboardButton("❓ Aide", callback_data="help")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # Calcul des statistiques utilisateur
+    conn = get_db_connection()
+    
+    # Investissements actifs
+    total_invested = conn.execute('''
+        SELECT COALESCE(SUM(amount), 0) as total 
+        FROM user_investments 
+        WHERE user_id = ? AND is_active = 1
+    ''', (user['id'],)).fetchone()['total']
+    
+    # Gains totaux
+    total_earned = conn.execute('''
+        SELECT COALESCE(SUM(total_earned), 0) as total 
+        FROM user_investments 
+        WHERE user_id = ?
+    ''', (user['id'],)).fetchone()['total']
+    
+    # Notifications non lues
+    unread_notifications = conn.execute('''
+        SELECT COUNT(*) as count 
+        FROM notifications 
+        WHERE user_id = ? AND is_read = 0
+    ''', (user['id'],)).fetchone()['count']
+    
+    conn.close()
     
     message = f"""
 🏛️ **INVESTCRYPTO PRO - DASHBOARD**
 
-👋 Bonjour {user['first_name']} {user['last_name']}!
+👋 Salut {user['first_name']} !
 
-💰 **Solde:** {user['balance']:.2f} USDT
-📊 **Statut KYC:** {user['kyc_status']}
-🎁 **Code parrain:** `{user['referral_code']}`
+💰 **Solde disponible :** {user['balance']:.2f} USDT
+📈 **Total investi :** {total_invested:.2f} USDT
+🎯 **Gains totaux :** {total_earned:.2f} USDT
+💼 **Valeur portfolio :** {(user['balance'] + total_invested):.2f} USDT
 
-⏰ **Dernière connexion:** {datetime.now().strftime('%d/%m/%Y %H:%M')}
+📊 **Statut KYC :** {user['kyc_status']}
+🎁 **Code parrain :** `{user['referral_code']}`
+🔔 **Notifications :** {unread_notifications} non lues
+
+⏰ **Dernière connexion :** {datetime.now().strftime('%d/%m/%Y %H:%M')}
+
+🚀 Que souhaitez-vous faire aujourd'hui ?
     """
     
     if hasattr(update, 'message') and update.message:
@@ -140,8 +191,9 @@ async def register_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Début du processus d'inscription"""
     await update.callback_query.answer()
     await update.callback_query.edit_message_text(
-        "📝 **INSCRIPTION**\n\n"
-        "Entrez votre adresse email :",
+        "📝 **INSCRIPTION GRATUITE**\n\n"
+        "🎁 **Bonus de bienvenue : 10 USDT offerts !**\n\n"
+        "Pour commencer, entrez votre adresse email :",
         parse_mode='Markdown'
     )
     return REGISTER_EMAIL
@@ -149,6 +201,14 @@ async def register_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def register_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Récupérer l'email pour l'inscription"""
     email = update.message.text.strip()
+    
+    # Validation basique de l'email
+    if '@' not in email or '.' not in email:
+        await update.message.reply_text(
+            "❌ Format d'email invalide.\n\n"
+            "Veuillez entrer une adresse email valide :"
+        )
+        return REGISTER_EMAIL
     
     # Vérifier si l'email existe déjà
     conn = get_db_connection()
@@ -158,14 +218,14 @@ async def register_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if existing_user:
         await update.message.reply_text(
             "❌ Cet email est déjà utilisé.\n\n"
-            "Utilisez /start pour recommencer."
+            "Utilisez /start pour vous connecter ou choisir un autre email :"
         )
-        return ConversationHandler.END
+        return REGISTER_EMAIL
     
     context.user_data['register_email'] = email
     await update.message.reply_text(
-        "✅ Email enregistré!\n\n"
-        "🔐 Maintenant, choisissez un mot de passe sécurisé :"
+        "✅ Email enregistré !\n\n"
+        "🔐 Choisissez un mot de passe sécurisé (minimum 6 caractères) :"
     )
     return REGISTER_PASSWORD
 
@@ -176,13 +236,13 @@ async def register_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if len(password) < 6:
         await update.message.reply_text(
             "❌ Le mot de passe doit contenir au moins 6 caractères.\n\n"
-            "Veuillez réessayer :"
+            "Veuillez choisir un mot de passe plus sécurisé :"
         )
         return REGISTER_PASSWORD
     
     context.user_data['register_password'] = password
     await update.message.reply_text(
-        "✅ Mot de passe enregistré!\n\n"
+        "✅ Mot de passe sécurisé enregistré !\n\n"
         "👤 Entrez votre prénom :"
     )
     return REGISTER_FIRSTNAME
@@ -191,7 +251,7 @@ async def register_firstname(update: Update, context: ContextTypes.DEFAULT_TYPE)
     """Récupérer le prénom"""
     context.user_data['register_firstname'] = update.message.text.strip()
     await update.message.reply_text(
-        "✅ Prénom enregistré!\n\n"
+        "✅ Prénom enregistré !\n\n"
         "👤 Entrez votre nom de famille :"
     )
     return REGISTER_LASTNAME
@@ -200,8 +260,9 @@ async def register_lastname(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Récupérer le nom de famille"""
     context.user_data['register_lastname'] = update.message.text.strip()
     await update.message.reply_text(
-        "✅ Nom enregistré!\n\n"
-        "🎁 Avez-vous un code de parrainage? (Tapez 'non' pour ignorer)"
+        "✅ Nom enregistré !\n\n"
+        "🎁 **Code de parrainage (optionnel)**\n"
+        "Avez-vous été parrainé ? Entrez le code ou tapez 'non' :"
     )
     return REGISTER_REFERRAL
 
@@ -211,6 +272,22 @@ async def register_referral(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if referral_code.lower() == 'non':
         referral_code = ''
     
+    # Vérifier si le code de parrainage existe
+    referrer_bonus = 0
+    if referral_code:
+        conn = get_db_connection()
+        referrer = conn.execute('SELECT id FROM users WHERE referral_code = ?', (referral_code,)).fetchone()
+        if referrer:
+            referrer_bonus = 5  # Bonus pour le parrain
+        else:
+            conn.close()
+            await update.message.reply_text(
+                "❌ Code de parrainage invalide.\n\n"
+                "Entrez un code valide ou tapez 'non' pour continuer sans parrainage :"
+            )
+            return REGISTER_REFERRAL
+        conn.close()
+    
     # Créer l'utilisateur
     conn = get_db_connection()
     
@@ -218,8 +295,8 @@ async def register_referral(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_referral_code = generate_referral_code()
     
     cursor = conn.execute('''
-        INSERT INTO users (email, password_hash, first_name, last_name, referral_code, referred_by, telegram_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO users (email, password_hash, first_name, last_name, referral_code, referred_by, telegram_id, balance)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         context.user_data['register_email'],
         password_hash,
@@ -227,10 +304,25 @@ async def register_referral(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['register_lastname'],
         user_referral_code,
         referral_code,
-        update.effective_user.id
+        update.effective_user.id,
+        10.0  # Bonus de bienvenue
     ))
     
     user_id = cursor.lastrowid
+    
+    # Donner bonus au parrain si applicable
+    if referral_code and referrer_bonus > 0:
+        conn.execute('UPDATE users SET balance = balance + ? WHERE referral_code = ?', (referrer_bonus, referral_code))
+        
+        # Notification au parrain
+        referrer = conn.execute('SELECT id FROM users WHERE referral_code = ?', (referral_code,)).fetchone()
+        add_notification(
+            referrer['id'],
+            'Nouveau filleul !',
+            f'Félicitations ! Vous avez gagné {referrer_bonus} USDT grâce à votre nouveau filleul {context.user_data["register_firstname"]}.',
+            'success'
+        )
+    
     conn.commit()
     conn.close()
     
@@ -238,10 +330,22 @@ async def register_referral(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     
     await update.message.reply_text(
-        "🎉 **INSCRIPTION RÉUSSIE!**\n\n"
-        f"✅ Compte créé avec succès\n"
-        f"🎁 Votre code parrain: `{user_referral_code}`\n\n"
-        "Utilisez /start pour accéder à votre dashboard!"
+        f"""
+🎉 **INSCRIPTION RÉUSSIE !**
+
+✅ **Compte créé avec succès**
+🎁 **Bonus de bienvenue : 10 USDT crédités**
+🔗 **Votre code parrain : `{user_referral_code}`**
+{f'💰 **Parrainage validé : vous et votre parrain avez reçu des bonus !**' if referral_code else ''}
+
+🚀 **Vous pouvez maintenant :**
+• Découvrir nos plans d'investissement
+• Effectuer votre premier dépôt
+• Commencer à investir et gagner
+
+Utilisez /start pour accéder à votre dashboard !
+        """,
+        parse_mode='Markdown'
     )
     
     return ConversationHandler.END
@@ -260,7 +364,7 @@ async def login_email(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Récupérer l'email pour la connexion"""
     context.user_data['login_email'] = update.message.text.strip()
     await update.message.reply_text(
-        "✅ Email reçu!\n\n"
+        "✅ Email reçu !\n\n"
         "🔐 Entrez votre mot de passe :"
     )
     return LOGIN_PASSWORD
@@ -283,14 +387,21 @@ async def login_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data.clear()
         
         await update.message.reply_text(
-            "🎉 **CONNEXION RÉUSSIE!**\n\n"
-            f"Bienvenue {user['first_name']}!\n\n"
-            "Utilisez /start pour accéder à votre dashboard!"
+            f"""
+🎉 **CONNEXION RÉUSSIE !**
+
+Bienvenue {user['first_name']} !
+💰 Solde : {user['balance']:.2f} USDT
+
+Utilisez /start pour accéder à votre dashboard !
+            """,
+            parse_mode='Markdown'
         )
     else:
         conn.close()
         await update.message.reply_text(
             "❌ Email ou mot de passe incorrect.\n\n"
+            "Vérifiez vos informations et réessayez.\n"
             "Utilisez /start pour recommencer."
         )
     
@@ -299,7 +410,7 @@ async def login_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # === GESTION DU PORTEFEUILLE ===
 
 async def show_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher le portefeuille"""
+    """Afficher le portefeuille détaillé"""
     await update.callback_query.answer()
     user = get_user_by_telegram_id(update.effective_user.id)
     
@@ -309,48 +420,89 @@ async def show_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     conn = get_db_connection()
     
-    # Statistiques des investissements
+    # Statistiques des investissements ROI
     roi_stats = conn.execute('''
         SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total, COALESCE(SUM(total_earned), 0) as earned
         FROM user_investments 
         WHERE user_id = ? AND is_active = 1
     ''', (user['id'],)).fetchone()
     
+    # Statistiques des projets
     project_stats = conn.execute('''
         SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total
         FROM project_investments 
         WHERE user_id = ?
     ''', (user['id'],)).fetchone()
     
+    # Statistiques du staking
     staking_stats = conn.execute('''
         SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total
         FROM user_staking 
         WHERE user_id = ? AND is_active = 1
     ''', (user['id'],)).fetchone()
     
+    # Statistiques des investissements gelés
+    frozen_stats = conn.execute('''
+        SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total
+        FROM user_frozen_investments 
+        WHERE user_id = ? AND is_active = 1
+    ''', (user['id'],)).fetchone()
+    
+    # Dernières transactions
+    recent_transactions = conn.execute('''
+        SELECT type, amount, status, created_at
+        FROM transactions 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT 3
+    ''', (user['id'],)).fetchall()
+    
     conn.close()
     
     keyboard = [
         [InlineKeyboardButton("💳 Effectuer un dépôt", callback_data="deposit")],
         [InlineKeyboardButton("💸 Effectuer un retrait", callback_data="withdraw")],
-        [InlineKeyboardButton("📊 Historique transactions", callback_data="transaction_history")],
+        [InlineKeyboardButton("📊 Historique complet", callback_data="transaction_history")],
         [InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
+    # Calcul de la valeur totale du portfolio
+    total_portfolio = (user['balance'] + roi_stats['total'] + project_stats['total'] + 
+                      staking_stats['total'] + frozen_stats['total'])
+    
+    # Formatage des transactions récentes
+    transactions_text = ""
+    if recent_transactions:
+        transactions_text = "\n📋 **Dernières transactions :**\n"
+        for tx in recent_transactions:
+            status_emoji = "✅" if tx['status'] == 'completed' else "⏳" if tx['status'] == 'pending' else "❌"
+            type_emoji = "📥" if tx['type'] == 'deposit' else "📤" if tx['type'] == 'withdrawal' else "💎"
+            transactions_text += f"{status_emoji} {type_emoji} {tx['amount']:.2f} USDT\n"
+    
     message = f"""
 💰 **MON PORTEFEUILLE**
 
-💵 **Solde disponible:** {user['balance']:.2f} USDT
-💎 **Solde en attente:** {user['pending_balance']:.2f} USDT
+💵 **Solde disponible :** {user['balance']:.2f} USDT
+💎 **Solde en attente :** {user['pending_balance']:.2f} USDT
 
-📈 **MES INVESTISSEMENTS:**
-• ROI Plans: {roi_stats['count']} ({roi_stats['total']:.2f} USDT)
-  └ Gains: {roi_stats['earned']:.2f} USDT
-• Projets: {project_stats['count']} ({project_stats['total']:.2f} USDT)
-• Staking: {staking_stats['count']} ({staking_stats['total']:.2f} USDT)
+📈 **RÉPARTITION DE MES INVESTISSEMENTS :**
 
-💼 **Valeur totale:** {(user['balance'] + roi_stats['total'] + project_stats['total'] + staking_stats['total']):.2f} USDT
+🎯 **Plans ROI :** {roi_stats['count']} actifs
+   💰 Montant : {roi_stats['total']:.2f} USDT
+   🎁 Gains : {roi_stats['earned']:.2f} USDT
+
+🎯 **Projets :** {project_stats['count']} investissements
+   💰 Montant : {project_stats['total']:.2f} USDT
+
+🎯 **Staking :** {staking_stats['count']} positions
+   💰 Montant : {staking_stats['total']:.2f} USDT
+
+🎯 **Plans gelés :** {frozen_stats['count']} positions
+   💰 Montant : {frozen_stats['total']:.2f} USDT
+
+💼 **VALEUR TOTALE DU PORTFOLIO :** {total_portfolio:.2f} USDT
+{transactions_text}
     """
     
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
@@ -358,7 +510,7 @@ async def show_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # === PLANS ROI ===
 
 async def show_roi_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher les plans ROI"""
+    """Afficher les plans ROI avec détails"""
     await update.callback_query.answer()
     
     conn = get_db_connection()
@@ -367,20 +519,35 @@ async def show_roi_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard = []
     message = "📈 **PLANS D'INVESTISSEMENT ROI**\n\n"
+    message += "💡 **Profits quotidiens automatiques !**\n\n"
     
     for plan in plans:
         total_return = (plan['daily_rate'] * plan['duration_days']) * 100
+        monthly_return = (plan['daily_rate'] * 30) * 100
+        
+        # Émojis selon le plan
+        if plan['daily_rate'] <= 0.05:
+            emoji = "🥉"
+        elif plan['daily_rate'] <= 0.08:
+            emoji = "🥈"
+        elif plan['daily_rate'] <= 0.12:
+            emoji = "🥇"
+        else:
+            emoji = "👑"
+        
         message += f"""
-**{plan['name']}**
-📊 {plan['daily_rate']*100:.1f}% par jour pendant {plan['duration_days']} jours
-💰 {plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT
-🎯 Retour total: {total_return:.0f}%
+{emoji} **{plan['name'].upper()}**
+📊 **{plan['daily_rate']*100:.1f}% par jour** pendant {plan['duration_days']} jours
+💰 **{plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT**
+🎯 **Retour total : {total_return:.0f}%**
+📅 **Profit mensuel : {monthly_return:.0f}%**
 
-{plan['description'][:100]}...
+{plan['description'][:150]}...
 
 """
-        keyboard.append([InlineKeyboardButton(f"💎 Investir - {plan['name']}", callback_data=f"invest_roi_{plan['id']}")])
+        keyboard.append([InlineKeyboardButton(f"{emoji} Investir - {plan['name']}", callback_data=f"invest_roi_{plan['id']}")])
     
+    keyboard.append([InlineKeyboardButton("💡 Guide d'investissement", callback_data="roi_guide")])
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
     
@@ -393,6 +560,7 @@ async def invest_roi_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     conn = get_db_connection()
     plan = conn.execute('SELECT * FROM roi_plans WHERE id = ?', (plan_id,)).fetchone()
+    user = get_user_by_telegram_id(update.effective_user.id)
     conn.close()
     
     if not plan:
@@ -401,15 +569,28 @@ async def invest_roi_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     context.user_data['invest_roi_plan_id'] = plan_id
     
+    # Calculs pour l'affichage
+    total_return = (plan['daily_rate'] * plan['duration_days']) * 100
+    example_amount = 100
+    example_daily = example_amount * plan['daily_rate']
+    example_total = example_amount * (1 + plan['daily_rate'] * plan['duration_days'])
+    
     message = f"""
 💎 **INVESTISSEMENT - {plan['name'].upper()}**
 
-📈 **Rendement:** {plan['daily_rate']*100:.1f}% par jour
-⏰ **Durée:** {plan['duration_days']} jours
-💰 **Limites:** {plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT
-🎯 **Retour total:** {(plan['daily_rate'] * plan['duration_days'] * 100):.0f}%
+📈 **Rendement :** {plan['daily_rate']*100:.1f}% par jour
+⏰ **Durée :** {plan['duration_days']} jours
+💰 **Limites :** {plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT
+🎯 **Retour total :** {total_return:.0f}%
 
-💵 **Entrez le montant à investir (en USDT):**
+💡 **Exemple avec 100 USDT :**
+• Profit quotidien : {example_daily:.2f} USDT
+• Total reçu : {example_total:.2f} USDT
+• Profit net : {example_total - example_amount:.2f} USDT
+
+💼 **Votre solde :** {user['balance']:.2f} USDT
+
+💵 **Entrez le montant à investir (en USDT) :**
     """
     
     await update.callback_query.edit_message_text(message, parse_mode='Markdown')
@@ -420,7 +601,7 @@ async def invest_roi_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         amount = float(update.message.text)
     except ValueError:
-        await update.message.reply_text("❌ Montant invalide. Entrez un nombre.")
+        await update.message.reply_text("❌ Montant invalide. Entrez un nombre valide.")
         return INVEST_ROI_AMOUNT
     
     plan_id = context.user_data['invest_roi_plan_id']
@@ -436,18 +617,25 @@ async def invest_roi_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Vérifications
     if amount < plan['min_amount'] or amount > plan['max_amount']:
         await update.message.reply_text(
-            f"❌ Montant doit être entre {plan['min_amount']:.0f} et {plan['max_amount']:.0f} USDT."
+            f"❌ Montant doit être entre {plan['min_amount']:.0f} et {plan['max_amount']:.0f} USDT.\n\n"
+            "Entrez un montant valide :"
         )
         return INVEST_ROI_AMOUNT
     
     if user['balance'] < amount:
-        await update.message.reply_text("❌ Solde insuffisant.")
+        await update.message.reply_text(
+            f"❌ Solde insuffisant.\n\n"
+            f"💰 Solde disponible : {user['balance']:.2f} USDT\n"
+            f"💳 Montant requis : {amount:.2f} USDT\n\n"
+            "Effectuez un dépôt ou choisissez un montant plus petit."
+        )
         return ConversationHandler.END
     
     # Créer l'investissement
     start_date = datetime.now()
     end_date = start_date + timedelta(days=plan['duration_days'])
     daily_profit = amount * plan['daily_rate']
+    total_expected = amount + (daily_profit * plan['duration_days'])
     
     conn.execute('''
         INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, daily_profit, transaction_hash)
@@ -464,36 +652,117 @@ async def invest_roi_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.commit()
     conn.close()
     
+    # Notification
+    add_notification(
+        user['id'],
+        'Nouvel investissement ROI',
+        f'Investissement de {amount:.2f} USDT dans le plan {plan["name"]} activé avec succès.',
+        'success'
+    )
+    
     context.user_data.clear()
     
     await update.message.reply_text(
         f"""
-🎉 **INVESTISSEMENT RÉUSSI!**
+🎉 **INVESTISSEMENT RÉUSSI !**
 
-💎 **Plan:** {plan['name']}
-💰 **Montant:** {amount:.2f} USDT
-📈 **Profit quotidien:** {daily_profit:.2f} USDT
-⏰ **Fin:** {end_date.strftime('%d/%m/%Y')}
+💎 **Plan :** {plan['name']}
+💰 **Montant investi :** {amount:.2f} USDT
+📈 **Profit quotidien :** {daily_profit:.2f} USDT
+📅 **Fin d'investissement :** {end_date.strftime('%d/%m/%Y')}
+🎯 **Total attendu :** {total_expected:.2f} USDT
 
-✅ Votre investissement est maintenant actif!
+✅ **Votre investissement est maintenant actif !**
+💡 **Les profits seront crédités automatiquement chaque jour.**
 
-Utilisez /start pour retourner au menu.
+Utilisez /start pour retourner au menu principal.
         """,
         parse_mode='Markdown'
     )
     
     return ConversationHandler.END
 
+# === PLANS DE STAKING ===
+
+async def show_staking_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les plans de staking"""
+    await update.callback_query.answer()
+    
+    conn = get_db_connection()
+    plans = conn.execute('SELECT * FROM staking_plans WHERE is_active = 1').fetchall()
+    conn.close()
+    
+    keyboard = []
+    message = "💎 **PLANS DE STAKING CRYPTO**\n\n"
+    message += "🔒 **Stakez vos cryptos et gagnez des récompenses !**\n\n"
+    
+    for plan in plans:
+        daily_rate = plan['annual_rate'] / 365
+        total_return = daily_rate * plan['duration_days'] * 100
+        
+        message += f"""
+🏆 **{plan['name'].upper()}**
+⏰ **Durée :** {plan['duration_days']} jours
+📊 **Rendement annuel :** {plan['annual_rate']*100:.0f}%
+📈 **Retour total :** {total_return:.1f}%
+💰 **{plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT**
+⚠️ **Pénalité retrait :** {plan['penalty_rate']*100:.0f}%
+
+{plan['description'][:120]}...
+
+"""
+        keyboard.append([InlineKeyboardButton(f"💎 Staker - {plan['name']}", callback_data=f"invest_staking_{plan['id']}")])
+    
+    keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+# === PLANS GELÉS ===
+
+async def show_frozen_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les plans gelés"""
+    await update.callback_query.answer()
+    
+    conn = get_db_connection()
+    plans = conn.execute('SELECT * FROM frozen_plans WHERE is_active = 1').fetchall()
+    conn.close()
+    
+    keyboard = []
+    message = "🧊 **PLANS D'INVESTISSEMENT GELÉS**\n\n"
+    message += "💎 **Investissements à long terme avec rendements exceptionnels !**\n\n"
+    
+    for plan in plans:
+        annual_return = ((plan['total_return_rate'] - 1) / (plan['duration_days'] / 365)) * 100
+        
+        message += f"""
+💎 **{plan['name'].upper()}**
+⏰ **Durée :** {plan['duration_days']} jours ({plan['duration_days']//30} mois)
+🎯 **Retour total :** {plan['total_return_rate']*100:.0f}%
+📊 **Rendement annuel équivalent :** {annual_return:.0f}%
+💰 **{plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT**
+
+{plan['description'][:120]}...
+
+"""
+        keyboard.append([InlineKeyboardButton(f"💎 Investir - {plan['name']}", callback_data=f"invest_frozen_{plan['id']}")])
+    
+    keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
 # === PROJETS CROWDFUNDING ===
 
 async def show_projects(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher les projets"""
+    """Afficher les projets de crowdfunding"""
     await update.callback_query.answer()
     
     conn = get_db_connection()
     projects = conn.execute('''
         SELECT *, 
-               (raised_amount * 100.0 / target_amount) as progress_percent
+               (raised_amount * 100.0 / target_amount) as progress_percent,
+               (target_amount - raised_amount) as remaining_amount
         FROM projects 
         WHERE status = 'collecting' AND deadline > datetime('now')
         ORDER BY created_at DESC
@@ -503,21 +772,172 @@ async def show_projects(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     keyboard = []
     message = "🎯 **PROJETS DE CROWDFUNDING**\n\n"
+    message += "🚀 **Investissez dans l'avenir et générez des profits !**\n\n"
     
-    for project in projects:
-        message += f"""
-**{project['title']}**
-📊 Progression: {project['progress_percent']:.1f}%
-💰 {project['raised_amount']:.0f} / {project['target_amount']:.0f} USDT
-📈 Retour attendu: {project['expected_return']*100:.0f}%
-⏰ Durée: {project['duration_months']} mois
-💵 {project['min_investment']:.0f} - {project['max_investment']:.0f} USDT
+    if not projects:
+        message += "😔 **Aucun projet disponible actuellement.**\n"
+        message += "Revenez bientôt pour découvrir de nouvelles opportunités !"
+    else:
+        for project in projects:
+            days_left = (datetime.fromisoformat(project['deadline'].replace('Z', '+00:00')) - datetime.now()).days
+            
+            message += f"""
+🏆 **{project['title'].upper()}**
+📊 **Progression :** {project['progress_percent']:.1f}% ({project['raised_amount']:.0f}/{project['target_amount']:.0f} USDT)
+📈 **Retour attendu :** {project['expected_return']*100:.0f}%
+⏰ **Durée :** {project['duration_months']} mois
+💰 **{project['min_investment']:.0f} - {project['max_investment']:.0f} USDT**
+⏳ **Temps restant :** {days_left} jours
 
 """
-        keyboard.append([InlineKeyboardButton(f"🎯 Investir - {project['title']}", callback_data=f"invest_project_{project['id']}")])
+            keyboard.append([InlineKeyboardButton(f"🎯 Investir - {project['title'][:20]}", callback_data=f"invest_project_{project['id']}")])
     
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+# === MES INVESTISSEMENTS ===
+
+async def show_my_investments(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher tous les investissements de l'utilisateur"""
+    await update.callback_query.answer()
+    user = get_user_by_telegram_id(update.effective_user.id)
+    
+    if not user:
+        await update.callback_query.edit_message_text("❌ Veuillez vous connecter d'abord.")
+        return
+    
+    conn = get_db_connection()
+    
+    # Investissements ROI actifs
+    roi_investments = conn.execute('''
+        SELECT ui.*, rp.name as plan_name, rp.daily_rate
+        FROM user_investments ui
+        JOIN roi_plans rp ON ui.plan_id = rp.id
+        WHERE ui.user_id = ? AND ui.is_active = 1
+        ORDER BY ui.start_date DESC
+    ''', (user['id'],)).fetchall()
+    
+    # Positions de staking actives
+    staking_investments = conn.execute('''
+        SELECT us.*, sp.name as plan_name, sp.annual_rate
+        FROM user_staking us
+        JOIN staking_plans sp ON us.plan_id = sp.id
+        WHERE us.user_id = ? AND us.is_active = 1
+        ORDER BY us.start_date DESC
+    ''', (user['id'],)).fetchall()
+    
+    # Investissements gelés actifs
+    frozen_investments = conn.execute('''
+        SELECT ufi.*, fp.name as plan_name, fp.total_return_rate
+        FROM user_frozen_investments ufi
+        JOIN frozen_plans fp ON ufi.plan_id = fp.id
+        WHERE ufi.user_id = ? AND ufi.is_active = 1
+        ORDER BY ufi.start_date DESC
+    ''', (user['id'],)).fetchall()
+    
+    conn.close()
+    
+    keyboard = [
+        [InlineKeyboardButton("📈 Détails ROI", callback_data="investment_details_roi"),
+         InlineKeyboardButton("💎 Détails Staking", callback_data="investment_details_staking")],
+        [InlineKeyboardButton("🧊 Détails Gelés", callback_data="investment_details_frozen")],
+        [InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = "📊 **MES INVESTISSEMENTS**\n\n"
+    
+    # ROI Investments
+    if roi_investments:
+        total_roi_invested = sum(inv['amount'] for inv in roi_investments)
+        total_roi_earned = sum(inv['total_earned'] for inv in roi_investments)
+        message += f"📈 **Plans ROI :** {len(roi_investments)} actifs\n"
+        message += f"   💰 Investi : {total_roi_invested:.2f} USDT\n"
+        message += f"   🎁 Gagné : {total_roi_earned:.2f} USDT\n\n"
+    
+    # Staking Investments
+    if staking_investments:
+        total_staking_amount = sum(stake['amount'] for stake in staking_investments)
+        message += f"💎 **Staking :** {len(staking_investments)} positions\n"
+        message += f"   💰 Staké : {total_staking_amount:.2f} USDT\n\n"
+    
+    # Frozen Investments
+    if frozen_investments:
+        total_frozen_amount = sum(frozen['amount'] for frozen in frozen_investments)
+        message += f"🧊 **Plans gelés :** {len(frozen_investments)} actifs\n"
+        message += f"   💰 Gelé : {total_frozen_amount:.2f} USDT\n\n"
+    
+    if not roi_investments and not staking_investments and not frozen_investments:
+        message += "😔 **Aucun investissement actif.**\n\n"
+        message += "🚀 Commencez dès maintenant avec nos plans d'investissement !"
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+# === SYSTÈME DE PARRAINAGE ===
+
+async def show_referral_system(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher le système de parrainage"""
+    await update.callback_query.answer()
+    user = get_user_by_telegram_id(update.effective_user.id)
+    
+    if not user:
+        await update.callback_query.edit_message_text("❌ Veuillez vous connecter d'abord.")
+        return
+    
+    conn = get_db_connection()
+    
+    # Statistiques de parrainage
+    referral_stats = conn.execute('''
+        SELECT COUNT(*) as count, COALESCE(SUM(balance), 0) as total_balance
+        FROM users 
+        WHERE referred_by = ?
+    ''', (user['referral_code'],)).fetchone()
+    
+    # Filleuls récents
+    recent_referrals = conn.execute('''
+        SELECT first_name, last_name, created_at, balance
+        FROM users 
+        WHERE referred_by = ?
+        ORDER BY created_at DESC
+        LIMIT 5
+    ''', (user['referral_code'],)).fetchall()
+    
+    conn.close()
+    
+    keyboard = [
+        [InlineKeyboardButton("📤 Partager mon lien", callback_data="share_referral")],
+        [InlineKeyboardButton("🏆 Programme de récompenses", callback_data="referral_rewards")],
+        [InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = f"""
+👥 **SYSTÈME DE PARRAINAGE**
+
+🎁 **Votre code de parrainage :** `{user['referral_code']}`
+
+📊 **Vos statistiques :**
+• Filleuls actifs : {referral_stats['count']}
+• Volume total généré : {referral_stats['total_balance']:.2f} USDT
+
+💰 **Récompenses :**
+• 5 USDT par nouveau filleul
+• 2% sur tous leurs investissements
+• Bonus mensuels selon performance
+
+🚀 **Comment ça marche :**
+1. Partagez votre code avec vos amis
+2. Ils s'inscrivent avec votre code
+3. Vous recevez des récompenses instantanément
+4. Plus ils investissent, plus vous gagnez !
+    """
+    
+    if recent_referrals:
+        message += "\n\n🏆 **Filleuls récents :**\n"
+        for ref in recent_referrals:
+            message += f"• {ref['first_name']} {ref['last_name']} - {ref['balance']:.2f} USDT\n"
     
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
@@ -530,16 +950,22 @@ async def deposit_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = f"""
 💳 **EFFECTUER UN DÉPÔT**
 
-🔹 **Adresse de dépôt USDT (TRC20):**
+🔹 **Adresse de dépôt USDT (TRC20) :**
 `TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6`
 
-📋 **Instructions:**
-1. Envoyez vos USDT à l'adresse ci-dessus
-2. Montant minimum: 10 USDT
-3. Utilisez uniquement le réseau TRC20
+📋 **Instructions importantes :**
+1. Envoyez uniquement des USDT à cette adresse
+2. Utilisez exclusivement le réseau TRC20
+3. Montant minimum : 10 USDT
 4. Conservez le hash de transaction
+5. Vérification sous 24h maximum
 
-💰 **Entrez le montant déposé (en USDT):**
+⚠️ **ATTENTION :**
+• N'envoyez que des USDT TRC20
+• Toute autre crypto sera perdue
+• Vérifiez l'adresse avant envoi
+
+💰 **Entrez le montant déposé (en USDT) :**
     """
     
     await update.callback_query.edit_message_text(message, parse_mode='Markdown')
@@ -550,18 +976,33 @@ async def deposit_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         amount = float(update.message.text)
     except ValueError:
-        await update.message.reply_text("❌ Montant invalide. Entrez un nombre.")
+        await update.message.reply_text("❌ Montant invalide. Entrez un nombre valide.")
         return DEPOSIT_AMOUNT
     
     if amount < 10:
-        await update.message.reply_text("❌ Montant minimum: 10 USDT")
+        await update.message.reply_text(
+            "❌ Montant minimum de dépôt : 10 USDT\n\n"
+            "Entrez un montant supérieur ou égal à 10 USDT :"
+        )
         return DEPOSIT_AMOUNT
     
     context.user_data['deposit_amount'] = amount
     
     await update.message.reply_text(
-        "✅ Montant enregistré!\n\n"
-        "🔗 **Entrez le hash de la transaction:**"
+        f"""
+✅ **Montant enregistré : {amount:.2f} USDT**
+
+🔗 **Maintenant, entrez le hash de la transaction :**
+
+💡 **Comment trouver le hash :**
+• Dans votre wallet, allez dans l'historique
+• Cliquez sur la transaction d'envoi
+• Copiez le "Transaction ID" ou "Hash"
+
+📝 **Le hash ressemble à :**
+`1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f`
+        """,
+        parse_mode='Markdown'
     )
     return DEPOSIT_HASH
 
@@ -571,7 +1012,31 @@ async def deposit_hash(update: Update, context: ContextTypes.DEFAULT_TYPE):
     amount = context.user_data['deposit_amount']
     user = get_user_by_telegram_id(update.effective_user.id)
     
+    # Validation basique du hash
+    if len(transaction_hash) < 30:
+        await update.message.reply_text(
+            "❌ Hash de transaction invalide.\n\n"
+            "Le hash doit contenir au moins 30 caractères.\n"
+            "Vérifiez et entrez le hash correct :"
+        )
+        return DEPOSIT_HASH
+    
     conn = get_db_connection()
+    
+    # Vérifier si le hash n'existe pas déjà
+    existing_hash = conn.execute(
+        'SELECT id FROM transactions WHERE transaction_hash = ?', 
+        (transaction_hash,)
+    ).fetchone()
+    
+    if existing_hash:
+        conn.close()
+        await update.message.reply_text(
+            "❌ Ce hash de transaction a déjà été utilisé.\n\n"
+            "Chaque transaction ne peut être utilisée qu'une seule fois.\n"
+            "Entrez un hash différent :"
+        )
+        return DEPOSIT_HASH
     
     # Créer la transaction en attente
     cursor = conn.execute('''
@@ -584,13 +1049,16 @@ async def deposit_hash(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.close()
     
     # Notification admin si disponible
-    from telegram_bot import notify_deposit_request
-    notify_deposit_request(user['id'], amount, transaction_hash, deposit_id)
+    try:
+        from telegram_bot import notify_deposit_request
+        notify_deposit_request(user['id'], amount, transaction_hash, deposit_id)
+    except:
+        pass
     
     add_notification(
         user['id'],
         'Dépôt en cours de vérification',
-        f'Votre dépôt de {amount} USDT est en cours de vérification.',
+        f'Votre dépôt de {amount} USDT (Hash: {transaction_hash[:16]}...) est en cours de vérification.',
         'info'
     )
     
@@ -598,15 +1066,18 @@ async def deposit_hash(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.message.reply_text(
         f"""
-✅ **DÉPÔT SOUMIS POUR VÉRIFICATION**
+✅ **DÉPÔT SOUMIS AVEC SUCCÈS**
 
-💰 **Montant:** {amount:.2f} USDT
-🔗 **Hash:** `{transaction_hash}`
-🆔 **ID:** #{deposit_id}
+💰 **Montant :** {amount:.2f} USDT
+🔗 **Hash :** `{transaction_hash}`
+🆔 **Référence :** #{deposit_id}
 
-⏰ Votre dépôt sera vérifié et crédité sous 24h.
+⏰ **Traitement :** Sous 24h maximum
+🔔 **Notification :** Vous serez averti par message
 
-Utilisez /start pour retourner au menu.
+📧 **Suivi :** Vérifiez vos notifications régulièrement
+
+Utilisez /start pour retourner au menu principal.
         """,
         parse_mode='Markdown'
     )
@@ -620,19 +1091,47 @@ async def withdraw_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.callback_query.answer()
     user = get_user_by_telegram_id(update.effective_user.id)
     
+    if user['balance'] < 10:
+        keyboard = [[InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.callback_query.edit_message_text(
+            f"""
+💸 **RETRAIT NON DISPONIBLE**
+
+💰 **Solde actuel :** {user['balance']:.2f} USDT
+💵 **Minimum requis :** 10 USDT
+
+❌ **Solde insuffisant pour effectuer un retrait.**
+
+💡 **Solutions :**
+• Effectuez un dépôt
+• Attendez vos profits d'investissement
+• Investissez pour générer des gains
+            """,
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+        return
+    
     message = f"""
 💸 **EFFECTUER UN RETRAIT**
 
-💰 **Solde disponible:** {user['balance']:.2f} USDT
-💵 **Montant minimum:** 10 USDT
-💸 **Frais de retrait:** 2 USDT
+💰 **Solde disponible :** {user['balance']:.2f} USDT
+💵 **Montant minimum :** 10 USDT
+💸 **Frais de retrait :** 2 USDT
 
-⚠️ **Important:**
-- Utilisez uniquement une adresse USDT TRC20
-- Vérifiez l'adresse avant confirmation
-- Les retraits sont traités sous 24h
+🏦 **Détails du traitement :**
+• Réseau : USDT TRC20 uniquement
+• Délai : 24h maximum
+• Vérification manuelle pour sécurité
 
-💰 **Entrez le montant à retirer:**
+⚠️ **Important :**
+• Vérifiez votre adresse USDT TRC20
+• Toute erreur d'adresse entraîne une perte
+• Les retraits sont irréversibles
+
+💰 **Entrez le montant à retirer (en USDT) :**
     """
     
     await update.callback_query.edit_message_text(message, parse_mode='Markdown')
@@ -643,25 +1142,46 @@ async def withdraw_amount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         amount = float(update.message.text)
     except ValueError:
-        await update.message.reply_text("❌ Montant invalide. Entrez un nombre.")
+        await update.message.reply_text("❌ Montant invalide. Entrez un nombre valide.")
         return WITHDRAW_AMOUNT
     
     user = get_user_by_telegram_id(update.effective_user.id)
     
     if amount < 10:
-        await update.message.reply_text("❌ Montant minimum: 10 USDT")
+        await update.message.reply_text(
+            "❌ Montant minimum de retrait : 10 USDT\n\n"
+            "Entrez un montant supérieur ou égal à 10 USDT :"
+        )
         return WITHDRAW_AMOUNT
     
     if amount > user['balance']:
-        await update.message.reply_text(f"❌ Solde insuffisant. Disponible: {user['balance']:.2f} USDT")
+        await update.message.reply_text(
+            f"❌ Solde insuffisant.\n\n"
+            f"💰 Solde disponible : {user['balance']:.2f} USDT\n"
+            f"💸 Montant demandé : {amount:.2f} USDT\n\n"
+            "Entrez un montant inférieur ou égal à votre solde :"
+        )
         return WITHDRAW_AMOUNT
     
     context.user_data['withdraw_amount'] = amount
     net_amount = amount - 2
     
     await update.message.reply_text(
-        f"✅ Montant: {amount:.2f} USDT (Net: {net_amount:.2f} USDT)\n\n"
-        "📍 **Entrez votre adresse USDT TRC20:**"
+        f"""
+✅ **Montant de retrait : {amount:.2f} USDT**
+💵 **Montant net (après frais) : {net_amount:.2f} USDT**
+
+📍 **Entrez votre adresse USDT TRC20 :**
+
+💡 **Format d'adresse TRC20 :**
+• Commence par 'T'
+• Contient 34 caractères
+• Exemple : TYDzsYUEpvnYmQk4zGP9sWWcTEd2MiAtW6
+
+⚠️ **VÉRIFIEZ BIEN VOTRE ADRESSE !**
+Une erreur entraîne la perte définitive des fonds.
+        """,
+        parse_mode='Markdown'
     )
     return WITHDRAW_ADDRESS
 
@@ -671,54 +1191,48 @@ async def withdraw_address(update: Update, context: ContextTypes.DEFAULT_TYPE):
     amount = context.user_data['withdraw_amount']
     user = get_user_by_telegram_id(update.effective_user.id)
     
-    if len(address) < 30:
-        await update.message.reply_text("❌ Adresse invalide. Vérifiez et réessayez.")
+    # Validation de l'adresse TRC20
+    if not address.startswith('T') or len(address) != 34:
+        await update.message.reply_text(
+            "❌ Adresse USDT TRC20 invalide.\n\n"
+            "📍 **Format requis :**\n"
+            "• Doit commencer par 'T'\n"
+            "• Doit contenir exactement 34 caractères\n\n"
+            "Vérifiez et entrez une adresse valide :"
+        )
         return WITHDRAW_ADDRESS
     
-    conn = get_db_connection()
+    # Confirmation avant traitement
+    keyboard = [
+        [InlineKeyboardButton("✅ Confirmer le retrait", callback_data=f"confirm_withdraw_{amount}_{address}")],
+        [InlineKeyboardButton("❌ Annuler", callback_data="main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     
-    # Débiter temporairement le solde
-    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, user['id']))
-    
-    # Créer la transaction en attente
-    cursor = conn.execute('''
-        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
-        VALUES (?, 'withdrawal', ?, 'pending', ?)
-    ''', (user['id'], amount, f"{address}|{amount}"))
-    
-    withdrawal_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    
-    # Notification admin
-    from telegram_bot import notify_withdrawal_request
-    notify_withdrawal_request(user['id'], amount, address, withdrawal_id)
-    
-    add_notification(
-        user['id'],
-        'Retrait en cours de traitement',
-        f'Votre retrait de {amount} USDT est en cours de traitement.',
-        'info'
-    )
-    
-    context.user_data.clear()
+    net_amount = amount - 2
     
     await update.message.reply_text(
         f"""
-✅ **RETRAIT SOUMIS POUR TRAITEMENT**
+🔍 **CONFIRMATION DE RETRAIT**
 
-💰 **Montant:** {amount:.2f} USDT
-💵 **Net (après frais):** {amount - 2:.2f} USDT
-📍 **Adresse:** `{address}`
-🆔 **ID:** #{withdrawal_id}
+💰 **Montant brut :** {amount:.2f} USDT
+💸 **Frais :** 2.00 USDT
+💵 **Montant net :** {net_amount:.2f} USDT
+📍 **Adresse :** `{address}`
 
-⏰ Votre retrait sera traité sous 24h.
+⚠️ **DERNIÈRE VÉRIFICATION :**
+• L'adresse est-elle correcte ?
+• S'agit-il bien d'une adresse USDT TRC20 ?
+• Avez-vous accès à cette adresse ?
 
-Utilisez /start pour retourner au menu.
+❌ **ATTENTION : Cette action est irréversible !**
         """,
+        reply_markup=reply_markup,
         parse_mode='Markdown'
     )
     
+    # Stocker temporairement l'adresse
+    context.user_data['withdraw_address'] = address
     return ConversationHandler.END
 
 # === GESTION DES CALLBACKS ===
@@ -735,7 +1249,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if user:
             await show_main_menu(update, context, user)
         else:
-            await query.edit_message_text("❌ Veuillez vous connecter d'abord.")
+            await start(update, context)
     
     elif data == "about":
         keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="start")]]
@@ -743,29 +1257,47 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         message = """
 🚀 **INVESTCRYPTO PRO**
+*La plateforme d'investissement crypto nouvelle génération*
 
-💎 **La plateforme d'investissement crypto nouvelle génération**
+🎯 **Notre Mission :**
+Démocratiser l'investissement crypto et offrir des rendements exceptionnels à tous nos utilisateurs.
 
-🎯 **Nos avantages:**
-• Rendements jusqu'à 15% par jour
-• Sécurité blockchain maximale
-• Support client 24/7
-• Retraits rapides (24h max)
-• Interface simple et intuitive
+📈 **Nos Services :**
 
-📈 **Types d'investissement:**
-• Plans ROI (rendement quotidien)
-• Crowdfunding de projets
-• Staking de crypto-monnaies
-• Plans gelés long terme
+**Plans ROI :** 5% à 15% par jour
+• Profits quotidiens automatiques
+• Capital + intérêts garantis
+• Durées de 30 à 90 jours
 
-🔒 **Sécurité garantie:**
-• Fonds sécurisés en cold storage
+**Staking Crypto :** 12% à 25% par an
+• Sécurisé par la blockchain
+• Récompenses proportionnelles
+• Flexibilité de durée
+
+**Crowdfunding :** 18% à 25% de retour
+• Projets vérifiés et rentables
+• Impact réel sur l'économie
+• Diversification du portfolio
+
+**Plans Gelés :** Jusqu'à 400% sur 12 mois
+• Investissements long terme
+• Rendements exceptionnels
+• Sécurité maximale
+
+🔒 **Sécurité :**
+• Fonds en cold storage
 • Vérifications KYC strictes
 • Chiffrement de niveau bancaire
 • Audits de sécurité réguliers
 
-💬 **Support:** @InvestCryptoPro_Support
+💎 **Avantages :**
+• Investissement minimum : 20 USDT
+• Support client 24/7
+• Interface simple et intuitive
+• Retraits rapides (24h max)
+
+📞 **Support :** @InvestCryptoPro_Support
+🌐 **Site web :** investcryptopro.com
         """
         
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
@@ -778,13 +1310,259 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     elif data == "projects":
         await show_projects(update, context)
+    
+    elif data == "staking_plans":
+        await show_staking_plans(update, context)
+    
+    elif data == "frozen_plans":
+        await show_frozen_plans(update, context)
+    
+    elif data == "my_investments":
+        await show_my_investments(update, context)
+    
+    elif data == "referral":
+        await show_referral_system(update, context)
+    
+    elif data == "notifications":
+        await show_notifications(update, context)
+    
+    elif data == "profile":
+        await show_profile(update, context)
+    
+    elif data == "help":
+        await show_help(update, context)
+    
+    elif data.startswith('confirm_withdraw_'):
+        await process_withdrawal_confirmation(update, context, data)
+
+async def show_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les notifications"""
+    user = get_user_by_telegram_id(update.effective_user.id)
+    
+    conn = get_db_connection()
+    notifications = conn.execute('''
+        SELECT * FROM notifications 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT 10
+    ''', (user['id'],)).fetchall()
+    
+    # Marquer comme lues
+    conn.execute('UPDATE notifications SET is_read = 1 WHERE user_id = ?', (user['id'],))
+    conn.commit()
+    conn.close()
+    
+    keyboard = [[InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = "🔔 **MES NOTIFICATIONS**\n\n"
+    
+    if notifications:
+        for notif in notifications:
+            type_emoji = "✅" if notif['type'] == 'success' else "⚠️" if notif['type'] == 'warning' else "❌" if notif['type'] == 'error' else "ℹ️"
+            date_str = datetime.fromisoformat(notif['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
+            message += f"{type_emoji} **{notif['title']}**\n"
+            message += f"📝 {notif['message']}\n"
+            message += f"📅 {date_str}\n\n"
+    else:
+        message += "😔 Aucune notification pour le moment.\n\n"
+        message += "Les notifications apparaîtront ici pour :\n"
+        message += "• Confirmations de dépôts/retraits\n"
+        message += "• Profits d'investissements\n"
+        message += "• Fins de plans\n"
+        message += "• Nouveautés de la plateforme"
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher le profil utilisateur"""
+    user = get_user_by_telegram_id(update.effective_user.id)
+    
+    conn = get_db_connection()
+    
+    # Stats utilisateur
+    total_investments = conn.execute('''
+        SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total
+        FROM user_investments 
+        WHERE user_id = ?
+    ''', (user['id'],)).fetchone()
+    
+    total_earnings = conn.execute('''
+        SELECT COALESCE(SUM(total_earned), 0) as total
+        FROM user_investments 
+        WHERE user_id = ?
+    ''', (user['id'],)).fetchone()
+    
+    referral_count = conn.execute('''
+        SELECT COUNT(*) as count
+        FROM users 
+        WHERE referred_by = ?
+    ''', (user['referral_code'],)).fetchone()
+    
+    conn.close()
+    
+    keyboard = [
+        [InlineKeyboardButton("🔄 Changer mot de passe", callback_data="change_password")],
+        [InlineKeyboardButton("📋 Historique complet", callback_data="full_history")],
+        [InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    # Calcul du niveau utilisateur
+    if total_investments['total'] < 100:
+        level = "🥉 Bronze"
+    elif total_investments['total'] < 1000:
+        level = "🥈 Argent"
+    elif total_investments['total'] < 5000:
+        level = "🥇 Or"
+    else:
+        level = "💎 Diamant"
+    
+    message = f"""
+👤 **MON PROFIL**
+
+**Informations personnelles :**
+• Nom : {user['first_name']} {user['last_name']}
+• Email : {user['email']}
+• Inscription : {datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).strftime('%d/%m/%Y')}
+
+**Statut compte :**
+• Niveau : {level}
+• KYC : {user['kyc_status']}
+• Solde : {user['balance']:.2f} USDT
+
+**Statistiques :**
+• Total investi : {total_investments['total']:.2f} USDT
+• Total gagné : {total_earnings['total']:.2f} USDT
+• Investissements : {total_investments['count']}
+• Filleuls : {referral_count['count']}
+
+**Parrainage :**
+• Code : `{user['referral_code']}`
+• Parrainé par : {user['referred_by'] or 'Aucun'}
+    """
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher l'aide"""
+    keyboard = [
+        [InlineKeyboardButton("💬 Support direct", url="https://t.me/InvestCryptoPro_Support")],
+        [InlineKeyboardButton("📚 Guide débutant", callback_data="beginner_guide")],
+        [InlineKeyboardButton("❓ FAQ", callback_data="faq")],
+        [InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = """
+❓ **CENTRE D'AIDE**
+
+🚀 **Comment commencer :**
+1. Effectuez votre premier dépôt (min. 10 USDT)
+2. Choisissez un plan d'investissement
+3. Regardez vos profits grandir !
+
+💡 **Questions fréquentes :**
+
+**Q: Quand reçois-je mes profits ?**
+R: Les profits ROI sont crédités automatiquement chaque jour à minuit UTC.
+
+**Q: Puis-je retirer à tout moment ?**
+R: Oui, votre solde disponible peut être retiré 24h/24.
+
+**Q: Y a-t-il des frais cachés ?**
+R: Non, seuls 2 USDT de frais s'appliquent aux retraits.
+
+**Q: Mes fonds sont-ils sécurisés ?**
+R: Oui, nous utilisons un stockage à froid et des audits réguliers.
+
+**Q: Comment fonctionne le parrainage ?**
+R: Partagez votre code et gagnez sur chaque nouveau membre !
+
+📞 **Besoin d'aide personnalisée ?**
+Contactez notre support 24/7 :
+@InvestCryptoPro_Support
+
+⏰ **Temps de réponse moyen : 2 heures**
+    """
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def process_withdrawal_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE, data: str):
+    """Traiter la confirmation de retrait"""
+    user = get_user_by_telegram_id(update.effective_user.id)
+    
+    # Extraire les données
+    parts = data.split('_')
+    amount = float(parts[2])
+    address = parts[3]
+    
+    conn = get_db_connection()
+    
+    # Vérifier le solde une dernière fois
+    current_user = conn.execute('SELECT balance FROM users WHERE id = ?', (user['id'],)).fetchone()
+    if current_user['balance'] < amount:
+        await update.callback_query.edit_message_text(
+            "❌ Solde insuffisant. Votre solde a peut-être changé.",
+            parse_mode='Markdown'
+        )
+        return
+    
+    # Débiter le solde
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, user['id']))
+    
+    # Créer la transaction en attente
+    cursor = conn.execute('''
+        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+        VALUES (?, 'withdrawal', ?, 'pending', ?)
+    ''', (user['id'], amount, f"{address}|{amount}"))
+    
+    withdrawal_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    
+    # Notification admin
+    try:
+        from telegram_bot import notify_withdrawal_request
+        notify_withdrawal_request(user['id'], amount, address, withdrawal_id)
+    except:
+        pass
+    
+    add_notification(
+        user['id'],
+        'Retrait en cours de traitement',
+        f'Votre retrait de {amount} USDT vers {address[:10]}... est en cours de traitement.',
+        'info'
+    )
+    
+    net_amount = amount - 2
+    
+    await update.callback_query.edit_message_text(
+        f"""
+✅ **RETRAIT CONFIRMÉ**
+
+💰 **Montant :** {amount:.2f} USDT
+💵 **Net (après frais) :** {net_amount:.2f} USDT
+📍 **Adresse :** `{address}`
+🆔 **Référence :** #{withdrawal_id}
+
+⏰ **Traitement :** Sous 24h maximum
+🔔 **Suivi :** Vous recevrez une notification
+
+💡 **Le montant a été débité de votre solde pour sécuriser la transaction.**
+
+Utilisez /start pour retourner au menu.
+        """,
+        parse_mode='Markdown'
+    )
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Annuler une conversation"""
     context.user_data.clear()
     await update.message.reply_text(
-        "❌ Opération annulée.\n\n"
-        "Utilisez /start pour retourner au menu principal."
+        "❌ **Opération annulée**\n\n"
+        "Utilisez /start pour retourner au menu principal.",
+        parse_mode='Markdown'
     )
     return ConversationHandler.END
 

@@ -773,7 +773,6 @@ def invest_frozen():
 @app.route('/portfolio-invest', methods=['POST'])
 @login_required
 def portfolio_invest():
-```python
     data = request.get_json()
     total_amount = float(data.get('total_amount', 0))
     distributions = data.get('distributions', [])
