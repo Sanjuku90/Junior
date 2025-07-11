@@ -1614,7 +1614,8 @@ def setup_user_telegram_bot():
             DEPOSIT_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, deposit_amount)],
             DEPOSIT_HASH: [MessageHandler(filters.TEXT & ~filters.COMMAND, deposit_hash)],
         },
-        fallbacks=[CommandHandler('cancel', cancel)]
+        fallbacks=[CommandHandler('cancel', cancel)],
+        per_message=False
     )
     
     # Handlers de conversation pour les retraits
@@ -1624,7 +1625,8 @@ def setup_user_telegram_bot():
             WITHDRAW_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_amount)],
             WITHDRAW_ADDRESS: [MessageHandler(filters.TEXT & ~filters.COMMAND, withdraw_address)],
         },
-        fallbacks=[CommandHandler('cancel', cancel)]
+        fallbacks=[CommandHandler('cancel', cancel)],
+        per_message=False
     )
     
     # Handlers de conversation pour les investissements ROI
@@ -1633,7 +1635,8 @@ def setup_user_telegram_bot():
         states={
             INVEST_ROI_AMOUNT: [MessageHandler(filters.TEXT & ~filters.COMMAND, invest_roi_amount)],
         },
-        fallbacks=[CommandHandler('cancel', cancel)]
+        fallbacks=[CommandHandler('cancel', cancel)],
+        per_message=False
     )
     
     # Ajouter tous les handlers

@@ -975,35 +975,47 @@ if __name__ == '__main__':
     if TELEGRAM_USER_BOT_ENABLED:
         user_bot_app = setup_user_telegram_bot()
         if user_bot_app:
-                def run_user_bot():
-                    try:
-                        import asyncio
-
-                        async def start_user_bot():
+            def run_user_bot():
+                try:
+                    import asyncio
+                    
+                    # Créer un nouveau loop pour ce thread
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    
+                    async def start_user_bot():
+                        try:
+                            print("🚀 Initialisation du bot utilisateur...")
+                            await user_bot_app.initialize()
+                            await user_bot_app.start()
+                            print("✅ Bot utilisateur en cours d'exécution")
+                            
+                            # Utiliser l'updater pour le polling
+                            await user_bot_app.updater.start_polling(
+                                allowed_updates=["message", "callback_query"],
+                                drop_pending_updates=True
+                            )
+                            
+                            # Garder le bot en vie
+                            await user_bot_app.updater.idle()
+                            
+                        except Exception as e:
+                            print(f"❌ Erreur bot utilisateur: {e}")
+                        finally:
                             try:
-                                print("🚀 Initialisation du bot utilisateur...")
-                                await user_bot_app.initialize()
-                                await user_bot_app.start()
-                                await user_bot_app.run_polling(
-                                    allowed_updates=["message", "callback_query"],
-                                    drop_pending_updates=True
-                                )
-                                print("✅ Bot utilisateur en cours d'exécution")
-                            except Exception as e:
-                                print(f"❌ Erreur bot utilisateur: {e}")
-                            finally:
-                                try:
-                                    await user_bot_app.stop()
-                                except:
-                                    pass
+                                await user_bot_app.stop()
+                            except:
+                                pass
+                    
+                    # Exécuter le bot dans son propre loop
+                    loop.run_until_complete(start_user_bot())
+                    
+                except Exception as e:
+                    print(f"❌ Erreur Telegram bot utilisateur: {e}")
 
-                        asyncio.run(start_user_bot())
-                    except Exception as e:
-                        print(f"❌ Erreur Telegram bot utilisateur: {e}")
-
-                user_thread = threading.Thread(target=run_user_bot, daemon=True)
-                user_thread.start()
-                print("✅ Bot Telegram utilisateur démarré")
+            user_thread = threading.Thread(target=run_user_bot, daemon=True)
+            user_thread.start()
+            print("✅ Bot Telegram utilisateur démarré")
         else:
             print("❌ Échec de la configuration du bot utilisateur")
     else:
