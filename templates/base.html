@@ -14,443 +14,108 @@
                         primary: '#1f2937',
                         secondary: '#3b82f6',
                         accent: '#10b981'
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                        'slide-up': 'slideUp 0.5s ease-out',
-                        'scale-in': 'scaleIn 0.3s ease-out',
-                        'rotate-3d': 'rotate3d 10s linear infinite'
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-10px)' }
-                        },
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.5)' },
-                            '100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)' }
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' }
-                        },
-                        scaleIn: {
-                            '0%': { transform: 'scale(0.8)', opacity: '0' },
-                            '100%': { transform: 'scale(1)', opacity: '1' }
-                        },
-                        rotate3d: {
-                            '0%': { transform: 'rotateY(0deg)' },
-                            '100%': { transform: 'rotateY(360deg)' }
-                        }
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Variables CSS pour les couleurs */
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --dark-gradient: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
-        }
-
-        /* Corps de la page avec perspective 3D */
-        body {
-            perspective: 1000px;
-            background: var(--dark-gradient);
-            background-attachment: fixed;
-        }
-
-        /* Animations et effets 3D */
-        .card-3d {
-            transform-style: preserve-3d;
-            transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
-        }
-
-        .card-3d:hover {
-            transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-        }
-
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Navigation avec effets 3D */
-        .nav-3d {
-            background: linear-gradient(135deg, 
-                rgba(30, 58, 138, 0.95) 0%, 
-                rgba(67, 56, 202, 0.95) 50%, 
-                rgba(99, 102, 241, 0.95) 100%);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
         .nav-link {
-            @apply px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-all duration-300 flex items-center relative overflow-hidden;
-            transform-style: preserve-3d;
+            @apply px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-all duration-200 flex items-center;
         }
-
-        .nav-link:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .nav-link:hover:before {
-            left: 100%;
-        }
-
-        .nav-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
-        }
-
         .nav-link.active {
-            @apply text-white;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
-            transform: translateY(-1px);
+            @apply text-white bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg;
         }
-
-        /* Logo avec animation 3D */
-        .logo-3d {
-            animation: float 6s ease-in-out infinite;
-            transform-style: preserve-3d;
-        }
-
-        .logo-3d:hover {
-            animation-play-state: paused;
-            transform: rotateY(15deg) rotateX(5deg) scale(1.1);
-        }
-
-        /* Icônes avec effets lumineux */
-        .icon-glow {
-            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
-            transition: all 0.3s ease;
-        }
-
-        .icon-glow:hover {
-            filter: drop-shadow(0 0 15px rgba(59, 130, 246, 1));
-            transform: scale(1.1) rotateZ(5deg);
-        }
-
-        /* Boutons avec effets 3D */
-        .btn-3d {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transform-style: preserve-3d;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-3d:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.6s;
-        }
-
-        .btn-3d:hover:before {
-            transform: translateX(100%);
-        }
-
-        .btn-3d:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-3d:active {
-            transform: translateY(-1px) scale(0.98);
-        }
-
-        /* Cartes avec effets de profondeur */
-        .depth-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transform-style: preserve-3d;
-            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        .depth-card:hover {
-            transform: translateY(-8px) rotateX(2deg);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-
-        /* Effets de parallaxe */
-        .parallax-bg {
-            background-attachment: fixed;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-        }
-
-        /* Menu dropdown avec effets 3D */
-        .dropdown-3d {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            transform: translateY(-10px) rotateX(-10deg);
-            transform-origin: top;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-
-        .dropdown-3d.show {
-            transform: translateY(0) rotateX(0deg);
-            opacity: 1;
-            visibility: visible;
-        }
-
         .dropdown-item {
-            @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-all duration-200 relative overflow-hidden;
+            @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200;
         }
-
-        .dropdown-item:before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 0;
-            height: 100%;
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
-            transition: width 0.3s ease;
-        }
-
-        .dropdown-item:hover:before {
-            width: 100%;
-        }
-
-        /* Menu mobile avec animations */
         .mobile-nav-link {
-            @apply block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white transition-all duration-300 relative overflow-hidden;
+            @apply block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition-colors duration-200;
         }
-
-        .mobile-nav-link:before {
-            content: '';
-            position: absolute;
-            left: -100%;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .mobile-nav-link:hover:before {
-            left: 100%;
-        }
-
         .mobile-nav-link.active {
-            @apply text-white;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        }
-
-        /* Animations d'entrée */
-        .animate-entrance {
-            animation: slideUp 0.6s ease-out forwards;
-        }
-
-        .animate-scale {
-            animation: scaleIn 0.4s ease-out forwards;
-        }
-
-        /* Effets de bordure animée */
-        .border-gradient {
-            position: relative;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-        }
-
-        .border-gradient:before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            padding: 2px;
-            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
-            border-radius: inherit;
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: exclude;
-        }
-
-        /* Texte avec effet holographique */
-        .holographic-text {
-            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #4facfe);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient-shift 3s ease infinite;
-        }
-
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* Particules flottantes */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.8), transparent);
-            border-radius: 50%;
-            animation: float-particle 15s infinite linear;
-        }
-
-        @keyframes float-particle {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        /* Responsive et optimisations */
-        @media (max-width: 768px) {
-            .card-3d:hover {
-                transform: translateY(-5px);
-            }
-        }
-
-        /* Mode sombre amélioré */
-        .dark-mode {
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            @apply text-white bg-gradient-to-r from-blue-500 to-purple-600;
         }
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Particules de fond -->
-    <div class="particles">
-        <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
-        <div class="particle" style="left: 20%; animation-delay: 2s;"></div>
-        <div class="particle" style="left: 30%; animation-delay: 4s;"></div>
-        <div class="particle" style="left: 40%; animation-delay: 6s;"></div>
-        <div class="particle" style="left: 50%; animation-delay: 8s;"></div>
-        <div class="particle" style="left: 60%; animation-delay: 10s;"></div>
-        <div class="particle" style="left: 70%; animation-delay: 12s;"></div>
-        <div class="particle" style="left: 80%; animation-delay: 14s;"></div>
-        <div class="particle" style="left: 90%; animation-delay: 16s;"></div>
-    </div>
-
     <!-- Navigation -->
-    <nav class="nav-3d fixed w-full top-0 z-50">
+    <nav class="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 shadow-xl border-b border-blue-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 lg:h-20">
                 <!-- Logo et nom -->
                 <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center logo-3d">
-                        <div class="bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-1.5 lg:p-2 rounded-xl mr-2 lg:mr-3 shadow-2xl icon-glow border border-white/20">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="bg-gradient-to-br from-yellow-400 to-orange-500 p-1.5 lg:p-2 rounded-lg mr-2 lg:mr-3 shadow-lg">
                             <i class="fas fa-chart-line text-lg lg:text-2xl text-white"></i>
                         </div>
                         <div class="hidden sm:block">
-                            <span class="text-xl lg:text-2xl font-bold holographic-text">InvestCrypto</span>
-                            <span class="text-lg lg:text-xl font-light text-blue-100 ml-1 animate-glow">Pro</span>
-                            <div class="text-xs text-blue-300 font-medium tracking-wider hidden lg:block opacity-80">PLATEFORME D'INVESTISSEMENT</div>
+                            <span class="text-xl lg:text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">InvestCrypto</span>
+                            <span class="text-lg lg:text-xl font-light text-blue-100 ml-1">Pro</span>
+                            <div class="text-xs text-blue-300 font-medium tracking-wider hidden lg:block">PLATEFORME D'INVESTISSEMENT</div>
                         </div>
                         <div class="sm:hidden">
-                            <span class="text-lg font-bold holographic-text">IC Pro</span>
+                            <span class="text-lg font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">IC Pro</span>
                         </div>
                     </div>
                 </div>
 
                 {% if session.user_id %}
                 <!-- Navigation desktop -->
-                <div class="hidden lg:flex items-center space-x-2">
-                    <a href="{{ url_for('dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'dashboard' }}">
-                        <div class="bg-gradient-to-br from-blue-500 to-blue-700 p-1.5 rounded-lg mr-2 icon-glow">
-                            <i class="fas fa-tachometer-alt text-xs text-white"></i>
+                <div class="hidden lg:flex items-center space-x-1">
+                    <a href="{{ url_for('dashboard') }}" class="group flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ 'bg-blue-700/50 text-white' if request.endpoint == 'dashboard' }}">
+                        <div class="bg-blue-600 group-hover:bg-blue-500 p-1.5 rounded-md mr-2 transition-colors">
+                            <i class="fas fa-tachometer-alt text-xs"></i>
                         </div>
                         Dashboard
                     </a>
-                    <a href="{{ url_for('roi_plans') }}" class="nav-link {{ 'active' if request.endpoint == 'roi_plans' }}">
-                        <div class="bg-gradient-to-br from-green-500 to-emerald-700 p-1.5 rounded-lg mr-2 icon-glow">
-                            <i class="fas fa-percentage text-xs text-white"></i>
+                    <a href="{{ url_for('roi_plans') }}" class="group flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ 'bg-blue-700/50 text-white' if request.endpoint == 'roi_plans' }}">
+                        <div class="bg-green-600 group-hover:bg-green-500 p-1.5 rounded-md mr-2 transition-colors">
+                            <i class="fas fa-percentage text-xs"></i>
                         </div>
                         Plans ROI
                     </a>
-                    <a href="{{ url_for('projects') }}" class="nav-link {{ 'active' if request.endpoint == 'projects' }}">
-                        <div class="bg-gradient-to-br from-purple-500 to-violet-700 p-1.5 rounded-lg mr-2 icon-glow">
-                            <i class="fas fa-project-diagram text-xs text-white"></i>
+                    <a href="{{ url_for('projects') }}" class="group flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ 'bg-blue-700/50 text-white' if request.endpoint == 'projects' }}">
+                        <div class="bg-purple-600 group-hover:bg-purple-500 p-1.5 rounded-md mr-2 transition-colors">
+                            <i class="fas fa-project-diagram text-xs"></i>
                         </div>
                         Projets
                     </a>
-                    <a href="{{ url_for('profile') }}" class="nav-link {{ 'active' if request.endpoint == 'profile' }}">
-                        <div class="bg-gradient-to-br from-indigo-500 to-purple-700 p-1.5 rounded-lg mr-2 icon-glow">
-                            <i class="fas fa-user text-xs text-white"></i>
+                    <a href="{{ url_for('profile') }}" class="group flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ 'bg-blue-700/50 text-white' if request.endpoint == 'profile' }}">
+                        <div class="bg-indigo-600 group-hover:bg-indigo-500 p-1.5 rounded-md mr-2 transition-colors">
+                            <i class="fas fa-user text-xs"></i>
                         </div>
                         Profil
                     </a>
 
-                    <div class="h-8 w-px bg-gradient-to-b from-transparent via-blue-400 to-transparent mx-3 opacity-50"></div>
+                    <div class="h-6 w-px bg-blue-600 mx-2"></div>
 
-                    <div class="flex items-center glass-effect rounded-xl px-4 py-2 mr-3 border-gradient">
-                        <div class="bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 p-1.5 rounded-full mr-3 icon-glow animate-pulse">
+                    <div class="flex items-center bg-blue-800/50 rounded-lg px-3 py-2 mr-3">
+                        <div class="bg-yellow-500 p-1 rounded-full mr-2">
                             <i class="fas fa-wallet text-xs text-white"></i>
                         </div>
                         <div class="text-right">
-                            <div class="text-xs text-blue-200 opacity-80">Solde</div>
-                            <div class="text-sm font-bold text-white holographic-text">0.00 USDT</div>
+                            <div class="text-xs text-blue-300">Solde</div>
+                            <div class="text-sm font-bold text-white">0.00 USDT</div>
                         </div>
                     </div>
 
                     <div class="relative group">
-                        <button class="flex items-center glass-effect hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 border border-white/10 hover:border-white/30">
-                            <div class="bg-gradient-to-br from-gray-500 to-gray-700 p-1.5 rounded-full mr-2 icon-glow">
+                        <button class="flex items-center text-blue-100 hover:text-white hover:bg-blue-700/50 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                            <div class="bg-gray-600 p-1.5 rounded-full mr-2">
                                 <i class="fas fa-user text-xs text-white"></i>
                             </div>
-                            <span class="text-blue-100">{{ session.first_name }}</span>
-                            <i class="fas fa-chevron-down ml-2 text-xs text-blue-300 group-hover:rotate-180 transition-transform duration-300"></i>
+                            <span>{{ session.first_name }}</span>
+                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
                         </button>
 
-                        <div class="dropdown-3d absolute right-0 mt-3 w-52 rounded-xl z-50 overflow-hidden">
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                             <div class="py-2">
-                                <a href="{{ url_for('profile') }}" class="dropdown-item">
-                                    <i class="fas fa-user-circle mr-3 text-blue-500"></i>
+                                <a href="{{ url_for('profile') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user-circle mr-3 text-gray-500"></i>
                                     Mon Profil
                                 </a>
-                                <div class="border-t border-gray-200 my-1"></div>
-                                <a href="{{ url_for('logout') }}" class="dropdown-item text-red-600 hover:text-red-700">
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <a href="{{ url_for('logout') }}" class="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
                                     <i class="fas fa-sign-out-alt mr-3"></i>
                                     Déconnexion
                                 </a>
@@ -462,8 +127,8 @@
                 <!-- Navigation mobile -->
                 <div class="lg:hidden flex items-center space-x-2">
                     <!-- Solde mobile -->
-                    <div class="flex items-center glass-effect rounded-lg px-2 py-1 border border-white/10">
-                        <div class="bg-gradient-to-br from-yellow-400 to-orange-500 p-1 rounded-full mr-1 icon-glow">
+                    <div class="flex items-center bg-blue-800/50 rounded-lg px-2 py-1">
+                        <div class="bg-yellow-500 p-1 rounded-full mr-1">
                             <i class="fas fa-wallet text-xs text-white"></i>
                         </div>
                         <div class="text-right">
@@ -472,21 +137,20 @@
                     </div>
 
                     <!-- Bouton menu mobile -->
-                    <button id="mobile-menu-button" class="glass-effect hover:bg-white/20 p-2 rounded-lg transition-all duration-300 border border-white/10">
-                        <i class="fas fa-bars text-lg text-blue-100 hover:text-white"></i>
+                    <button id="mobile-menu-button" class="text-blue-100 hover:text-white p-2 rounded-lg transition-colors">
+                        <i class="fas fa-bars text-lg"></i>
                     </button>
                 </div>
                 {% else %}
                 <!-- Navigation visiteur -->
-                <div class="flex items-center space-x-3">
-                    <a href="{{ url_for('login') }}" class="hidden sm:flex glass-effect hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 items-center border border-white/10">
-                        <i class="fas fa-sign-in-alt mr-2 text-blue-300"></i>
-                        <span class="text-blue-100">Connexion</span>
+                <div class="flex items-center space-x-2">
+                    <a href="{{ url_for('login') }}" class="hidden sm:flex text-blue-100 hover:text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors items-center">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Connexion
                     </a>
-                    <a href="{{ url_for('login') }}" class="sm:hidden glass-effect hover:bg-white/20 p-2 rounded-lg transition-all duration-300 border border-white/10">
-                        <i class="fas fa-sign-in-alt text-lg text-blue-100"></i>
+                    <a href="{{ url_for('login') }}" class="sm:hidden text-blue-100 hover:text-white p-2 rounded-lg transition-colors">
+                        <i class="fas fa-sign-in-alt text-lg"></i>
                     </a>
-                    <a href="{{ url_for('register') }}" class="btn-3d text-white px-3 sm:px-6 py-2 rounded-xl text-sm font-semibold shadow-xl border border-white/20">
+                    <a href="{{ url_for('register') }}" class="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-3 sm:px-6 py-2 rounded-lg text-sm font-semibold shadow-lg transition-all duration-200">
                         <span class="hidden sm:inline"><i class="fas fa-user-plus mr-2"></i>Inscription</span>
                         <span class="sm:hidden"><i class="fas fa-user-plus"></i></span>
                     </a>
@@ -539,78 +203,42 @@
     {% endwith %}
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8 mt-20 relative z-10">
-        <div class="animate-entrance">
-            {% block content %}{% endblock %}
-        </div>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-8">
+        {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="relative mt-12 lg:mt-16 overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900"></div>
-        <div class="absolute inset-0 bg-black/20"></div>
-        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <footer class="bg-primary text-white mt-8 lg:mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-                <div class="col-span-2 lg:col-span-1 card-3d">
-                    <h3 class="text-lg font-semibold mb-4 holographic-text">InvestCrypto Pro</h3>
-                    <p class="text-gray-300 text-sm leading-relaxed">Plateforme d'investissement crypto sécurisée avec rendements garantis et technologie blockchain avancée.</p>
-                    <div class="flex space-x-4 mt-4">
-                        <div class="bg-blue-600 p-2 rounded-full icon-glow cursor-pointer hover:scale-110 transition-transform">
-                            <i class="fab fa-facebook text-white text-sm"></i>
-                        </div>
-                        <div class="bg-blue-400 p-2 rounded-full icon-glow cursor-pointer hover:scale-110 transition-transform">
-                            <i class="fab fa-twitter text-white text-sm"></i>
-                        </div>
-                        <div class="bg-purple-600 p-2 rounded-full icon-glow cursor-pointer hover:scale-110 transition-transform">
-                            <i class="fab fa-discord text-white text-sm"></i>
-                        </div>
-                    </div>
+                <div class="col-span-2 lg:col-span-1">
+                    <h3 class="text-lg font-semibold mb-4">InvestCrypto Pro</h3>
+                    <p class="text-gray-400 text-sm">Plateforme d'investissement crypto sécurisée avec rendements garantis.</p>
                 </div>
-                <div class="card-3d">
-                    <h4 class="text-md font-semibold mb-4 text-white">Investissements</h4>
-                    <ul class="space-y-3 text-gray-300 text-sm">
-                        <li><a href="{{ url_for('roi_plans') }}" class="hover:text-blue-400 transition-all duration-300 flex items-center group">
-                            <i class="fas fa-arrow-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            Plans ROI
-                        </a></li>
-                        <li><a href="{{ url_for('projects') }}" class="hover:text-blue-400 transition-all duration-300 flex items-center group">
-                            <i class="fas fa-arrow-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            Crowdfunding
-                        </a></li>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">Investissements</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="{{ url_for('roi_plans') }}" class="hover:text-white transition-colors">Plans ROI</a></li>
+                        <li><a href="{{ url_for('projects') }}" class="hover:text-white transition-colors">Crowdfunding</a></li>
                     </ul>
                 </div>
-                <div class="card-3d">
-                    <h4 class="text-md font-semibold mb-4 text-white">Support</h4>
-                    <ul class="space-y-3 text-gray-300 text-sm">
-                        <li><a href="#" class="hover:text-blue-400 transition-all duration-300 flex items-center group">
-                            <i class="fas fa-arrow-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            FAQ
-                        </a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition-all duration-300 flex items-center group">
-                            <i class="fas fa-arrow-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            Contact
-                        </a></li>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">FAQ</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
                     </ul>
                 </div>
-                <div class="card-3d">
-                    <h4 class="text-md font-semibold mb-4 text-white">Sécurité</h4>
-                    <ul class="space-y-3 text-gray-300 text-sm">
-                        <li><a href="#" class="hover:text-blue-400 transition-all duration-300 flex items-center group">
-                            <i class="fas fa-arrow-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            KYC
-                        </a></li>
-                        <li><a href="#" class="hover:text-blue-400 transition-all duration-300 flex items-center group">
-                            <i class="fas fa-arrow-right mr-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                            Conditions
-                        </a></li>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">Sécurité</h4>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-white transition-colors">KYC</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Conditions</a></li>
                     </ul>
                 </div>
             </div>
-            <div class="border-t border-white/10 mt-8 lg:mt-12 pt-6 lg:pt-8 text-center">
-                <div class="glass-effect rounded-lg p-4 mx-auto max-w-md">
-                    <p class="text-sm text-gray-300">&copy; 2024 <span class="holographic-text font-semibold">InvestCrypto Pro</span>. Tous droits réservés.</p>
-                    <p class="text-xs text-gray-400 mt-1">Technologie blockchain sécurisée</p>
-                </div>
+            <div class="border-t border-gray-700 mt-6 lg:mt-8 pt-6 lg:pt-8 text-center text-gray-400">
+                <p class="text-sm">&copy; 2024 InvestCrypto Pro. Tous droits réservés.</p>
             </div>
         </div>
     </footer>
@@ -636,9 +264,8 @@
             }).format(amount);
         }
 
-        // Initialisation des effets 3D et animations
+        // Mobile menu toggle
         document.addEventListener('DOMContentLoaded', function() {
-            // Mobile menu toggle avec animations
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
 
@@ -646,121 +273,34 @@
                 mobileMenuButton.addEventListener('click', function() {
                     mobileMenu.classList.toggle('hidden');
                     
-                    // Animation de l'icône
+                    // Change icon
                     const icon = mobileMenuButton.querySelector('i');
                     if (mobileMenu.classList.contains('hidden')) {
-                        icon.className = 'fas fa-bars text-lg text-blue-100 hover:text-white transition-transform duration-300';
+                        icon.className = 'fas fa-bars text-lg';
                     } else {
-                        icon.className = 'fas fa-times text-lg text-blue-100 hover:text-white transition-transform duration-300 rotate-180';
+                        icon.className = 'fas fa-times text-lg';
                     }
                 });
 
-                // Fermer le menu avec animation
+                // Close menu when clicking on a link
                 const mobileLinks = mobileMenu.querySelectorAll('a');
                 mobileLinks.forEach(link => {
                     link.addEventListener('click', function() {
                         mobileMenu.classList.add('hidden');
                         const icon = mobileMenuButton.querySelector('i');
-                        icon.className = 'fas fa-bars text-lg text-blue-100 hover:text-white transition-transform duration-300';
+                        icon.className = 'fas fa-bars text-lg';
                     });
                 });
 
-                // Fermer le menu en cliquant à l'extérieur
+                // Close menu when clicking outside
                 document.addEventListener('click', function(event) {
                     if (!mobileMenuButton.contains(event.target) && !mobileMenu.contains(event.target)) {
                         mobileMenu.classList.add('hidden');
                         const icon = mobileMenuButton.querySelector('i');
-                        icon.className = 'fas fa-bars text-lg text-blue-100 hover:text-white transition-transform duration-300';
+                        icon.className = 'fas fa-bars text-lg';
                     }
                 });
             }
-
-            // Gestion du menu dropdown 3D
-            const dropdownButton = document.querySelector('.group button');
-            const dropdownMenu = document.querySelector('.dropdown-3d');
-            
-            if (dropdownButton && dropdownMenu) {
-                dropdownButton.addEventListener('mouseenter', function() {
-                    dropdownMenu.classList.add('show');
-                });
-
-                dropdownButton.parentElement.addEventListener('mouseleave', function() {
-                    setTimeout(() => {
-                        if (!dropdownMenu.matches(':hover')) {
-                            dropdownMenu.classList.remove('show');
-                        }
-                    }, 100);
-                });
-
-                dropdownMenu.addEventListener('mouseleave', function() {
-                    dropdownMenu.classList.remove('show');
-                });
-            }
-
-            // Animation d'entrée pour les éléments
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('animate-entrance');
-                    }
-                });
-            });
-
-            // Observer tous les éléments avec la classe card-3d
-            document.querySelectorAll('.card-3d, .depth-card').forEach(el => {
-                observer.observe(el);
-            });
-
-            // Effet de parallaxe pour les particules
-            let mouseX = 0, mouseY = 0;
-            
-            document.addEventListener('mousemove', function(e) {
-                mouseX = e.clientX / window.innerWidth - 0.5;
-                mouseY = e.clientY / window.innerHeight - 0.5;
-                
-                // Appliquer l'effet parallaxe aux particules
-                const particles = document.querySelectorAll('.particle');
-                particles.forEach((particle, index) => {
-                    const speed = (index + 1) * 0.5;
-                    particle.style.transform = `translate(${mouseX * speed}px, ${mouseY * speed}px)`;
-                });
-            });
-
-            // Animation du logo au chargement
-            const logo = document.querySelector('.logo-3d');
-            if (logo) {
-                setTimeout(() => {
-                    logo.style.transform = 'rotateY(360deg)';
-                    logo.style.transition = 'transform 1s ease-in-out';
-                }, 500);
-            }
-
-            // Effet de lumière suivant la souris
-            document.addEventListener('mousemove', function(e) {
-                const glowElements = document.querySelectorAll('.icon-glow');
-                glowElements.forEach(element => {
-                    const rect = element.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    
-                    if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-                        element.style.filter = `drop-shadow(0 0 20px rgba(59, 130, 246, 1)) brightness(1.2)`;
-                    } else {
-                        element.style.filter = 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.6))';
-                    }
-                });
-            });
-
-            // Animation du texte holographique
-            const holographicTexts = document.querySelectorAll('.holographic-text');
-            holographicTexts.forEach(text => {
-                text.addEventListener('mouseenter', function() {
-                    this.style.animationDuration = '1s';
-                });
-                text.addEventListener('mouseleave', function() {
-                    this.style.animationDuration = '3s';
-                });
-            });
         });
     </script>
 </body>
