@@ -9,7 +9,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -86,54 +85,12 @@
     </script>
     <style>
         :root {
-            /* Variables pour le mode clair */
             --glass-bg: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
             --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
             --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.8);
-            --text-muted: rgba(255, 255, 255, 0.6);
-            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            --bg-card: rgba(255, 255, 255, 0.05);
-            --bg-nav: rgba(255, 255, 255, 0.08);
-            --border-color: rgba(255, 255, 255, 0.1);
-        }
-
-        :root.light {
-            /* Variables pour le mode clair */
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --glass-border: rgba(0, 0, 0, 0.1);
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --text-primary: #1f2937;
-            --text-secondary: #374151;
-            --text-muted: #6b7280;
-            --bg-primary: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
-            --bg-card: rgba(255, 255, 255, 0.95);
-            --bg-nav: rgba(255, 255, 255, 0.95);
-            --border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        :root.dark {
-            /* Variables pour le mode sombre */
-            --glass-bg: rgba(0, 0, 0, 0.3);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            --gradient-primary: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
-            --gradient-secondary: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-            --gradient-accent: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-            --text-primary: #f9fafb;
-            --text-secondary: #e5e7eb;
-            --text-muted: #d1d5db;
-            --bg-primary: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-            --bg-card: rgba(0, 0, 0, 0.4);
-            --bg-nav: rgba(0, 0, 0, 0.4);
-            --border-color: rgba(255, 255, 255, 0.1);
         }
 
         * {
@@ -144,13 +101,11 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             background-size: 400% 400%;
             animation: gradient 15s ease infinite;
             min-height: 100vh;
             overflow-x: hidden;
-            color: var(--text-primary);
-            transition: all 0.3s ease;
         }
 
         /* Particles Background */
@@ -181,26 +136,25 @@
 
         /* Glassmorphism Components */
         .glass-card {
-            background: var(--bg-card);
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--glass-border);
             box-shadow: var(--glass-shadow);
             border-radius: 20px;
             transition: all 0.3s ease;
-            color: var(--text-primary);
         }
 
         .glass-card:hover {
             transform: translateY(-5px);
-            box-shadow: var(--glass-shadow);
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
         }
 
         .glass-nav {
-            background: var(--bg-nav);
+            background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* Custom Scrollbar */
@@ -254,7 +208,7 @@
             align-items: center;
             padding: 12px 20px;
             border-radius: 15px;
-            color: var(--text-secondary);
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
@@ -262,10 +216,10 @@
         }
 
         .nav-link:hover, .nav-link.active {
-            background: var(--glass-bg);
-            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
             transform: translateY(-2px);
-            box-shadow: var(--glass-shadow);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
         }
 
         .nav-link::before {
@@ -288,42 +242,42 @@
         .mobile-nav-link {
             display: block;
             padding: 15px 20px;
-            color: var(--text-secondary);
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             border-radius: 12px;
             margin: 8px 0;
-            background: var(--bg-card);
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
 
         .mobile-nav-link:hover, .mobile-nav-link.active {
-            background: var(--glass-bg);
-            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
             transform: translateX(10px);
         }
 
         /* Dropdown Styles */
         .dropdown-menu {
-            background: var(--bg-card);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 15px;
-            box-shadow: var(--glass-shadow);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
 
         .dropdown-item {
             padding: 12px 20px;
-            color: var(--text-secondary);
+            color: #374151;
             transition: all 0.3s ease;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .dropdown-item:hover {
-            background: var(--glass-bg);
-            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.1);
+            color: #1e40af;
             transform: translateX(5px);
         }
 
@@ -347,7 +301,7 @@
 
         /* Utility Classes */
         .text-gradient {
-            background: var(--gradient-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -363,58 +317,6 @@
 
         .bg-gradient-accent {
             background: var(--gradient-accent);
-        }
-
-        /* Text Utilities for Better Readability */
-        .text-high-contrast {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .text-medium-contrast {
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        .text-low-contrast {
-            color: var(--text-muted);
-            font-weight: 400;
-        }
-
-        /* Enhanced Card Styles */
-        .card-content {
-            color: var(--text-primary);
-        }
-
-        .card-subtitle {
-            color: var(--text-secondary);
-        }
-
-        .card-muted {
-            color: var(--text-muted);
-        }
-
-        /* Button Text Contrast */
-        .btn-text {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        /* Form Elements */
-        .form-input {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-        }
-
-        .form-input:focus {
-            border-color: var(--gradient-primary);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-label {
-            color: var(--text-secondary);
-            font-weight: 500;
         }
 
         /* Responsive Typography */
@@ -521,19 +423,11 @@
                         </div>
                     </div>
 
-                    <!-- Theme Toggle Button -->
-                    <button id="theme-toggle" class="nav-link ml-4" title="Changer le thème">
-                        <div class="bg-yellow-500/20 p-2 rounded-full mr-3">
-                            <i id="theme-icon" class="fas fa-sun text-yellow-400"></i>
-                        </div>
-                        <span class="hidden xl:inline">Thème</span>
-                    </button>
-
                     <!-- User Menu -->
                     <div class="relative group ml-4">
                         <button class="nav-link">
                             <div class="bg-gray-500/20 p-2 rounded-full mr-3">
-                                <i class="fas fa-user"></i>
+                                <i class="fas fa-user text-white"></i>
                             </div>
                             <span>{{ session.first_name }}</span>
                             <i class="fas fa-chevron-down ml-2 text-sm"></i>
@@ -561,17 +455,12 @@
                             <div class="bg-gradient-accent p-1.5 rounded-full mr-2">
                                 <i class="fas fa-wallet text-white text-xs"></i>
                             </div>
-                            <div class="text-xs font-bold">0.00 USDT</div>
+                            <div class="text-xs font-bold text-white">0.00 USDT</div>
                         </div>
                     </div>
 
-                    <!-- Mobile Theme Toggle -->
-                    <button id="mobile-theme-toggle" class="glass-card p-3 hover:bg-white/10 transition-all duration-300">
-                        <i id="mobile-theme-icon" class="fas fa-sun text-yellow-400"></i>
-                    </button>
-
                     <!-- Mobile Menu Button -->
-                    <button id="mobile-menu-button" class="glass-card p-3 hover:bg-white/10 transition-all duration-300">
+                    <button id="mobile-menu-button" class="glass-card p-3 text-white hover:bg-white/10 transition-all duration-300">
                         <i class="fas fa-bars text-lg"></i>
                     </button>
                 </div>
@@ -614,10 +503,6 @@
                     Profil
                 </a>
                 <div class="border-t border-white/20 my-4"></div>
-                <button id="mobile-theme-toggle-menu" class="mobile-nav-link w-full text-left">
-                    <i id="mobile-theme-icon-menu" class="fas fa-sun mr-3"></i>
-                    <span id="mobile-theme-text">Mode Sombre</span>
-                </button>
                 <a href="{{ url_for('logout') }}" class="mobile-nav-link text-red-300 hover:text-red-100 hover:bg-red-500/20">
                     <i class="fas fa-sign-out-alt mr-3"></i>
                     Déconnexion
@@ -695,85 +580,6 @@
 
     <script>
         // Enhanced JavaScript functionality
-        
-        // Theme Management System
-        class ThemeManager {
-            constructor() {
-                this.currentTheme = localStorage.getItem('theme') || 'dark';
-                this.init();
-            }
-
-            init() {
-                this.applyTheme(this.currentTheme);
-                this.setupEventListeners();
-            }
-
-            applyTheme(theme) {
-                const root = document.documentElement;
-                
-                // Supprimer les classes existantes
-                root.classList.remove('light', 'dark');
-                
-                // Ajouter la nouvelle classe
-                root.classList.add(theme);
-                
-                // Mettre à jour les icônes
-                this.updateIcons(theme);
-                
-                // Sauvegarder le thème
-                localStorage.setItem('theme', theme);
-                this.currentTheme = theme;
-            }
-
-            updateIcons(theme) {
-                const icons = document.querySelectorAll('#theme-icon, #mobile-theme-icon, #mobile-theme-icon-menu');
-                const themeText = document.getElementById('mobile-theme-text');
-                
-                icons.forEach(icon => {
-                    if (theme === 'light') {
-                        icon.className = 'fas fa-moon text-blue-400';
-                    } else {
-                        icon.className = 'fas fa-sun text-yellow-400';
-                    }
-                });
-
-                if (themeText) {
-                    themeText.textContent = theme === 'light' ? 'Mode Sombre' : 'Mode Clair';
-                }
-            }
-
-            toggleTheme() {
-                const newTheme = this.currentTheme === 'light' ? 'dark' : 'light';
-                this.applyTheme(newTheme);
-                
-                // Animation de transition
-                document.body.style.transition = 'all 0.3s ease';
-                setTimeout(() => {
-                    document.body.style.transition = '';
-                }, 300);
-            }
-
-            setupEventListeners() {
-                const themeToggle = document.getElementById('theme-toggle');
-                const mobileThemeToggle = document.getElementById('mobile-theme-toggle');
-                const mobileThemeToggleMenu = document.getElementById('mobile-theme-toggle-menu');
-
-                if (themeToggle) {
-                    themeToggle.addEventListener('click', () => this.toggleTheme());
-                }
-
-                if (mobileThemeToggle) {
-                    mobileThemeToggle.addEventListener('click', () => this.toggleTheme());
-                }
-
-                if (mobileThemeToggleMenu) {
-                    mobileThemeToggleMenu.addEventListener('click', () => this.toggleTheme());
-                }
-            }
-        }
-
-        // Initialize theme manager
-        const themeManager = new ThemeManager();
         
         // Intersection Observer for scroll animations
         const observerOptions = {
