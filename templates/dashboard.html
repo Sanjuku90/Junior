@@ -65,38 +65,31 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Deposit and Withdraw Options -->
     <div class="professional-card mobile-spacing">
-        <h2 class="text-xl font-bold text-gray-900 mb-6">Actions rapides</h2>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-            <a href="{{ url_for('roi_plans') }}" class="btn-mobile bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl inline-flex items-center justify-center text-center shadow-lg transform hover:scale-105 transition-all duration-200">
-                <div class="flex flex-col items-center">
-                    <i class="fas fa-percentage text-lg mb-1"></i>
-                    <span class="text-sm font-medium">Plans ROI</span>
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Gestion des fonds</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button onclick="showDepositModal()" class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white p-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                <div class="flex items-center justify-center">
+                    <div class="bg-white/20 p-3 rounded-full mr-4">
+                        <i class="fas fa-plus text-2xl text-white"></i>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-lg font-bold">Déposer</h3>
+                        <p class="text-green-100 text-sm">Ajouter des fonds à votre compte</p>
+                    </div>
                 </div>
-            </a>
-            <a href="{{ url_for('staking_plans') }}" class="btn-mobile bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl inline-flex items-center justify-center text-center shadow-lg transform hover:scale-105 transition-all duration-200">
-                <div class="flex flex-col items-center">
-                    <i class="fas fa-lock text-lg mb-1"></i>
-                    <span class="text-sm font-medium">Staking</span>
-                </div>
-            </a>
-            <a href="{{ url_for('frozen_plans') }}" class="btn-mobile bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl inline-flex items-center justify-center text-center shadow-lg transform hover:scale-105 transition-all duration-200">
-                <div class="flex flex-col items-center">
-                    <i class="fas fa-gem text-lg mb-1"></i>
-                    <span class="text-sm font-medium">Plans Gelés</span>
-                </div>
-            </a>
-            <a href="{{ url_for('projects') }}" class="btn-mobile bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl inline-flex items-center justify-center text-center shadow-lg transform hover:scale-105 transition-all duration-200">
-                <div class="flex flex-col items-center">
-                    <i class="fas fa-project-diagram text-lg mb-1"></i>
-                    <span class="text-sm font-medium">Projets</span>
-                </div>
-            </a>
-            <button onclick="showDepositModal()" class="btn-mobile bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-xl inline-flex items-center justify-center text-center shadow-lg transform hover:scale-105 transition-all duration-200">
-                <div class="flex flex-col items-center">
-                    <i class="fas fa-plus text-lg mb-1"></i>
-                    <span class="text-sm font-medium">Déposer</span>
+            </button>
+            
+            <button onclick="showWithdrawModal()" class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                <div class="flex items-center justify-center">
+                    <div class="bg-white/20 p-3 rounded-full mr-4">
+                        <i class="fas fa-minus text-2xl text-white"></i>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-lg font-bold">Retirer</h3>
+                        <p class="text-blue-100 text-sm">Retirer vos gains et fonds</p>
+                    </div>
                 </div>
             </button>
         </div>
@@ -261,7 +254,10 @@
                         <i class="fas fa-info-circle text-yellow-600 mr-2"></i>
                         <div class="text-sm text-yellow-800">
                             <strong>Adresse de dépôt USDT (TRC20):</strong><br>
-                            <code class="bg-gray-100 px-2 py-1 rounded">TUWxxx...example</code>
+                            <code id="depositAddress" class="bg-gray-100 px-2 py-1 rounded text-xs break-all cursor-pointer" onclick="copyDepositAddress()">TAB1oeEKDS5NATwFAaUrTioDU9djX7anyS</code>
+                            <button onclick="copyDepositAddress()" class="ml-2 text-yellow-600 hover:text-yellow-800">
+                                <i class="fas fa-copy"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -284,6 +280,53 @@
     </div>
 </div>
 
+<!-- Withdraw Modal -->
+<div id="withdrawModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Retirer des fonds</h3>
+                <button onclick="hideWithdrawModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                        <div class="text-sm text-blue-800">
+                            <strong>Solde disponible:</strong> {{ "%.2f"|format(user.balance) }} USDT<br>
+                            <span class="text-xs">Minimum de retrait: 10 USDT</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Adresse de destination (USDT TRC20)</label>
+                    <input type="text" id="withdrawAddress" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Votre adresse USDT TRC20">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Montant à retirer</label>
+                    <input type="number" id="withdrawAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Montant en USDT" min="10" max="{{ user.balance }}">
+                </div>
+                
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <div class="text-xs text-gray-600">
+                        <div class="flex justify-between"><span>Frais de réseau:</span><span>2 USDT</span></div>
+                        <div class="flex justify-between mt-1"><span>Montant reçu:</span><span id="netAmount">0 USDT</span></div>
+                    </div>
+                </div>
+                
+                <button onclick="submitWithdraw()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">
+                    Confirmer le retrait
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function showDepositModal() {
     document.getElementById('depositModal').classList.remove('hidden');
@@ -291,6 +334,30 @@ function showDepositModal() {
 
 function hideDepositModal() {
     document.getElementById('depositModal').classList.add('hidden');
+}
+
+function showWithdrawModal() {
+    document.getElementById('withdrawModal').classList.remove('hidden');
+}
+
+function hideWithdrawModal() {
+    document.getElementById('withdrawModal').classList.add('hidden');
+}
+
+function copyDepositAddress() {
+    const address = 'TAB1oeEKDS5NATwFAaUrTioDU9djX7anyS';
+    navigator.clipboard.writeText(address).then(() => {
+        showNotification('Adresse copiée dans le presse-papiers', 'success');
+    }).catch(() => {
+        // Fallback for older browsers
+        const tempInput = document.createElement('input');
+        tempInput.value = address;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showNotification('Adresse copiée dans le presse-papiers', 'success');
+    });
 }
 
 function submitDeposit() {
@@ -306,5 +373,32 @@ function submitDeposit() {
     showNotification('Dépôt soumis pour vérification', 'success');
     hideDepositModal();
 }
+
+function submitWithdraw() {
+    const address = document.getElementById('withdrawAddress').value;
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    
+    if (!address || !amount) {
+        showNotification('Veuillez remplir tous les champs', 'error');
+        return;
+    }
+    
+    if (amount < 10) {
+        showNotification('Le montant minimum de retrait est de 10 USDT', 'error');
+        return;
+    }
+    
+    // Simulate withdraw (in real app, this would process the withdrawal)
+    showNotification('Demande de retrait soumise pour traitement', 'success');
+    hideWithdrawModal();
+}
+
+// Update net amount calculation for withdrawal
+document.getElementById('withdrawAmount')?.addEventListener('input', function() {
+    const amount = parseFloat(this.value) || 0;
+    const fee = 2;
+    const netAmount = Math.max(0, amount - fee);
+    document.getElementById('netAmount').textContent = netAmount.toFixed(2) + ' USDT';
+});
 </script>
 {% endblock %}
