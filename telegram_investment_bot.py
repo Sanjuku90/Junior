@@ -274,22 +274,20 @@ async def show_main_menu(update, context, user):
     conn.close()
 
     message = f"""
-🏛️ **INVESTCRYPTO PRO - DASHBOARD**
+🏛️ **INVESTCRYPTO PRO**
 
 👋 Salut {user['first_name']} !
 
-💰 **Solde disponible :** {user['balance']:.2f} USDT
-📈 **Total investi :** {total_invested:.2f} USDT
-🎯 **Gains totaux :** {total_earned:.2f} USDT
-💼 **Valeur portfolio :** {(user['balance'] + total_invested):.2f} USDT
+💰 **Solde :** {user['balance']:.2f} USDT
+📈 **Investi :** {total_invested:.2f} USDT
+🎯 **Gains :** {total_earned:.2f} USDT
+💼 **Portfolio :** {(user['balance'] + total_invested):.2f} USDT
 
-📊 **Statut KYC :** {user['kyc_status']}
-🎁 **Code parrain :** `{user['referral_code']}`
-🔔 **Notifications :** {unread_notifications} non lues
+📊 **KYC :** {user['kyc_status']}
+🎁 **Code :** `{user['referral_code']}`
+🔔 **Notifications :** {unread_notifications}
 
-⏰ **Dernière connexion :** {datetime.now().strftime('%d/%m/%Y %H:%M')}
-
-🚀 Que souhaitez-vous faire aujourd'hui ?
+🚀 Que souhaitez-vous faire ?
     """
 
     if hasattr(update, 'message') and update.message:
@@ -630,13 +628,11 @@ async def show_roi_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.close()
 
     keyboard = []
-    message = "📈 **PLANS D'INVESTISSEMENT ROI**\n\n"
-    message += "💡 **Profits quotidiens automatiques !**\n\n"
+    message = "📈 **PLANS ROI**\n\n"
 
     for plan in plans:
         total_return = (plan['daily_rate'] * plan['duration_days']) * 100
-        monthly_return = (plan['daily_rate'] * 30) * 100
-
+        
         # Émojis selon le plan
         if plan['daily_rate'] <= 0.05:
             emoji = "🥉"
@@ -647,19 +643,13 @@ async def show_roi_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             emoji = "👑"
 
-        message += f"""
-{emoji} **{plan['name'].upper()}**
-📊 **{plan['daily_rate']*100:.1f}% par jour** pendant {plan['duration_days']} jours
-💰 **{plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT**
-🎯 **Retour total : {total_return:.0f}%**
-📅 **Profit mensuel : {monthly_return:.0f}%**
+        message += f"{emoji} **{plan['name']}**\n"
+        message += f"📊 {plan['daily_rate']*100:.1f}%/jour x {plan['duration_days']}j\n"
+        message += f"💰 {plan['min_amount']:.0f}-{plan['max_amount']:.0f} USDT\n"
+        message += f"🎯 Total: {total_return:.0f}%\n\n"
+        
+        keyboard.append([InlineKeyboardButton(f"{emoji} {plan['name']}", callback_data=f"invest_roi_{plan['id']}")])
 
-{plan['description'][:150]}...
-
-"""
-        keyboard.append([InlineKeyboardButton(f"{emoji} Investir - {plan['name']}", callback_data=f"invest_roi_{plan['id']}")])
-
-    keyboard.append([InlineKeyboardButton("💡 Guide d'investissement", callback_data="roi_guide")])
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -805,25 +795,19 @@ async def show_staking_plans(update: Update, context: ContextTypes.DEFAULT_TYPE)
     conn.close()
 
     keyboard = []
-    message = "💎 **PLANS DE STAKING CRYPTO**\n\n"
-    message += "🔒 **Stakez vos cryptos et gagnez des récompenses !**\n\n"
+    message = "💎 **PLANS STAKING**\n\n"
 
     for plan in plans:
         daily_rate = plan['annual_rate'] / 365
         total_return = daily_rate * plan['duration_days'] * 100
 
-        message += f"""
-🏆 **{plan['name'].upper()}**
-⏰ **Durée :** {plan['duration_days']} jours
-📊 **Rendement annuel :** {plan['annual_rate']*100:.0f}%
-📈 **Retour total :** {total_return:.1f}%
-💰 **{plan['min_amount']:.0f} - {plan['max_amount']:.0f} USDT**
-⚠️ **Pénalité retrait :** {plan['penalty_rate']*100:.0f}%
-
-{plan['description'][:120]}...
-
-"""
-        keyboard.append([InlineKeyboardButton(f"💎 Staker - {plan['name']}", callback_data=f"invest_staking_{plan['id']}")])
+        message += f"🏆 **{plan['name']}**\n"
+        message += f"⏰ {plan['duration_days']} jours\n"
+        message += f"📊 {plan['annual_rate']*100:.0f}%/an\n"
+        message += f"💰 {plan['min_amount']:.0f}-{plan['max_amount']:.0f} USDT\n"
+        message += f"⚠️ Pénalité: {plan['penalty_rate']*100:.0f}%\n\n"
+        
+        keyboard.append([InlineKeyboardButton(f"💎 {plan['name']}", callback_data=f"invest_staking_{plan['id']}")])
 
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -879,7 +863,6 @@ async def show_projects(update: Update, context: ContextTypes.DEFAULT_TYPE):
         WHERE status = 'collecting' AND deadline > datetime('now')
         ORDER BY created_at DESC
         LIMIT 5
-```python
     ''').fetchall()
     conn.close()
 
