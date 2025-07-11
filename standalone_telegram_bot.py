@@ -268,7 +268,12 @@ def add_notification(user_id, title, message, type='info'):
 
 def get_user_by_telegram_id(telegram_id):
     conn = get_db_connection()
-    user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    try:
+        user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    except sqlite3.OperationalError:
+        # Si la colonne n'existe pas, on initialise la DB
+        init_telegram_bot_db()
+        user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
     conn.close()
     return user
 
