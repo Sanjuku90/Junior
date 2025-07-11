@@ -68,11 +68,19 @@
         <div class="flex flex-wrap gap-4">
             <a href="{{ url_for('roi_plans') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
                 <i class="fas fa-plus mr-2"></i>
-                Nouvel investissement ROI
+                Plans ROI
             </a>
-            <a href="{{ url_for('projects') }}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
+            <a href="{{ url_for('staking_plans') }}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
+                <i class="fas fa-lock mr-2"></i>
+                Staking
+            </a>
+            <a href="{{ url_for('frozen_plans') }}" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
+                <i class="fas fa-gem mr-2"></i>
+                Plans Gelés
+            </a>
+            <a href="{{ url_for('projects') }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
                 <i class="fas fa-project-diagram mr-2"></i>
-                Projets crowdfunding
+                Projets
             </a>
             <button onclick="showDepositModal()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg inline-flex items-center">
                 <i class="fas fa-deposit mr-2"></i>

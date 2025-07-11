@@ -141,6 +141,85 @@ def init_db():
         )
     ''')
     
+    # Staking Plans table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS staking_plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            duration_days INTEGER NOT NULL,
+            annual_rate REAL NOT NULL,
+            min_amount REAL NOT NULL,
+            max_amount REAL NOT NULL,
+            penalty_rate REAL DEFAULT 0.05,
+            is_active BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # User Staking table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_staking (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            plan_id INTEGER NOT NULL,
+            amount REAL NOT NULL,
+            start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            end_date TIMESTAMP,
+            is_active BOOLEAN DEFAULT 1,
+            is_withdrawn BOOLEAN DEFAULT 0,
+            total_earned REAL DEFAULT 0.0,
+            transaction_hash TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (plan_id) REFERENCES staking_plans (id)
+        )
+    ''')
+    
+    # Frozen Investment Plans table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS frozen_plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            duration_days INTEGER NOT NULL,
+            total_return_rate REAL NOT NULL,
+            min_amount REAL NOT NULL,
+            max_amount REAL NOT NULL,
+            is_active BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # User Frozen Investments table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_frozen_investments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            plan_id INTEGER NOT NULL,
+            amount REAL NOT NULL,
+            start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            end_date TIMESTAMP,
+            final_amount REAL NOT NULL,
+            is_active BOOLEAN DEFAULT 1,
+            is_completed BOOLEAN DEFAULT 0,
+            transaction_hash TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (plan_id) REFERENCES frozen_plans (id)
+        )
+    ''')
+    
+    # Portfolio Distribution table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS portfolio_distributions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            total_amount REAL NOT NULL,
+            distribution_data TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
     # Insert default ROI plans
     cursor.execute('''
         INSERT OR IGNORE INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
@@ -149,6 +228,23 @@ def init_db():
         ('Plan Intermédiaire', 'Rendement équilibré', 0.08, 45, 500, 5000),
         ('Plan Premium', 'Rendement élevé', 0.12, 60, 1000, 10000),
         ('Plan VIP', 'Rendement exceptionnel', 0.15, 90, 5000, 50000)
+    ''')
+    
+    # Insert default Staking plans
+    cursor.execute('''
+        INSERT OR IGNORE INTO staking_plans (name, description, duration_days, annual_rate, min_amount, max_amount, penalty_rate)
+        VALUES 
+        ('Staking Flexible', 'Staking à court terme', 15, 0.12, 100, 5000, 0.03),
+        ('Staking Standard', 'Équilibre rendement/flexibilité', 30, 0.18, 200, 10000, 0.05),
+        ('Staking Premium', 'Staking à long terme', 90, 0.25, 500, 25000, 0.08)
+    ''')
+    
+    # Insert default Frozen plans
+    cursor.execute('''
+        INSERT OR IGNORE INTO frozen_plans (name, description, duration_days, total_return_rate, min_amount, max_amount)
+        VALUES 
+        ('Plan Diamant', 'Investissement gelé 6 mois - 250% de retour', 180, 2.5, 1000, 50000),
+        ('Plan Platinum', 'Investissement gelé 12 mois - 400% de retour', 365, 4.0, 2000, 100000)
     ''')
     
     # Insert sample projects
@@ -554,6 +650,175 @@ def profile():
     conn.close()
     
     return render_template('profile.html', user=user, referrals=referrals, user_balance=user_balance)
+
+@app.route('/staking-plans')
+@login_required
+def staking_plans():
+    conn = get_db_connection()
+    plans = conn.execute('SELECT * FROM staking_plans WHERE is_active = 1').fetchall()
+    conn.close()
+    
+    return render_template('staking_plans.html', plans=plans)
+
+@app.route('/invest-staking', methods=['POST'])
+@login_required
+def invest_staking():
+    data = request.get_json()
+    plan_id = data.get('plan_id')
+    amount = float(data.get('amount', 0))
+    
+    conn = get_db_connection()
+    
+    # Get plan details
+    plan = conn.execute('SELECT * FROM staking_plans WHERE id = ?', (plan_id,)).fetchone()
+    if not plan:
+        return jsonify({'error': 'Plan de staking non trouvé'}), 404
+    
+    # Check amount limits
+    if amount < plan['min_amount'] or amount > plan['max_amount']:
+        return jsonify({'error': f'Montant doit être entre {plan["min_amount"]} et {plan["max_amount"]} USDT'}), 400
+    
+    # Check user balance
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user['balance'] < amount:
+        return jsonify({'error': 'Solde insuffisant'}), 400
+    
+    # Calculate dates
+    start_date = datetime.now()
+    end_date = start_date + timedelta(days=plan['duration_days'])
+    
+    # Create staking
+    conn.execute('''
+        INSERT INTO user_staking (user_id, plan_id, amount, start_date, end_date, transaction_hash)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (session['user_id'], plan_id, amount, start_date, end_date, generate_transaction_hash()))
+    
+    # Update user balance
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, session['user_id']))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': 'Staking activé avec succès!'})
+
+@app.route('/frozen-plans')
+@login_required
+def frozen_plans():
+    conn = get_db_connection()
+    plans = conn.execute('SELECT * FROM frozen_plans WHERE is_active = 1').fetchall()
+    conn.close()
+    
+    return render_template('frozen_plans.html', plans=plans)
+
+@app.route('/invest-frozen', methods=['POST'])
+@login_required
+def invest_frozen():
+    data = request.get_json()
+    plan_id = data.get('plan_id')
+    amount = float(data.get('amount', 0))
+    
+    conn = get_db_connection()
+    
+    # Get plan details
+    plan = conn.execute('SELECT * FROM frozen_plans WHERE id = ?', (plan_id,)).fetchone()
+    if not plan:
+        return jsonify({'error': 'Plan gelé non trouvé'}), 404
+    
+    # Check amount limits
+    if amount < plan['min_amount'] or amount > plan['max_amount']:
+        return jsonify({'error': f'Montant doit être entre {plan["min_amount"]} et {plan["max_amount"]} USDT'}), 400
+    
+    # Check user balance
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user['balance'] < amount:
+        return jsonify({'error': 'Solde insuffisant'}), 400
+    
+    # Calculate dates and final amount
+    start_date = datetime.now()
+    end_date = start_date + timedelta(days=plan['duration_days'])
+    final_amount = amount * plan['total_return_rate']
+    
+    # Create frozen investment
+    conn.execute('''
+        INSERT INTO user_frozen_investments (user_id, plan_id, amount, start_date, end_date, final_amount, transaction_hash)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (session['user_id'], plan_id, amount, start_date, end_date, final_amount, generate_transaction_hash()))
+    
+    # Update user balance
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, session['user_id']))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': 'Investissement gelé créé avec succès!'})
+
+@app.route('/portfolio-invest', methods=['POST'])
+@login_required
+def portfolio_invest():
+    data = request.get_json()
+    total_amount = float(data.get('total_amount', 0))
+    distributions = data.get('distributions', [])
+    
+    if not distributions or total_amount <= 0:
+        return jsonify({'error': 'Données de répartition invalides'}), 400
+    
+    conn = get_db_connection()
+    
+    # Check user balance
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user['balance'] < total_amount:
+        return jsonify({'error': 'Solde insuffisant'}), 400
+    
+    # Process each distribution
+    for dist in distributions:
+        investment_type = dist.get('type')
+        plan_id = dist.get('plan_id')
+        amount = float(dist.get('amount', 0))
+        
+        if investment_type == 'roi':
+            plan = conn.execute('SELECT * FROM roi_plans WHERE id = ?', (plan_id,)).fetchone()
+            if plan:
+                start_date = datetime.now()
+                end_date = start_date + timedelta(days=plan['duration_days'])
+                daily_profit = amount * plan['daily_rate']
+                
+                conn.execute('''
+                    INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, daily_profit, transaction_hash)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (session['user_id'], plan_id, amount, start_date, end_date, daily_profit, generate_transaction_hash()))
+        
+        elif investment_type == 'staking':
+            plan = conn.execute('SELECT * FROM staking_plans WHERE id = ?', (plan_id,)).fetchone()
+            if plan:
+                start_date = datetime.now()
+                end_date = start_date + timedelta(days=plan['duration_days'])
+                
+                conn.execute('''
+                    INSERT INTO user_staking (user_id, plan_id, amount, start_date, end_date, transaction_hash)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (session['user_id'], plan_id, amount, start_date, end_date, generate_transaction_hash()))
+        
+        elif investment_type == 'project':
+            conn.execute('''
+                INSERT INTO project_investments (user_id, project_id, amount, transaction_hash)
+                VALUES (?, ?, ?, ?)
+            ''', (session['user_id'], plan_id, amount, generate_transaction_hash()))
+            
+            conn.execute('UPDATE projects SET raised_amount = raised_amount + ? WHERE id = ?', (amount, plan_id))
+    
+    # Save portfolio distribution
+    conn.execute('''
+        INSERT INTO portfolio_distributions (user_id, total_amount, distribution_data)
+        VALUES (?, ?, ?)
+    ''', (session['user_id'], total_amount, json.dumps(distributions)))
+    
+    # Update user balance
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (total_amount, session['user_id']))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True, 'message': 'Portfolio diversifié créé avec succès!'})
 
 @app.route('/admin')
 @admin_required
