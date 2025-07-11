@@ -144,6 +144,20 @@
 <script>
 let currentFrozenPlan = null;
 
+// Notification function
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg z-50 ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+    } text-white`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
 function showFrozenModal(planId, planName, minAmount, maxAmount, totalReturn, duration) {
     currentFrozenPlan = {
         id: planId,
@@ -154,9 +168,9 @@ function showFrozenModal(planId, planName, minAmount, maxAmount, totalReturn, du
         duration: duration
     };
 
-    document.getElementById('frozenModalTitle').textContent = `${planName}`;
-    document.getElementById('frozenModalReturnRate').textContent = `${(totalReturn * 100).toFixed(0)}%`;
-    document.getElementById('frozenModalDuration').textContent = `${duration} jours`;
+    document.getElementById('frozenModalTitle').textContent = planName;
+    document.getElementById('frozenModalReturnRate').textContent = (totalReturn * 100).toFixed(0) + '%';
+    document.getElementById('frozenModalDuration').textContent = duration + ' jours';
     document.getElementById('frozenModalMinAmount').textContent = minAmount.toLocaleString();
     document.getElementById('frozenModalMaxAmount').textContent = maxAmount.toLocaleString();
 
@@ -169,21 +183,48 @@ function hideFrozenModal() {
     document.getElementById('frozenModalFinalAmount').textContent = '0 USDT';
 }
 
-document.getElementById('frozenInvestAmount').addEventListener('input', function() {
-    const amount = parseFloat(this.value) || 0;
-    if (currentFrozenPlan) {
-        const finalAmount = amount * currentFrozenPlan.totalReturn;
-        document.getElementById('frozenModalFinalAmount').textContent = `${finalAmount.toLocaleString()} USDT`;
+// Wait for DOM to be loaded before adding event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const frozenInvestAmount = document.getElementById('frozenInvestAmount');
+    if (frozenInvestAmount) {
+        frozenInvestAmount.addEventListener('input', function() {
+            const amount = parseFloat(this.value) || 0;
+            if (currentFrozenPlan) {
+                const finalAmount = amount * currentFrozenPlan.totalReturn;
+                document.getElementById('frozenModalFinalAmount').textContent = finalAmount.toLocaleString() + ' USDT';
+            }
+        });
+    }
+
+    // Calculator event listeners
+    const frozenAmount = document.getElementById('frozenAmount');
+    const frozenPlan = document.getElementById('frozenPlan');
+    
+    if (frozenAmount) {
+        frozenAmount.addEventListener('input', updateFrozenCalculator);
+    }
+    
+    if (frozenPlan) {
+        frozenPlan.addEventListener('change', updateFrozenCalculator);
     }
 });
 
 async function submitFrozenInvestment() {
-    if (!currentFrozenPlan) return;
+    if (!currentFrozenPlan) {
+        showNotification('Aucun plan sélectionné', 'error');
+        return;
+    }
 
-    const amount = parseFloat(document.getElementById('frozenInvestAmount').value);
+    const amountInput = document.getElementById('frozenInvestAmount');
+    if (!amountInput) {
+        showNotification('Erreur: champ montant introuvable', 'error');
+        return;
+    }
+
+    const amount = parseFloat(amountInput.value);
 
     if (!amount || amount < currentFrozenPlan.minAmount || amount > currentFrozenPlan.maxAmount) {
-        showNotification(`Montant doit être entre ${currentFrozenPlan.minAmount.toLocaleString()} et ${currentFrozenPlan.maxAmount.toLocaleString()} USDT`, 'error');
+        showNotification('Montant doit être entre ' + currentFrozenPlan.minAmount.toLocaleString() + ' et ' + currentFrozenPlan.maxAmount.toLocaleString() + ' USDT', 'error');
         return;
     }
 
@@ -204,7 +245,7 @@ async function submitFrozenInvestment() {
         if (data.success) {
             showNotification(data.message, 'success');
             hideFrozenModal();
-            setTimeout(() => {
+            setTimeout(function() {
                 window.location.href = '/dashboard';
             }, 1500);
         } else {
@@ -212,26 +253,31 @@ async function submitFrozenInvestment() {
         }
     } catch (error) {
         showNotification('Erreur de connexion', 'error');
+        console.error('Error:', error);
     }
 }
 
-// Calculator
-document.getElementById('frozenAmount').addEventListener('input', updateFrozenCalculator);
-document.getElementById('frozenPlan').addEventListener('change', updateFrozenCalculator);
-
 function updateFrozenCalculator() {
-    const amount = parseFloat(document.getElementById('frozenAmount').value) || 0;
-    const planData = document.getElementById('frozenPlan').value;
+    const amountInput = document.getElementById('frozenAmount');
+    const planSelect = document.getElementById('frozenPlan');
+    const finalAmountDisplay = document.getElementById('finalAmount');
 
-    if (!amount || !planData) {
-        document.getElementById('finalAmount').textContent = '0 USDT';
+    if (!amountInput || !planSelect || !finalAmountDisplay) {
         return;
     }
 
-    const [totalReturn] = planData.split(',').map(parseFloat);
+    const amount = parseFloat(amountInput.value) || 0;
+    const planData = planSelect.value;
+
+    if (!amount || !planData) {
+        finalAmountDisplay.textContent = '0 USDT';
+        return;
+    }
+
+    const totalReturn = parseFloat(planData.split(',')[0]);
     const finalAmount = amount * totalReturn;
 
-    document.getElementById('finalAmount').textContent = `${finalAmount.toLocaleString()} USDT`;
+    finalAmountDisplay.textContent = finalAmount.toLocaleString() + ' USDT';
 }
 </script>
 {% endblock %}
