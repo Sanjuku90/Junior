@@ -112,21 +112,6 @@
             </div>
 
             <div class="space-y-4">
-                <!-- Conditions importantes -->
-                <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
-                    <div class="flex items-start">
-                        <i class="fas fa-exclamation-triangle text-red-600 mt-1 mr-2"></i>
-                        <div>
-                            <h4 class="font-semibold text-red-800 mb-2">Conditions importantes</h4>
-                            <ul class="text-sm text-red-700 space-y-1">
-                                <li>• Fonds complètement bloqués pendant <span id="frozenModalDurationText" class="font-semibold">180 jours</span></li>
-                                <li>• Aucun retrait possible avant l'échéance</li>
-                                <li>• Paiement unique à la fin de la période</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="bg-purple-50 p-4 rounded-lg">
                     <div class="text-sm text-purple-600 mb-2">Détails du plan</div>
                     <div class="space-y-1 text-sm">
@@ -172,7 +157,6 @@ function showFrozenModal(planId, planName, minAmount, maxAmount, totalReturn, du
     document.getElementById('frozenModalTitle').textContent = `${planName}`;
     document.getElementById('frozenModalReturnRate').textContent = `${(totalReturn * 100).toFixed(0)}%`;
     document.getElementById('frozenModalDuration').textContent = `${duration} jours`;
-    document.getElementById('frozenModalDurationText').textContent = `${duration} jours`;
     document.getElementById('frozenModalMinAmount').textContent = minAmount.toLocaleString();
     document.getElementById('frozenModalMaxAmount').textContent = maxAmount.toLocaleString();
 
