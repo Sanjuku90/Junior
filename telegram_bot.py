@@ -8,8 +8,8 @@ from datetime import datetime
 import threading
 
 # Configuration
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN') or "7918844871:AAEFLRayGLXrCJ2bbzwKBl4e-TQCRPAHf_c"
+ADMIN_CHAT_ID = os.getenv('ADMIN_CHAT_ID') or "7243797306"
 DATABASE = 'investment_platform.db'
 
 # Configuration du logging
