@@ -1,0 +1,112 @@
+💳 1. Plans d’investissement à rendement fixe (ROI)
+	•	😷 Sécurité : simuler smart contracts avec journaux blockchain style (hashes, timestamps)
+	•	📈 Formules évolutives :
+	•	Rendement linéaire (ex. 5 %/jour sur 30 jours)
+	•	Rendement dégressif ou croissant
+	•	⚙️ Paiement / retrait automatisés :
+	•	Dépôt → wallet → détection via Webhook → attribution du plan
+	•	Cron daily → calcul des intérêts → injection en solde
+	•	Retraits approuvés par quotas ou manuellement
+	•	📊 Transparence : flux visible dans “Smart Contract” (transactions horodatées + hash)
+
+⸻
+
+🏗️ 2. Module Crowdinvesting
+	•	Création de projet par admins – ils définissent :
+	•	Description, photo/video pitch, montant cible, durée, rendement attendu
+	•	Categories / filtres : immobilier, agro, innovation, énergies
+	•	Investissement Partagé :
+	•	Ticket min irréductible
+	•	Limite max par utilisateur (anti-accumulation)
+	•	Investissement en crypto (USDT, BNB, TRX…)
+	•	🧾 Statut et suivi dynamique :
+	•	Barres de progression visuelle
+	•	Reports semi‑automatiques (“Progression mensuelle”, “Photos en live”)
+	•	Statut : Collecte / En production / Remboursement
+	•	Remboursements :
+	•	à l’échéance, avec intérêts
+	•	calcul automatique + disponibilité dans solde
+
+⸻
+
+🗄 3. Database & sécurité
+	•	🔐 Encryption complète des wallet et clés privées (dans env variables, pas en DB)
+	•	💾 Tables clés :
+	•	Users, Deposits, ROI_Plans, Project_Crowd, Investments, Withdrawals
+	•	🔁 Audit trail pour chaque opération (timestamp, user, hash tx)
+
+⸻
+
+🧑‍💼 4. Dashboard utilisateur
+	•	Vue consolidée :
+	•	Solde total, solde dispo, blc. en attente (ROI/Projets)
+	•	Graphiques :
+	•	Évolution quotidienne du solde
+	•	Distribution entre ROI et crowdinvesting
+	•	Onglets :
+	•	Plans actifs (reste jours)
+	•	Projets financés (% complet, onboarding, remboursements)
+	•	Historique transactions
+	•	🛎️ Notifications :
+	•	Profits journaliers, clôtures de plan/projet, alertes KYC
+
+⸻
+
+🔒 5. KYC & Compliance
+	•	Sécurité plus élevée pour crédibilité :
+	•	Scan de documents (ID, selfie)
+	•	Notes si en cours ou validé
+	•	Limites selon niveau KYC (dépôts / retraits max)
+
+⸻
+
+🌐 6. Parrainage & gamification
+	•	🎁 Parrainage :
+	•	Gain 5–10 % des profits réalisés par les filleuls pendant N jours
+	•	🏆 Gamification :
+	•	Badges : “Top 10 investisseurs”, “100 jours actifs”, “Premier ROI reçu”
+	•	Classement – “Wall of fame”
+
+⸻
+
+🧰 7. Portail Admin
+	•	Dashboard global :
+	•	Montants totaux collectés, actifs, interests payés
+	•	Projets en cours (pourcentages, dates clés)
+	•	Utilisateurs en attente KYC, retraits en suspens
+	•	Gestion :
+	•	Créer/éditer/supprimer projets & ROI plans
+	•	Validation KYC, retraits & Bitcoin docs
+	•	Annulation de transactions en cas d’erreur
+
+⸻
+
+📐 8. UX & UI design
+	•	Utiliser un kit UI pro (ex. Flowbite Tailwind, Chakra UI)
+	•	Mobile first – responsive
+	•	Flow d’onboarding simplifié :
+	1.	inscrip­tion (email + pass + 2FA)
+	2.	KYC en background
+	3.	Dépôt
+	4.	Sélection plan ou projet
+	•	Live chat / support (Intercom, Crisp)
+
+⸻
+
+📦 9. Déploiement & Scalabilité
+	•	👷 CI/CD sur GitHub Actions
+	•	🐳 Conteneurs Docker
+	•	📦 Staging + prod
+	•	⚠️ Back‑up quotidien de la DB
+	•	🔍 Monitoring : Grafana + Prometheus
+
+⸻
+
+⚡ 10. Plan de lancement MVP
+	1.	Interface de dépôt simple + attribution de plan
+	2.	Appliquer le rendement (cron quotidien)
+	3.	Afficher tableau de bord + retrait manuel
+	4.	Ajouter la partie crowdinvesting (1 ou 2 projets)
+	5.	Lancer la KYC, admin, page marketing
+	6.	Version test + feedback
+	7.	Deploy en prod, plan marketing
