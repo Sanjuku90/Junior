@@ -483,21 +483,30 @@ def notify_withdrawal_request(user_id, amount, withdrawal_address, withdrawal_id
         logger.error(f"Erreur notification retrait: {e}")
         return False
 
-#The start_bot function was not in the original code, adding it here.
-async def start_bot():
-    global telegram_app
-    telegram_app = setup_telegram_bot()
-    if telegram_app:
-        try:
-            await telegram_app.initialize()
-            await telegram_app.start()
-            await telegram_app.updater.start_polling(
-                allowed_updates=["message", "callback_query"],
-                drop_pending_updates=True  # Ignore les anciens messages
-            )
-            # Maintenir le bot actif avec la nouvelle API
-            await telegram_app.updater.idle()
-        except Exception as e:
-            print(f"❌ Erreur bot polling: {e}")
-        finally:
-            await telegram_app.stop()
+async def start_bot_polling():
+    """Démarre le bot en mode polling"""
+    global _bot_instance
+    if not _bot_instance:
+        return False
+    
+    try:
+        await _bot_instance.initialize()
+        await _bot_instance.start()
+        await _bot_instance.run_polling(
+            allowed_updates=["message", "callback_query"],
+            drop_pending_updates=True
+        )
+    except Exception as e:
+        logger.error(f"Erreur bot polling: {e}")
+        return False
+    finally:
+        await _bot_instance.stop()
+    
+    return True
+
+def run_bot_sync():
+    """Lance le bot de manière synchrone"""
+    try:
+        asyncio.run(start_bot_polling())
+    except Exception as e:
+        logger.error(f"Erreur démarrage bot: {e}")
