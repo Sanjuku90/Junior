@@ -1008,38 +1008,49 @@ if __name__ == '__main__':
         # Bot utilisateur
         try:
             from telegram_investment_bot import setup_user_telegram_bot
-
-            user_bot_app = setup_user_telegram_bot()
-            if user_bot_app:
-                def run_user_bot():
-                    try:
-                        import asyncio
-
-                        async def start_user_bot():
-                            try:
-                                await user_bot_app.initialize()
-                                await user_bot_app.start()
-                                await user_bot_app.updater.start_polling(
-                                    allowed_updates=["message", "callback_query"],
-                                    drop_pending_updates=True
-                                )
-                                await user_bot_app.updater.idle()
-                            except Exception as e:
-                                print(f"❌ Erreur bot utilisateur: {e}")
-                            finally:
-                                await user_bot_app.stop()
-
-                        asyncio.run(start_user_bot())
-                    except Exception as e:
-                        print(f"❌ Erreur Telegram bot utilisateur: {e}")
-
-                user_thread = threading.Thread(target=run_user_bot, daemon=True)
-                user_thread.start()
-                print("✅ Bot Telegram utilisateur démarré")
+            
+            # Vérifier si le token utilisateur est configuré
+            user_token = os.getenv('TELEGRAM_BOT_TOKEN_USER')
+            if not user_token:
+                print("⚠️  TELEGRAM_BOT_TOKEN_USER non configuré - Bot utilisateur désactivé")
+                print("💡 Ajoutez votre token de bot dans les Secrets pour activer le bot utilisateur")
             else:
-                print("❌ Impossible de démarrer le bot utilisateur")
-        except ImportError:
-            print("❌ Module bot utilisateur non disponible")
+                user_bot_app = setup_user_telegram_bot()
+                if user_bot_app:
+                    def run_user_bot():
+                        try:
+                            import asyncio
+
+                            async def start_user_bot():
+                                try:
+                                    print("🚀 Initialisation du bot utilisateur...")
+                                    await user_bot_app.initialize()
+                                    await user_bot_app.start()
+                                    await user_bot_app.updater.start_polling(
+                                        allowed_updates=["message", "callback_query"],
+                                        drop_pending_updates=True
+                                    )
+                                    print("✅ Bot utilisateur en cours d'exécution")
+                                    await user_bot_app.updater.idle()
+                                except Exception as e:
+                                    print(f"❌ Erreur bot utilisateur: {e}")
+                                finally:
+                                    try:
+                                        await user_bot_app.stop()
+                                    except:
+                                        pass
+
+                            asyncio.run(start_user_bot())
+                        except Exception as e:
+                            print(f"❌ Erreur Telegram bot utilisateur: {e}")
+
+                    user_thread = threading.Thread(target=run_user_bot, daemon=True)
+                    user_thread.start()
+                    print("✅ Thread du bot Telegram utilisateur démarré")
+                else:
+                    print("❌ Échec de la configuration du bot utilisateur")
+        except ImportError as e:
+            print(f"❌ Module bot utilisateur non disponible: {e}")
     else:
         print("❌ Telegram non activé")
 

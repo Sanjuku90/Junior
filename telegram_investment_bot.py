@@ -13,6 +13,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 # Configuration
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN_USER')
+if not TELEGRAM_BOT_TOKEN:
+    print("❌ ERREUR: Variable d'environnement TELEGRAM_BOT_TOKEN_USER non définie")
+    print("💡 Veuillez ajouter votre token de bot Telegram dans les Secrets")
+
 DATABASE = 'investment_platform.db'
 
 # États de conversation
@@ -1571,13 +1575,21 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def setup_user_telegram_bot():
     """Configure le bot utilisateur"""
     if not TELEGRAM_BOT_TOKEN:
-        logger.warning("TELEGRAM_BOT_TOKEN_USER non configuré")
+        logger.error("❌ TELEGRAM_BOT_TOKEN_USER non configuré")
+        print("❌ Bot utilisateur non disponible - Token manquant")
         return None
     
-    # Initialiser les colonnes telegram_id si nécessaire
-    init_telegram_db()
-    
-    application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    try:
+        # Initialiser les colonnes telegram_id si nécessaire
+        init_telegram_db()
+        
+        application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+        print(f"✅ Bot utilisateur configuré avec succès")
+        
+    except Exception as e:
+        logger.error(f"❌ Erreur configuration bot utilisateur: {e}")
+        print(f"❌ Erreur configuration bot utilisateur: {e}")
+        return None
     
     # Handlers de conversation pour l'inscription
     register_handler = ConversationHandler(
@@ -1645,21 +1657,41 @@ def setup_user_telegram_bot():
 # Point d'entrée principal
 async def start_user_bot():
     """Démarre le bot utilisateur"""
+    if not TELEGRAM_BOT_TOKEN:
+        print("❌ Impossible de démarrer le bot - Token manquant")
+        return False
+        
     app = setup_user_telegram_bot()
-    if app:
+    if not app:
+        print("❌ Échec de la configuration du bot utilisateur")
+        return False
+        
+    try:
+        print("🚀 Démarrage du bot utilisateur Telegram...")
+        await app.initialize()
+        await app.start()
+        await app.updater.start_polling(
+            allowed_updates=["message", "callback_query"],
+            drop_pending_updates=True
+        )
+        print("✅ Bot utilisateur Telegram démarré avec succès!")
+        await app.updater.idle()
+        return True
+    except Exception as e:
+        logger.error(f"❌ Erreur bot utilisateur: {e}")
+        print(f"❌ Erreur bot utilisateur: {e}")
+        return False
+    finally:
         try:
-            await app.initialize()
-            await app.start()
-            await app.updater.start_polling(
-                allowed_updates=["message", "callback_query"],
-                drop_pending_updates=True
-            )
-            print("✅ Bot utilisateur Telegram démarré")
-            await app.updater.idle()
-        except Exception as e:
-            print(f"❌ Erreur bot utilisateur: {e}")
-        finally:
             await app.stop()
+            print("🛑 Bot utilisateur arrêté")
+        except:
+            pass
 
 if __name__ == "__main__":
-    asyncio.run(start_user_bot())
+    try:
+        asyncio.run(start_user_bot())
+    except KeyboardInterrupt:
+        print("\n🛑 Arrêt du bot par l'utilisateur")
+    except Exception as e:
+        print(f"❌ Erreur fatale: {e}")
