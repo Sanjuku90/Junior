@@ -217,7 +217,17 @@
                             <td class="py-3">{{ investment.title }}</td>
                             <td class="py-3">{{ "%.2f"|format(investment.amount) }} USDT</td>
                             <td class="py-3 text-green-600">{{ "%.0f"|format(investment.expected_return * 100) }}%</td>
-                            <td class="py-3">{{ investment.investment_date.strftime('%d/%m/%Y') if investment.investment_date else 'N/A' }}</td>
+                            <td class="py-3">
+                                {% if investment.investment_date %}
+                                    {% if investment.investment_date is string %}
+                                        {{ investment.investment_date[:10] | replace('-', '/') }}
+                                    {% else %}
+                                        {{ investment.investment_date.strftime('%d/%m/%Y') }}
+                                    {% endif %}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
                             <td class="py-3">
                                 <span class="bg-{{ 'blue' if investment.status == 'collecting' else 'green' if investment.status == 'active' else 'gray' }}-100 text-{{ 'blue' if investment.status == 'collecting' else 'green' if investment.status == 'active' else 'gray' }}-800 px-2 py-1 rounded text-sm">
                                     {{ investment.status.title() }}
