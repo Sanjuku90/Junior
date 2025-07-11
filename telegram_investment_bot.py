@@ -85,7 +85,17 @@ def get_or_create_user_by_telegram_id(telegram_id, first_name=None, last_name=No
 
 def get_user_by_telegram_id(telegram_id):
     conn = get_db_connection()
-    user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    try:
+        user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    except sqlite3.OperationalError as e:
+        if "no such column: telegram_id" in str(e):
+            print("⚠️ Colonne telegram_id manquante, initialisation...")
+            conn.close()
+            init_telegram_db()
+            conn = get_db_connection()
+            user = conn.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        else:
+            raise e
     conn.close()
     return user
 
@@ -93,11 +103,18 @@ def get_user_by_telegram_id(telegram_id):
 def init_telegram_db():
     conn = get_db_connection()
     try:
-        conn.execute('ALTER TABLE users ADD COLUMN telegram_id INTEGER UNIQUE')
-        conn.commit()
-    except sqlite3.OperationalError:
-        # La colonne existe déjà
-        pass
+        # Vérifier si la colonne existe
+        cursor = conn.execute("PRAGMA table_info(users)")
+        columns = [column[1] for column in cursor.fetchall()]
+        
+        if 'telegram_id' not in columns:
+            conn.execute('ALTER TABLE users ADD COLUMN telegram_id INTEGER UNIQUE')
+            conn.commit()
+            print("✅ Colonne telegram_id ajoutée avec succès")
+        else:
+            print("✅ Colonne telegram_id existe déjà")
+    except sqlite3.OperationalError as e:
+        print(f"⚠️ Erreur lors de l'ajout de la colonne telegram_id: {e}")
     conn.close()
 
 # === COMMANDES PRINCIPALES ===
@@ -105,6 +122,9 @@ def init_telegram_db():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Commande /start - Menu principal avec création automatique d'utilisateur"""
     telegram_user = update.effective_user
+
+    # S'assurer que la base de données est correctement initialisée
+    init_telegram_db()
 
     # Obtenir ou créer l'utilisateur automatiquement
     user = get_or_create_user_by_telegram_id(
