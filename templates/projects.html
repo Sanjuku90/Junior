@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}Projets Crowdfunding - InvestCrypto Pro{% endblock %}
@@ -33,16 +32,16 @@
                     <i class="fas fa-project-diagram text-6xl text-white"></i>
                 {% endif %}
             </div>
-            
+
             <div class="p-6">
                 <div class="flex items-center justify-between mb-2">
                     <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">{{ project.category }}</span>
                     <span class="text-sm text-gray-500">{{ project.duration_months }} mois</span>
                 </div>
-                
+
                 <h3 class="text-xl font-semibold mb-2">{{ project.title }}</h3>
                 <p class="text-gray-600 text-sm mb-4 line-clamp-3">{{ project.description }}</p>
-                
+
                 <!-- Progress Bar -->
                 <div class="mb-4">
                     <div class="flex justify-between text-sm text-gray-600 mb-1">
@@ -53,7 +52,7 @@
                         <div class="bg-green-500 h-2 rounded-full" style="width: {{ project.progress_percent }}%"></div>
                     </div>
                 </div>
-                
+
                 <!-- Financial Info -->
                 <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
                     <div>
@@ -70,10 +69,10 @@
                     </div>
                     <div>
                         <div class="text-gray-500">Min. invest.</div>
-                        <div class="font-semibold">{{ project.min_investment }} USDT</div>
+                        <div class="font-semibold">{{ project.min_investment }} USDT (20$ minimum)</div>
                     </div>
                 </div>
-                
+
                 <!-- Action Buttons -->
                 <div class="flex gap-2">
                     <a href="{{ url_for('project_detail', project_id=project.id) }}" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-center py-2 px-4 rounded-lg font-medium">
@@ -106,7 +105,7 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
+
         <div class="mb-4">
             <div class="font-semibold" id="modalProjectTitle"></div>
             <div class="space-y-1 text-sm mt-2">
@@ -114,12 +113,12 @@
                 <div>Investissement max: <span id="modalMaxAmount" class="font-semibold"></span> USDT</div>
             </div>
         </div>
-        
+
         <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-2">Montant à investir</label>
             <input type="number" id="projectInvestAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Montant en USDT">
         </div>
-        
+
         <div class="flex gap-3">
             <button onclick="closeInvestModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg">
                 Annuler
@@ -152,14 +151,14 @@ function closeInvestModal() {
 
 async function confirmProjectInvestment() {
     if (!currentProjectId) return;
-    
+
     const amount = parseFloat(document.getElementById('projectInvestAmount').value);
-    
+
     if (!amount || amount <= 0) {
         showNotification('Veuillez saisir un montant valide', 'error');
         return;
     }
-    
+
     try {
         const response = await fetch('/invest-project', {
             method: 'POST',
@@ -171,9 +170,9 @@ async function confirmProjectInvestment() {
                 amount: amount
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             showNotification(data.message, 'success');
             closeInvestModal();
