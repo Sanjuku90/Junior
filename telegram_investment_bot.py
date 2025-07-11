@@ -54,7 +54,25 @@ def add_notification(user_id, title, message, type='info'):
 
 def is_admin(user_id):
     """Vérifier si l'utilisateur est administrateur"""
-    return user_id in ADMIN_IDS
+    if user_id in ADMIN_IDS:
+        # S'assurer que l'admin existe dans la base de données
+        user = get_user_by_telegram_id(user_id)
+        if not user:
+            # Créer automatiquement l'utilisateur admin
+            try:
+                conn = get_db_connection()
+                referral_code = generate_referral_code()
+                cursor = conn.execute('''
+                    INSERT INTO users (email, password_hash, first_name, last_name, referral_code, telegram_id, balance)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (f"admin_{user_id}@admin.local", 'admin_password', 'Administrateur', '', referral_code, user_id, 0.0))
+                conn.commit()
+                conn.close()
+                print(f"✅ Utilisateur admin créé pour ID: {user_id}")
+            except Exception as e:
+                print(f"❌ Erreur création admin: {e}")
+        return True
+    return False
 
 def get_pending_deposits():
     """Récupérer tous les dépôts en attente"""
@@ -360,13 +378,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Commande /start - Menu principal avec création automatique d'utilisateur"""
     telegram_user = update.effective_user
 
-    # Vérifier si c'est un admin
-    if is_admin(telegram_user.id):
-        await show_admin_menu(update, context)
-        return
-
     # S'assurer que la base de données est correctement initialisée
     init_telegram_db()
+
+    # Vérifier si c'est un admin et créer l'utilisateur admin si nécessaire
+    if is_admin(telegram_user.id):
+        # Récupérer l'utilisateur admin (maintenant créé automatiquement)
+        admin_user = get_user_by_telegram_id(telegram_user.id)
+        if admin_user:
+            await show_admin_menu(update, context)
+        else:
+            await update.message.reply_text("❌ Erreur lors de la création du compte administrateur.")
+        return
 
     # Obtenir ou créer l'utilisateur automatiquement
     user = get_or_create_user_by_telegram_id(
