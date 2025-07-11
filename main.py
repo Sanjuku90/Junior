@@ -480,12 +480,23 @@ def dashboard():
     ''', (session['user_id'],)).fetchall()
     
     # Get notifications
-    notifications = conn.execute('''
+    notifications_raw = conn.execute('''
         SELECT * FROM notifications 
         WHERE user_id = ? AND is_read = 0
         ORDER BY created_at DESC
         LIMIT 5
     ''', (session['user_id'],)).fetchall()
+    
+    # Convert notifications to dict and parse datetime
+    notifications = []
+    for notif in notifications_raw:
+        notif_dict = dict(notif)
+        if notif_dict['created_at']:
+            try:
+                notif_dict['created_at'] = datetime.fromisoformat(notif_dict['created_at'].replace('Z', '+00:00'))
+            except:
+                notif_dict['created_at'] = None
+        notifications.append(notif_dict)
     
     conn.close()
     
