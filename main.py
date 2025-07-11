@@ -973,13 +973,7 @@ if __name__ == '__main__':
 
     # Setup du bot utilisateur uniquement
     if TELEGRAM_USER_BOT_ENABLED:
-        # Vérifier si le token utilisateur est configuré
-        user_token = os.getenv('TELEGRAM_BOT_TOKEN_USER')
-        if not user_token:
-            print("⚠️  TELEGRAM_BOT_TOKEN_USER non configuré - Bot utilisateur désactivé")
-            print("💡 Ajoutez votre token de bot dans les Secrets pour activer le bot utilisateur")
-        else:
-            user_bot_app = setup_user_telegram_bot()
+        user_bot_app = setup_user_telegram_bot()
             if user_bot_app:
                 def run_user_bot():
                     try:
