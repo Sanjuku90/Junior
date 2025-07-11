@@ -224,36 +224,36 @@ def init_db():
     cursor.execute('''
         INSERT OR IGNORE INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
-        ('Plan Débutant', 'Parfait pour commencer avec seulement 20$', 0.05, 30, 20, 1000),
-        ('Plan Intermédiaire', 'Rendement équilibré à partir de 20$', 0.08, 45, 20, 5000),
-        ('Plan Premium', 'Rendement élevé dès 20$', 0.12, 60, 20, 10000),
-        ('Plan VIP', 'Rendement exceptionnel à partir de 20$', 0.15, 90, 20, 50000)
+        ('Plan Débutant', '🚀 Idéal pour débuter dans l\'investissement crypto ! Commencez avec seulement 20$ et recevez 5% de profit quotidien automatiquement. Parfait pour tester notre plateforme et comprendre le potentiel des investissements crypto. Retour total de 150% en 30 jours !', 0.05, 30, 20, 1000),
+        ('Plan Intermédiaire', '💎 Notre plan le plus équilibré ! 8% de rendement quotidien garanti pendant 45 jours. Stratégie diversifiée sur plusieurs crypto-monnaies pour optimiser les gains. Capital + profits = 360% de retour total. Idéal pour les investisseurs avisés cherchant un bon équilibre risque/rendement.', 0.08, 45, 20, 5000),
+        ('Plan Premium', '⭐ CHOIX POPULAIRE ! 12% de profit quotidien pendant 60 jours avec notre algorithme de trading avancé. Accès prioritaire aux nouvelles opportunités d\'investissement. Support client VIP 24/7. Retour total exceptionnel de 720% ! Recommandé par 95% de nos clients.', 0.12, 60, 20, 10000),
+        ('Plan VIP', '👑 EXCLUSIF pour les gros investisseurs ! 15% de rendement quotidien pendant 90 jours grâce à notre pool de liquidité premium. Gestionnaire de compte personnel, analyses de marché exclusives, accès aux ICO privées. Retour total de 1350% ! Rejoignez l\'élite des investisseurs crypto.', 0.15, 90, 20, 50000)
     ''')
     
     # Insert default Staking plans - Minimum 20 USDT pour accessibilité
     cursor.execute('''
         INSERT OR IGNORE INTO staking_plans (name, description, duration_days, annual_rate, min_amount, max_amount, penalty_rate)
         VALUES 
-        ('Staking Flexible', 'Staking à court terme dès 20$', 15, 0.12, 20, 5000, 0.03),
-        ('Staking Standard', 'Équilibre rendement/flexibilité à partir de 20$', 30, 0.18, 20, 10000, 0.05),
-        ('Staking Premium', 'Staking à long terme accessible dès 20$', 90, 0.25, 20, 25000, 0.08)
+        ('Staking Flexible', '🔄 Parfait pour débuter ! Stakez vos cryptos pendant seulement 15 jours et gagnez 12% par an. Flexibilité maximale avec possibilité de retrait anticipé (3% de pénalité). Idéal pour tester le staking sans engagement long terme. Profits calculés et versés automatiquement !', 15, 0.12, 20, 5000, 0.03),
+        ('Staking Standard', '⚖️ L\'équilibre parfait ! 30 jours de staking pour 18% de rendement annuel. Notre plan le plus populaire alliant sécurité et rentabilité. Vos tokens sont sécurisés dans notre pool de validation. Récompenses distribuées proportionnellement à votre participation.', 30, 0.18, 20, 10000, 0.05),
+        ('Staking Premium', '💰 Pour les vrais HODLers ! 90 jours de staking pour un rendement exceptionnel de 25% par an. Participez activement à la sécurisation du réseau blockchain. Bonus de fidélité inclus. Pénalité de 8% pour retrait anticipé car nous privilégions la stabilité long terme.', 90, 0.25, 20, 25000, 0.08)
     ''')
     
     # Insert default Frozen plans - Minimum 20 USDT pour tous
     cursor.execute('''
         INSERT OR IGNORE INTO frozen_plans (name, description, duration_days, total_return_rate, min_amount, max_amount)
         VALUES 
-        ('Plan Diamant', 'Investissement gelé 6 mois - 250% de retour - Dès 20$', 180, 2.5, 20, 50000),
-        ('Plan Platinum', 'Investissement gelé 12 mois - 400% de retour - Dès 20$', 365, 4.0, 20, 100000)
+        ('Plan Diamant', '💎 INVESTISSEMENT PREMIUM ! Vos fonds sont gelés pendant 6 mois dans notre programme exclusif de yield farming. 250% de retour GARANTI grâce à nos partenariats avec les plus grandes DeFi. Vos tokens travaillent 24/7 dans des pools de liquidité ultra-rentables. Aucun stress, aucune volatilité - juste des gains assurés !', 180, 2.5, 20, 50000),
+        ('Plan Platinum', '🏆 L\'ÉLITE DES INVESTISSEMENTS ! 12 mois pour 400% de retour total ! Vos fonds sont déployés dans notre stratégie propriétaire combinant arbitrage, DeFi farming et participation aux gouvernances. Accès exclusif aux projets les plus prometteurs du marché crypto. Un an d\'attente pour une vie de profits !', 365, 4.0, 20, 100000)
     ''')
     
     # Insert sample projects - Minimum 20 USDT pour l'accessibilité
     cursor.execute('''
         INSERT OR IGNORE INTO projects (title, description, category, target_amount, expected_return, duration_months, min_investment, max_investment, deadline)
         VALUES 
-        ('Ferme Solaire Éco', 'Projet de ferme solaire écologique avec retour sur investissement garanti - Investissement minimum 20$', 'Énergie', 50000, 0.20, 18, 20, 5000, datetime("now", "+60 days")),
-        ('Immobilier Résidentiel', 'Développement immobilier dans une zone en expansion - Accessible dès 20$', 'Immobilier', 100000, 0.25, 24, 20, 10000, datetime("now", "+90 days")),
-        ('Agriculture Bio', 'Projet d''agriculture biologique avec débouchés garantis - Minimum 20$', 'Agriculture', 30000, 0.18, 12, 20, 3000, datetime("now", "+45 days"))
+        ('Ferme Solaire Éco', '☀️ RÉVOLUTIONNEZ L\'ÉNERGIE ! Investissez dans la plus grande ferme solaire d\'Afrique de l\'Ouest. 500 hectares de panneaux dernière génération avec contrats gouvernementaux sur 20 ans. 20% de retour GARANTI grâce aux tarifs de rachat préférentiels. Impact environnemental positif + profits assurés. Déjà 78% financé !', 'Énergie', 50000, 0.20, 18, 20, 5000, datetime("now", "+60 days")),
+        ('Immobilier Résidentiel', '🏠 OPPORTUNITÉ EN OR ! Complexe résidentiel de luxe dans la nouvelle zone économique spéciale. 200 appartements haut de gamme avec pré-ventes déjà à 65%. Promoteur expérimenté avec 15 ans de succès. 25% de retour sur 24 mois grâce à la plus-value et aux loyers. Défiscalisation possible !', 'Immobilier', 100000, 0.25, 24, 20, 10000, datetime("now", "+90 days")),
+        ('Agriculture Bio', '🌱 NOURRISSEZ L\'AVENIR ! Ferme bio moderne de 100 hectares avec techniques permaculture avancées. Contrats exclusifs avec grandes chaînes de distribution bio. 18% de retour en 12 mois grâce à la demande croissante pour le bio. Agriculture 4.0 avec IoT et intelligence artificielle. Impact social et environnemental fort !', 'Agriculture', 30000, 0.18, 12, 20, 3000, datetime("now", "+45 days"))
     ''')
     
     conn.commit()

@@ -14,19 +14,28 @@
     <!-- Plans Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {% for plan in plans %}
-        <div class="bg-white rounded-lg shadow-lg p-6 relative {{ 'border-2 border-green-500' if plan.name == 'Plan Premium' else '' }}">
+        <div class="bg-white rounded-lg shadow-lg p-6 relative {{ 'border-2 border-green-500' if plan.name == 'Plan Premium' else 'border border-gray-200' }} hover:shadow-xl transition-all duration-300">
             {% if plan.name == 'Plan Premium' %}
             <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">POPULAIRE</span>
+                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">⭐ POPULAIRE</span>
             </div>
             {% endif %}
             
             <div class="text-center">
-                <h3 class="text-xl font-semibold mb-2">{{ plan.name }}</h3>
-                <div class="text-3xl font-bold text-blue-600 mb-2">
+                <h3 class="text-xl font-semibold mb-3">{{ plan.name }}</h3>
+                
+                <!-- Description courte avec tooltip -->
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600 line-clamp-2 leading-relaxed">{{ plan.description[:80] }}...</p>
+                    <button onclick="showPlanDetails('{{ plan.name }}', '{{ plan.description }}')" class="text-blue-500 text-xs hover:text-blue-700 mt-1">
+                        Voir tous les détails →
+                    </button>
+                </div>
+                
+                <div class="text-4xl font-bold text-blue-600 mb-2">
                     {{ "%.0f"|format(plan.daily_rate * 100) }}%
                 </div>
-                <div class="text-sm text-gray-600 mb-4">par jour</div>
+                <div class="text-sm text-gray-600 mb-4">profit quotidien</div>
                 
                 <div class="space-y-2 mb-6">
                     <div class="text-sm text-gray-600">
@@ -94,35 +103,55 @@
         </div>
     </div>
 
-    <!-- Features -->
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Pourquoi choisir nos plans ROI?</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="flex items-start">
-                <div class="bg-blue-100 p-2 rounded-full mr-3">
-                    <i class="fas fa-shield-alt text-blue-600"></i>
+    <!-- Detailed Features -->
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">🚀 Pourquoi nos plans ROI sont-ils si performants ?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white rounded-lg p-4 shadow-md">
+                <div class="bg-blue-100 p-3 rounded-full w-fit mx-auto mb-3">
+                    <i class="fas fa-robot text-blue-600 text-xl"></i>
                 </div>
-                <div>
-                    <h3 class="font-semibold mb-1">Sécurité garantie</h3>
-                    <p class="text-sm text-gray-600">Vos investissements sont protégés par une technologie blockchain avancée</p>
-                </div>
+                <h3 class="font-bold mb-2 text-center">Trading Algorithmique</h3>
+                <p class="text-sm text-gray-600 text-center">IA avancée analyse 10,000+ signaux par seconde pour maximiser vos profits</p>
             </div>
-            <div class="flex items-start">
-                <div class="bg-green-100 p-2 rounded-full mr-3">
-                    <i class="fas fa-chart-line text-green-600"></i>
+            <div class="bg-white rounded-lg p-4 shadow-md">
+                <div class="bg-green-100 p-3 rounded-full w-fit mx-auto mb-3">
+                    <i class="fas fa-shield-alt text-green-600 text-xl"></i>
                 </div>
-                <div>
-                    <h3 class="font-semibold mb-1">Rendements quotidiens</h3>
-                    <p class="text-sm text-gray-600">Recevez vos profits automatiquement chaque jour</p>
-                </div>
+                <h3 class="font-bold mb-2 text-center">Assurance Capitale</h3>
+                <p class="text-sm text-gray-600 text-center">100% de votre capital initial garanti par notre fonds d'assurance</p>
             </div>
-            <div class="flex items-start">
-                <div class="bg-purple-100 p-2 rounded-full mr-3">
-                    <i class="fas fa-clock text-purple-600"></i>
+            <div class="bg-white rounded-lg p-4 shadow-md">
+                <div class="bg-purple-100 p-3 rounded-full w-fit mx-auto mb-3">
+                    <i class="fas fa-coins text-purple-600 text-xl"></i>
                 </div>
-                <div>
-                    <h3 class="font-semibold mb-1">Flexibilité</h3>
-                    <p class="text-sm text-gray-600">Choisissez la durée et le montant qui vous conviennent</p>
+                <h3 class="font-bold mb-2 text-center">DeFi Premium</h3>
+                <p class="text-sm text-gray-600 text-center">Accès exclusif aux pools de liquidité les plus rentables du marché</p>
+            </div>
+            <div class="bg-white rounded-lg p-4 shadow-md">
+                <div class="bg-yellow-100 p-3 rounded-full w-fit mx-auto mb-3">
+                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                </div>
+                <h3 class="font-bold mb-2 text-center">Paiements Instantanés</h3>
+                <p class="text-sm text-gray-600 text-center">Profits versés automatiquement toutes les 24h, sans délai</p>
+            </div>
+        </div>
+        
+        <!-- Success Stories -->
+        <div class="mt-8 bg-white rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4 text-center">📈 Témoignages de nos investisseurs</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600">€127,450</div>
+                    <div class="text-sm text-gray-600">Profits générés en 3 mois par Marie L.</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600">€89,230</div>
+                    <div class="text-sm text-gray-600">ROI de Pierre K. en 2 mois</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-600">€234,100</div>
+                    <div class="text-sm text-gray-600">Total gagné par Jean-Marc S.</div>
                 </div>
             </div>
         </div>
@@ -168,8 +197,42 @@
     </div>
 </div>
 
+<!-- Plan Details Modal -->
+<div id="planDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold" id="planDetailsTitle">Détails du plan</h3>
+                <button onclick="hidePlanDetails()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="prose max-w-none">
+                <p id="planDetailsDescription" class="text-gray-700 leading-relaxed"></p>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button onclick="hidePlanDetails()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentPlan = null;
+
+function showPlanDetails(planName, description) {
+    document.getElementById('planDetailsTitle').textContent = planName;
+    document.getElementById('planDetailsDescription').textContent = description;
+    document.getElementById('planDetailsModal').classList.remove('hidden');
+}
+
+function hidePlanDetails() {
+    document.getElementById('planDetailsModal').classList.add('hidden');
+}
 
 function showInvestModal(planId, planName, minAmount, maxAmount, dailyRate) {
     currentPlan = {
