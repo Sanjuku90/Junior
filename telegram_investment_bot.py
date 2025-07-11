@@ -620,15 +620,15 @@ async def show_wallet(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # === PLANS ROI ===
 
 async def show_roi_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher les plans ROI avec détails"""
+    """Afficher les 10 meilleurs plans ROI triés par rendement"""
     await update.callback_query.answer()
 
     conn = get_db_connection()
-    plans = conn.execute('SELECT * FROM roi_plans WHERE is_active = 1').fetchall()
+    plans = conn.execute('SELECT * FROM roi_plans WHERE is_active = 1 ORDER BY daily_rate ASC LIMIT 10').fetchall()
     conn.close()
 
     keyboard = []
-    message = "📈 **PLANS ROI**\n\n"
+    message = "📈 **TOP 10 PLANS ROI** (Minimum 20 USDT)\n\n"
 
     for plan in plans:
         total_return = (plan['daily_rate'] * plan['duration_days']) * 100
@@ -791,18 +791,18 @@ Utilisez /start pour retourner au menu principal.
 # === PLANS DE STAKING ===
 
 async def show_staking_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher les plans de staking"""
+    """Afficher les 10 meilleurs plans de staking triés par rendement"""
     await update.callback_query.answer()
 
     conn = get_db_connection()
-    plans = conn.execute('SELECT * FROM staking_plans WHERE is_active = 1').fetchall()
+    plans = conn.execute('SELECT * FROM staking_plans WHERE is_active = 1 ORDER BY annual_rate ASC LIMIT 10').fetchall()
     conn.close()
 
     keyboard = []
-    message = "💎 **PLANS STAKING**\n\n"
+    message = "💎 **TOP 10 PLANS STAKING** (Minimum 20 USDT)\n\n"
 
-    # Limiter le nombre de plans affichés pour éviter les messages trop longs
-    for i, plan in enumerate(plans[:3]):  # Limite à 3 plans maximum
+    # Afficher les 10 meilleurs plans
+    for i, plan in enumerate(plans[:5]):  # Limite à 5 plans pour l'affichage
         daily_rate = plan['annual_rate'] / 365
         total_return = daily_rate * plan['duration_days'] * 100
         message += f"🏆 **{plan['name']}**\n"
@@ -811,9 +811,9 @@ async def show_staking_plans(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         keyboard.append([InlineKeyboardButton(f"💎 {plan['name']}", callback_data=f"invest_staking_{plan['id']}")])
 
-    # Si plus de 3 plans, ajouter un bouton "Plus de plans"
-    if len(plans) > 3:
-        message += f"📋 **{len(plans) - 3} autres plans disponibles...**\n"
+    # Si plus de 5 plans, ajouter un bouton "Plus de plans"
+    if len(plans) > 5:
+        message += f"📋 **{len(plans) - 5} autres plans disponibles...**\n"
 
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -823,19 +823,19 @@ async def show_staking_plans(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # === PLANS GELÉS ===
 
 async def show_frozen_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher les plans gelés"""
+    """Afficher les 10 meilleurs plans gelés triés par rendement"""
     await update.callback_query.answer()
 
     conn = get_db_connection()
-    plans = conn.execute('SELECT * FROM frozen_plans WHERE is_active = 1').fetchall()
+    plans = conn.execute('SELECT * FROM frozen_plans WHERE is_active = 1 ORDER BY total_return_rate ASC LIMIT 10').fetchall()
     conn.close()
 
     keyboard = []
-    message = "🧊 **PLANS GELÉS**\n\n"
+    message = "🧊 **TOP 10 PLANS GELÉS** (Minimum 20 USDT)\n\n"
     message += "💎 **Investissements long terme !**\n\n"
 
-    # Limiter à 2 plans pour éviter les messages trop longs
-    for plan in plans[:2]:
+    # Limiter à 3 plans pour l'affichage
+    for plan in plans[:3]:
         annual_return = ((plan['total_return_rate'] - 1) / (plan['duration_days'] / 365)) * 100
 
         message += f"💎 **{plan['name']}**\n"
@@ -845,8 +845,8 @@ async def show_frozen_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         keyboard.append([InlineKeyboardButton(f"💎 {plan['name']}", callback_data=f"invest_frozen_{plan['id']}")])
 
-    if len(plans) > 2:
-        message += f"📋 **{len(plans) - 2} autres plans...**\n"
+    if len(plans) > 3:
+        message += f"📋 **{len(plans) - 3} autres plans...**\n"
 
     keyboard.append([InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -856,7 +856,7 @@ async def show_frozen_plans(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # === PROJETS CROWDFUNDING ===
 
 async def show_projects(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher les projets de crowdfunding"""
+    """Afficher les 10 meilleurs projets de crowdfunding triés par rendement"""
     await update.callback_query.answer()
 
     conn = get_db_connection()
@@ -866,13 +866,13 @@ async def show_projects(update: Update, context: ContextTypes.DEFAULT_TYPE):
                (target_amount - raised_amount) as remaining_amount
         FROM projects 
         WHERE status = 'collecting' AND deadline > datetime('now')
-        ORDER BY created_at DESC
-        LIMIT 3
+        ORDER BY expected_return DESC
+        LIMIT 10
     ''').fetchall()
     conn.close()
 
     keyboard = []
-    message = "🎯 **PROJETS CROWDFUNDING**\n\n"
+    message = "🎯 **TOP 10 PROJETS CROWDFUNDING** (Minimum 20 USDT)\n\n"
 
     if not projects:
         message += "😔 **Aucun projet disponible.**\n"
