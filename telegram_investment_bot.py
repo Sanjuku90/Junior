@@ -18,6 +18,9 @@ if not TELEGRAM_BOT_TOKEN:
 
 DATABASE = 'investment_platform.db'
 
+# Liste des administrateurs (IDs Telegram)
+ADMIN_IDS = [123456789]  # Remplacez par votre ID Telegram d'admin
+
 # États de conversation
 REGISTER_EMAIL, REGISTER_PASSWORD, REGISTER_FIRSTNAME, REGISTER_LASTNAME, REGISTER_REFERRAL = range(5)
 LOGIN_EMAIL, LOGIN_PASSWORD = range(2)
@@ -48,6 +51,168 @@ def add_notification(user_id, title, message, type='info'):
     ''', (user_id, title, message, type))
     conn.commit()
     conn.close()
+
+def is_admin(user_id):
+    """Vérifier si l'utilisateur est administrateur"""
+    return user_id in ADMIN_IDS
+
+def get_pending_deposits():
+    """Récupérer tous les dépôts en attente"""
+    conn = get_db_connection()
+    deposits = conn.execute('''
+        SELECT t.*, u.first_name, u.last_name, u.telegram_id
+        FROM transactions t
+        JOIN users u ON t.user_id = u.id
+        WHERE t.type = 'deposit' AND t.status = 'pending'
+        ORDER BY t.created_at DESC
+    ''').fetchall()
+    conn.close()
+    return deposits
+
+def get_pending_withdrawals():
+    """Récupérer tous les retraits en attente"""
+    conn = get_db_connection()
+    withdrawals = conn.execute('''
+        SELECT t.*, u.first_name, u.last_name, u.telegram_id
+        FROM transactions t
+        JOIN users u ON t.user_id = u.id
+        WHERE t.type = 'withdrawal' AND t.status = 'pending'
+        ORDER BY t.created_at DESC
+    ''').fetchall()
+    conn.close()
+    return withdrawals
+
+def approve_deposit(transaction_id):
+    """Approuver un dépôt"""
+    conn = get_db_connection()
+    
+    # Récupérer la transaction
+    transaction = conn.execute('''
+        SELECT * FROM transactions WHERE id = ? AND type = 'deposit' AND status = 'pending'
+    ''', (transaction_id,)).fetchone()
+    
+    if not transaction:
+        conn.close()
+        return False, "Transaction non trouvée"
+    
+    # Mettre à jour le statut et créditer le solde
+    conn.execute('''
+        UPDATE transactions SET status = 'completed' WHERE id = ?
+    ''', (transaction_id,))
+    
+    conn.execute('''
+        UPDATE users SET balance = balance + ? WHERE id = ?
+    ''', (transaction['amount'], transaction['user_id']))
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification
+    add_notification(
+        transaction['user_id'],
+        'Dépôt approuvé',
+        f'Votre dépôt de {transaction["amount"]:.2f} USDT a été approuvé et crédité.',
+        'success'
+    )
+    
+    return True, "Dépôt approuvé avec succès"
+
+def reject_deposit(transaction_id, reason=""):
+    """Rejeter un dépôt"""
+    conn = get_db_connection()
+    
+    # Récupérer la transaction
+    transaction = conn.execute('''
+        SELECT * FROM transactions WHERE id = ? AND type = 'deposit' AND status = 'pending'
+    ''', (transaction_id,)).fetchone()
+    
+    if not transaction:
+        conn.close()
+        return False, "Transaction non trouvée"
+    
+    # Mettre à jour le statut
+    conn.execute('''
+        UPDATE transactions SET status = 'rejected' WHERE id = ?
+    ''', (transaction_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification
+    add_notification(
+        transaction['user_id'],
+        'Dépôt rejeté',
+        f'Votre dépôt de {transaction["amount"]:.2f} USDT a été rejeté. Raison: {reason or "Non spécifiée"}',
+        'error'
+    )
+    
+    return True, "Dépôt rejeté"
+
+def approve_withdrawal(transaction_id):
+    """Approuver un retrait"""
+    conn = get_db_connection()
+    
+    # Récupérer la transaction
+    transaction = conn.execute('''
+        SELECT * FROM transactions WHERE id = ? AND type = 'withdrawal' AND status = 'pending'
+    ''', (transaction_id,)).fetchone()
+    
+    if not transaction:
+        conn.close()
+        return False, "Transaction non trouvée"
+    
+    # Mettre à jour le statut
+    conn.execute('''
+        UPDATE transactions SET status = 'completed' WHERE id = ?
+    ''', (transaction_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification
+    add_notification(
+        transaction['user_id'],
+        'Retrait traité',
+        f'Votre retrait de {transaction["amount"]:.2f} USDT a été traité avec succès.',
+        'success'
+    )
+    
+    return True, "Retrait approuvé avec succès"
+
+def reject_withdrawal(transaction_id, reason=""):
+    """Rejeter un retrait et rembourser"""
+    conn = get_db_connection()
+    
+    # Récupérer la transaction
+    transaction = conn.execute('''
+        SELECT * FROM transactions WHERE id = ? AND type = 'withdrawal' AND status = 'pending'
+    ''', (transaction_id,)).fetchone()
+    
+    if not transaction:
+        conn.close()
+        return False, "Transaction non trouvée"
+    
+    # Mettre à jour le statut et rembourser
+    conn.execute('''
+        UPDATE transactions SET status = 'rejected' WHERE id = ?
+    ''', (transaction_id,))
+    
+    conn.execute('''
+        UPDATE users SET balance = balance + ? WHERE id = ?
+    ''', (transaction['amount'], transaction['user_id']))
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification
+    add_notification(
+        transaction['user_id'],
+        'Retrait rejeté',
+        f'Votre retrait de {transaction["amount"]:.2f} USDT a été rejeté et remboursé. Raison: {reason or "Non spécifiée"}',
+        'warning'
+    )
+    
+    return True, "Retrait rejeté et remboursé"
 
 # Fonction pour obtenir ou créer l'utilisateur depuis Telegram ID
 def get_or_create_user_by_telegram_id(telegram_id, first_name=None, last_name=None, username=None):
@@ -195,6 +360,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Commande /start - Menu principal avec création automatique d'utilisateur"""
     telegram_user = update.effective_user
 
+    # Vérifier si c'est un admin
+    if is_admin(telegram_user.id):
+        await show_admin_menu(update, context)
+        return
+
     # S'assurer que la base de données est correctement initialisée
     init_telegram_db()
 
@@ -228,6 +398,50 @@ Veuillez réessayer dans quelques instants.
             await update.message.reply_text(message, parse_mode='Markdown')
         else:
             await update.callback_query.edit_message_text(message, parse_mode='Markdown')
+
+async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Commande /admin pour accéder au panneau d'administration"""
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("❌ Accès refusé.")
+        return
+    
+    await show_admin_menu(update, context)
+
+async def show_admin_menu(update, context):
+    """Afficher le menu administrateur"""
+    # Récupérer les statistiques
+    pending_deposits = get_pending_deposits()
+    pending_withdrawals = get_pending_withdrawals()
+    
+    keyboard = [
+        [InlineKeyboardButton(f"💳 Dépôts en attente ({len(pending_deposits)})", callback_data="admin_deposits")],
+        [InlineKeyboardButton(f"💸 Retraits en attente ({len(pending_withdrawals)})", callback_data="admin_withdrawals")],
+        [InlineKeyboardButton("📊 Statistiques", callback_data="admin_stats")],
+        [InlineKeyboardButton("👥 Utilisateurs", callback_data="admin_users")],
+        [InlineKeyboardButton("🔙 Menu utilisateur", callback_data="admin_to_user")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = f"""
+🔧 **PANNEAU ADMINISTRATEUR**
+
+📊 **Résumé :**
+• Dépôts en attente : {len(pending_deposits)}
+• Retraits en attente : {len(pending_withdrawals)}
+
+🛠️ **Actions disponibles :**
+• Valider/rejeter les dépôts
+• Traiter les retraits
+• Voir les statistiques
+• Gérer les utilisateurs
+
+⚡ **Choisissez une action :**
+    """
+    
+    if hasattr(update, 'message') and update.message:
+        await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+    else:
+        await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_main_menu(update, context, user):
     """Affiche le menu principal pour un utilisateur connecté"""
@@ -1345,6 +1559,101 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     data = query.data
+    
+    # Vérifier si c'est une action admin
+    if data.startswith("admin_"):
+        if not is_admin(update.effective_user.id):
+            await query.edit_message_text("❌ Accès refusé.")
+            return
+        
+        if data == "admin_menu":
+            await show_admin_menu(update, context)
+        elif data == "admin_deposits":
+            await show_admin_deposits(update, context)
+        elif data == "admin_withdrawals":
+            await show_admin_withdrawals(update, context)
+        elif data == "admin_stats":
+            await show_admin_stats(update, context)
+        elif data == "admin_users":
+            await show_admin_users(update, context)
+        elif data == "admin_to_user":
+            # Passer en mode utilisateur
+            user = get_user_by_telegram_id(update.effective_user.id)
+            if user:
+                await show_main_menu(update, context, user)
+            else:
+                await query.edit_message_text("❌ Utilisateur non trouvé.")
+        return
+    
+    # Actions de validation admin
+    if data.startswith("approve_deposit_"):
+        if not is_admin(update.effective_user.id):
+            await query.edit_message_text("❌ Accès refusé.")
+            return
+        
+        transaction_id = int(data.split("_")[-1])
+        success, message = approve_deposit(transaction_id)
+        
+        if success:
+            await query.edit_message_text(f"✅ {message}")
+            # Retourner au menu des dépôts après 2 secondes
+            await asyncio.sleep(2)
+            await show_admin_deposits(update, context)
+        else:
+            await query.edit_message_text(f"❌ {message}")
+        return
+    
+    elif data.startswith("reject_deposit_"):
+        if not is_admin(update.effective_user.id):
+            await query.edit_message_text("❌ Accès refusé.")
+            return
+        
+        transaction_id = int(data.split("_")[-1])
+        success, message = reject_deposit(transaction_id, "Transaction invalide")
+        
+        if success:
+            await query.edit_message_text(f"❌ {message}")
+            # Retourner au menu des dépôts après 2 secondes
+            await asyncio.sleep(2)
+            await show_admin_deposits(update, context)
+        else:
+            await query.edit_message_text(f"❌ {message}")
+        return
+    
+    elif data.startswith("approve_withdrawal_"):
+        if not is_admin(update.effective_user.id):
+            await query.edit_message_text("❌ Accès refusé.")
+            return
+        
+        transaction_id = int(data.split("_")[-1])
+        success, message = approve_withdrawal(transaction_id)
+        
+        if success:
+            await query.edit_message_text(f"✅ {message}")
+            # Retourner au menu des retraits après 2 secondes
+            await asyncio.sleep(2)
+            await show_admin_withdrawals(update, context)
+        else:
+            await query.edit_message_text(f"❌ {message}")
+        return
+    
+    elif data.startswith("reject_withdrawal_"):
+        if not is_admin(update.effective_user.id):
+            await query.edit_message_text("❌ Accès refusé.")
+            return
+        
+        transaction_id = int(data.split("_")[-1])
+        success, message = reject_withdrawal(transaction_id, "Retrait refusé")
+        
+        if success:
+            await query.edit_message_text(f"❌ {message}")
+            # Retourner au menu des retraits après 2 secondes
+            await asyncio.sleep(2)
+            await show_admin_withdrawals(update, context)
+        else:
+            await query.edit_message_text(f"❌ {message}")
+        return
+
     user = get_user_by_telegram_id(update.effective_user.id)
 
     if data == "main_menu":
@@ -2077,6 +2386,174 @@ Pour le moment, utilisez les sections individuelles pour voir vos données.
 
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
+# === FONCTIONS ADMINISTRATEUR ===
+
+async def show_admin_deposits(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les dépôts en attente"""
+    await update.callback_query.answer()
+    
+    deposits = get_pending_deposits()
+    
+    if not deposits:
+        keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.callback_query.edit_message_text(
+            "✅ **Aucun dépôt en attente**",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+        return
+    
+    keyboard = []
+    message = "💳 **DÉPÔTS EN ATTENTE**\n\n"
+    
+    for deposit in deposits[:5]:  # Limiter à 5 pour éviter un message trop long
+        user_name = f"{deposit['first_name']} {deposit['last_name'] or ''}"
+        try:
+            date_str = datetime.fromisoformat(deposit['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
+        except:
+            date_str = "Non disponible"
+        
+        message += f"👤 **{user_name}**\n"
+        message += f"💰 {deposit['amount']:.2f} USDT\n"
+        message += f"📅 {date_str}\n"
+        message += f"🔗 `{deposit['transaction_hash'][:20]}...`\n\n"
+        
+        keyboard.append([
+            InlineKeyboardButton(f"✅ Approuver #{deposit['id']}", callback_data=f"approve_deposit_{deposit['id']}"),
+            InlineKeyboardButton(f"❌ Rejeter #{deposit['id']}", callback_data=f"reject_deposit_{deposit['id']}")
+        ])
+    
+    if len(deposits) > 5:
+        message += f"... et {len(deposits) - 5} autres dépôts"
+    
+    keyboard.append([InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_admin_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les retraits en attente"""
+    await update.callback_query.answer()
+    
+    withdrawals = get_pending_withdrawals()
+    
+    if not withdrawals:
+        keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.callback_query.edit_message_text(
+            "✅ **Aucun retrait en attente**",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+        return
+    
+    keyboard = []
+    message = "💸 **RETRAITS EN ATTENTE**\n\n"
+    
+    for withdrawal in withdrawals[:5]:  # Limiter à 5 pour éviter un message trop long
+        user_name = f"{withdrawal['first_name']} {withdrawal['last_name'] or ''}"
+        try:
+            date_str = datetime.fromisoformat(withdrawal['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
+        except:
+            date_str = "Non disponible"
+        
+        # Extraire l'adresse du hash
+        address = withdrawal['transaction_hash'].split('|')[0] if '|' in withdrawal['transaction_hash'] else "Non disponible"
+        
+        message += f"👤 **{user_name}**\n"
+        message += f"💰 {withdrawal['amount']:.2f} USDT\n"
+        message += f"📅 {date_str}\n"
+        message += f"📍 `{address[:20]}...`\n\n"
+        
+        keyboard.append([
+            InlineKeyboardButton(f"✅ Traiter #{withdrawal['id']}", callback_data=f"approve_withdrawal_{withdrawal['id']}"),
+            InlineKeyboardButton(f"❌ Rejeter #{withdrawal['id']}", callback_data=f"reject_withdrawal_{withdrawal['id']}")
+        ])
+    
+    if len(withdrawals) > 5:
+        message += f"... et {len(withdrawals) - 5} autres retraits"
+    
+    keyboard.append([InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les statistiques administrateur"""
+    await update.callback_query.answer()
+    
+    conn = get_db_connection()
+    
+    # Statistiques générales
+    total_users = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()['count']
+    total_deposits = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = "deposit" AND status = "completed"').fetchone()['total']
+    total_withdrawals = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = "withdrawal" AND status = "completed"').fetchone()['total']
+    total_investments = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM user_investments').fetchone()['total']
+    
+    # Statistiques du jour
+    today = datetime.now().strftime('%Y-%m-%d')
+    daily_users = conn.execute('SELECT COUNT(*) as count FROM users WHERE DATE(created_at) = ?', (today,)).fetchone()['count']
+    daily_deposits = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = "deposit" AND DATE(created_at) = ?', (today,)).fetchone()['total']
+    
+    conn.close()
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = f"""
+📊 **STATISTIQUES PLATEFORME**
+
+👥 **Utilisateurs :**
+• Total : {total_users}
+• Nouveaux aujourd'hui : {daily_users}
+
+💰 **Finances :**
+• Dépôts totaux : {total_deposits:.2f} USDT
+• Retraits totaux : {total_withdrawals:.2f} USDT
+• Investissements : {total_investments:.2f} USDT
+
+📈 **Aujourd'hui :**
+• Dépôts : {daily_deposits:.2f} USDT
+• Nouveaux utilisateurs : {daily_users}
+
+💼 **Solde plateforme :**
+• Liquidité : {total_deposits - total_withdrawals:.2f} USDT
+    """
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les utilisateurs récents"""
+    await update.callback_query.answer()
+    
+    conn = get_db_connection()
+    recent_users = conn.execute('''
+        SELECT first_name, last_name, balance, created_at
+        FROM users 
+        ORDER BY created_at DESC 
+        LIMIT 10
+    ''').fetchall()
+    conn.close()
+    
+    keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    message = "👥 **UTILISATEURS RÉCENTS**\n\n"
+    
+    for user in recent_users:
+        try:
+            date_str = datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).strftime('%d/%m')
+        except:
+            date_str = "N/A"
+        
+        message += f"👤 {user['first_name']} {user['last_name'] or ''}\n"
+        message += f"💰 {user['balance']:.2f} USDT | 📅 {date_str}\n\n"
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Annuler une conversation"""
     context.user_data.clear()
@@ -2144,6 +2621,7 @@ def setup_user_telegram_bot():
 
     # Ajouter tous les handlers
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("admin", admin_command))
     application.add_handler(deposit_handler)
     application.add_handler(withdraw_handler)
     application.add_handler(invest_roi_handler)
