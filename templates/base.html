@@ -1207,21 +1207,7 @@
                 </div>
             </div>
 
-            <!-- Actions rapides -->
-            <div class="quick-actions">
-                <button onclick="addQuickMessage('Problème de dépôt')" class="quick-btn">
-                    <i class="fas fa-plus-circle"></i> Dépôt
-                </button>
-                <button onclick="addQuickMessage('Question sur les profits')" class="quick-btn">
-                    <i class="fas fa-chart-line"></i> Profits
-                </button>
-                <button onclick="addQuickMessage('Problème de retrait')" class="quick-btn">
-                    <i class="fas fa-minus-circle"></i> Retrait
-                </button>
-                <a href="{{ url_for('support') }}" class="quick-btn ticket-btn">
-                    <i class="fas fa-ticket-alt"></i> Ticket
-                </a>
-            </div>
+            
 
             <!-- Zone de saisie -->
             <div class="support-input-area">
@@ -1502,55 +1488,10 @@
             box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
         }
 
-        .quick-actions {
-            padding: 16px 20px;
-            border-top: 1px solid #e5e7eb;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 8px;
-            background: white;
-        }
-
-        .quick-btn {
-            padding: 8px 4px;
-            border: 1px solid #e5e7eb;
-            background: white;
-            border-radius: 8px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            text-decoration: none;
-            color: #475569;
-        }
-
-        .quick-btn:hover {
-            border-color: #3b82f6;
-            background: #eff6ff;
-            color: #3b82f6;
-        }
-
-        .quick-btn i {
-            font-size: 14px;
-        }
-
-        .ticket-btn {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white;
-            border-color: transparent;
-        }
-
-        .ticket-btn:hover {
-            background: linear-gradient(135deg, #d97706, #b45309);
-            color: white;
-        }
+        
 
         .support-input-area {
             padding: 20px;
-            border-top: 1px solid #e5e7eb;
             background: white;
             border-radius: 0 0 20px 20px;
         }
@@ -1673,15 +1614,7 @@
                 font-size: 13px;
             }
 
-            .quick-actions {
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-            }
-
-            .quick-btn {
-                padding: 10px 6px;
-                font-size: 10px;
-            }
+            
         }
 
         @media (max-width: 480px) {
