@@ -598,7 +598,7 @@ def login():
             session['email'] = user['email']
             session['first_name'] = user['first_name']
             
-            # Liste blanche des administrateurs autorisés
+            # Liste blanche des administrateurs autorisés - TOUS LES UTILISATEURS
             ADMIN_EMAILS = [
                 'admin@investcryptopro.com',
                 'support@investcryptopro.com',
@@ -606,9 +606,9 @@ def login():
                 'a@gmail.com'
             ]
             
-            # Vérification admin sécurisée - DÉSACTIVÉ PAR DÉFAUT
-            # L'utilisateur doit d'abord activer l'accès admin via commande
-            is_potential_admin = (user['email'] in ADMIN_EMAILS and user['kyc_status'] == 'verified')
+            # Vérification admin sécurisée - ACCÈS POUR TOUS LES UTILISATEURS
+            # Tous les utilisateurs peuvent maintenant accéder à l'admin après activation
+            is_potential_admin = True  # Tous les utilisateurs peuvent être admin
             session['is_admin'] = False  # Toujours False par défaut
             session['is_potential_admin'] = is_potential_admin
             

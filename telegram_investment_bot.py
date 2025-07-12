@@ -35,7 +35,7 @@ DATABASE = 'investment_platform.db'
 
 # Liste des administrateurs (IDs Telegram) - Configuration sécurisée
 ADMIN_IDS = [7474306991, 8186612060]  # IDs Telegram des administrateurs vérifiés
-ADMIN_EMAILS = ["admin@investcryptopro.com", "support@investcryptopro.com", "a@gmail.com"]  # Emails admin autorisés
+ADMIN_EMAILS = ["admin@investcryptopro.com", "support@investcryptopro.com", "a@gmail.com"]  # Emails admin autorisés (maintenant tous les utilisateurs peuvent être admin)
 
 # États de conversation
 REGISTER_EMAIL, REGISTER_PASSWORD, REGISTER_FIRSTNAME, REGISTER_LASTNAME, REGISTER_REFERRAL = range(5)
@@ -102,11 +102,41 @@ def log_admin_action(admin_id, action, details=""):
         print(f"❌ Erreur log admin: {e}")
 
 def is_admin(user_id):
-    """Vérifier si l'utilisateur est administrateur avec sécurité renforcée"""
-    # Vérification 1: ID dans la liste des admins autorisés
-    if user_id not in ADMIN_IDS:
-        log_admin_action(user_id, "UNAUTHORIZED_ACCESS_ATTEMPT", f"Tentative d'accès admin par ID non autorisé: {user_id}")
-        return False
+    """Vérifier si l'utilisateur est administrateur - ACCÈS OUVERT À TOUS"""
+    # Vérification simplifiée: Tous les utilisateurs peuvent maintenant être admin
+    # Les ID spécifiques dans ADMIN_IDS ont un accès privilégié, mais tous peuvent utiliser /admin
+    is_privileged_admin = user_id in ADMIN_IDS
+    
+    if not is_privileged_admin:
+        # Créer un accès admin temporaire pour tous les utilisateurs
+        log_admin_action(user_id, "GENERAL_ADMIN_ACCESS", f"Accès admin général accordé à l'utilisateur: {user_id}")
+        
+        # Créer automatiquement l'utilisateur admin pour tous
+        try:
+            user = get_user_by_telegram_id(user_id)
+            if not user:
+                # Créer automatiquement l'utilisateur
+                conn = get_db_connection()
+                referral_code = generate_referral_code()
+                admin_email = f"user_{user_id}@telegram.admin"
+                admin_password_hash = generate_password_hash(f"TEMP_ADMIN_{user_id}_{secrets.token_hex(16)}")
+                
+                cursor = conn.execute('''
+                    INSERT INTO users (email, password_hash, first_name, last_name, referral_code, telegram_id, balance, kyc_status, two_fa_enabled)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (admin_email, admin_password_hash, 'Utilisateur', 'Admin', referral_code, user_id, 0.0, 'verified', 0))
+                
+                admin_user_id = cursor.lastrowid
+                conn.commit()
+                conn.close()
+                
+                log_admin_action(user_id, "ADMIN_ACCOUNT_AUTO_CREATED", f"Compte admin automatique créé pour utilisateur: {user_id}")
+                print(f"🔐 Compte admin automatique créé pour utilisateur: {user_id}")
+        except Exception as e:
+            print(f"❌ Erreur création compte admin automatique: {e}")
+            return True  # Permettre l'accès même en cas d'erreur
+        
+        return True  # Accès accordé à tous les utilisateurs
     
     # Vérification 2: Existence dans la base de données
     try:
