@@ -111,7 +111,7 @@
     <!-- Quick Actions -->
     <div class="chat-bubble">
         <h2 class="text-xl font-bold text-gray-900 mb-6">💰 Actions rapides</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <!-- Bouton Déposer -->
             <button onclick="showDepositModal()" class="group relative overflow-hidden bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 hover:from-green-400 hover:via-green-500 hover:to-emerald-600 text-white p-8 rounded-3xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl border-2 border-green-400/30">
                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -147,46 +147,10 @@
                     <i class="fas fa-coins text-2xl opacity-30"></i>
                 </div>
             </button>
-
-            <!-- Bouton Auto-Trading IA -->
-            <a href="{{ url_for('auto_trading') }}" class="group relative overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-violet-700 hover:from-purple-400 hover:via-purple-500 hover:to-violet-600 text-white p-8 rounded-3xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl border-2 border-purple-400/30">
-                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div class="relative z-10 flex items-center justify-center space-x-4">
-                    <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 group-hover:bg-white/30 transition-all duration-300">
-                        <i class="fas fa-robot text-3xl text-white drop-shadow-lg"></i>
-                    </div>
-                    <div class="text-left">
-                        <h3 class="text-2xl font-bold text-white drop-shadow-md">Bot IA</h3>
-                        <p class="text-purple-100 text-sm font-medium">🤖 Trading automatique</p>
-                        <div class="text-xs text-purple-200 mt-1 opacity-90">Stratégies avancées</div>
-                    </div>
-                </div>
-                <div class="absolute top-4 right-4 text-purple-200">
-                    <i class="fas fa-brain text-2xl opacity-30"></i>
-                </div>
-            </a>
-
-            <!-- Bouton Copy Trading -->
-            <a href="{{ url_for('copy_trading') }}" class="group relative overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-red-700 hover:from-orange-400 hover:via-orange-500 hover:to-red-600 text-white p-8 rounded-3xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl border-2 border-orange-400/30">
-                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div class="relative z-10 flex items-center justify-center space-x-4">
-                    <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 group-hover:bg-white/30 transition-all duration-300">
-                        <i class="fas fa-copy text-3xl text-white drop-shadow-lg"></i>
-                    </div>
-                    <div class="text-left">
-                        <h3 class="text-2xl font-bold text-white drop-shadow-md">Copy Trading</h3>
-                        <p class="text-orange-100 text-sm font-medium">📈 Copier les pros</p>
-                        <div class="text-xs text-orange-200 mt-1 opacity-90">Top traders</div>
-                    </div>
-                </div>
-                <div class="absolute top-4 right-4 text-orange-200">
-                    <i class="fas fa-users text-2xl opacity-30"></i>
-                </div>
-            </a>
         </div>
 
-        <!-- Indicateurs visuels supplémentaires -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+        <!-- Indicateurs visuels -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-2xl mx-auto">
             <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-200">
                 <div class="flex items-center justify-center space-x-2 text-green-700">
                     <i class="fas fa-shield-check text-sm"></i>
@@ -197,18 +161,6 @@
                 <div class="flex items-center justify-center space-x-2 text-blue-700">
                     <i class="fas fa-bolt text-sm"></i>
                     <span class="text-sm font-medium">Retraits rapides</span>
-                </div>
-            </div>
-            <div class="bg-gradient-to-r from-purple-50 to-violet-50 p-4 rounded-2xl border border-purple-200">
-                <div class="flex items-center justify-center space-x-2 text-purple-700">
-                    <i class="fas fa-robot text-sm"></i>
-                    <span class="text-sm font-medium">IA avancée</span>
-                </div>
-            </div>
-            <div class="bg-gradient-to-r from-orange-50 to-red-50 p-4 rounded-2xl border border-orange-200">
-                <div class="flex items-center justify-center space-x-2 text-orange-700">
-                    <i class="fas fa-copy text-sm"></i>
-                    <span class="text-sm font-medium">Copy pros</span>
                 </div>
             </div>
         </div>
