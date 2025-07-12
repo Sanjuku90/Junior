@@ -13,6 +13,15 @@ import sqlite3
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
+# Import de la base de données persistante Replit
+try:
+    from replit import db as replit_db
+    REPLIT_DB_AVAILABLE = True
+    print("✅ Replit DB disponible - persistance activée")
+except ImportError:
+    REPLIT_DB_AVAILABLE = False
+    print("⚠️ Replit DB non disponible - utilisation SQLite locale")
+
 # Import du bot Telegram utilisateur uniquement
 TELEGRAM_ENABLED = False
 TELEGRAM_USER_BOT_ENABLED = False
@@ -21,8 +30,16 @@ TELEGRAM_USER_BOT_ENABLED = False
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 
-# Configuration
-DATABASE = 'investment_platform.db'
+# Configuration avec persistance
+if REPLIT_DB_AVAILABLE:
+    # Utiliser un répertoire persistant pour la base de données
+    DATABASE = '/home/runner/.local/share/investment_platform.db'
+    # S'assurer que le répertoire existe
+    os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
+    print(f"📂 Base de données persistante: {DATABASE}")
+else:
+    DATABASE = 'investment_platform.db'
+
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -129,6 +146,137 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS transactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+
+def backup_critical_data():
+    """Sauvegarder les données critiques dans Replit DB"""
+    if not REPLIT_DB_AVAILABLE:
+        return
+    
+    try:
+        conn = get_db_connection()
+        
+        # Sauvegarder les investissements actifs
+        investments = conn.execute('''
+            SELECT * FROM user_investments WHERE is_active = 1
+        ''').fetchall()
+        
+        investments_data = []
+        for inv in investments:
+            investments_data.append(dict(inv))
+        
+        replit_db['active_investments'] = json.dumps(investments_data, default=str)
+        
+        # Sauvegarder les soldes utilisateurs
+        users = conn.execute('SELECT id, email, balance FROM users').fetchall()
+        users_data = []
+        for user in users:
+            users_data.append(dict(user))
+        
+        replit_db['user_balances'] = json.dumps(users_data, default=str)
+        
+        # Sauvegarder les bots de trading actifs
+        bots = conn.execute('''
+            SELECT * FROM user_trading_bots WHERE is_active = 1
+        ''').fetchall()
+        
+        bots_data = []
+        for bot in bots:
+            bots_data.append(dict(bot))
+        
+        replit_db['active_bots'] = json.dumps(bots_data, default=str)
+        
+        replit_db['last_backup'] = datetime.now().isoformat()
+        conn.close()
+        
+        print("✅ Sauvegarde des données critiques effectuée")
+        
+    except Exception as e:
+        print(f"❌ Erreur sauvegarde: {e}")
+
+def restore_critical_data():
+    """Restaurer les données critiques depuis Replit DB"""
+    if not REPLIT_DB_AVAILABLE:
+        return False
+    
+    try:
+        # Vérifier s'il y a une sauvegarde disponible
+        if 'last_backup' not in replit_db:
+            return False
+        
+        conn = get_db_connection()
+        
+        # Vérifier si les données sont déjà présentes
+        existing_investments = conn.execute('''
+            SELECT COUNT(*) as count FROM user_investments WHERE is_active = 1
+        ''').fetchone()['count']
+        
+        if existing_investments > 0:
+            print("✅ Données déjà présentes, restauration non nécessaire")
+            conn.close()
+            return True
+        
+        print("🔄 Restauration des données depuis la sauvegarde...")
+        
+        # Restaurer les investissements
+        if 'active_investments' in replit_db:
+            investments_data = json.loads(replit_db['active_investments'])
+            for inv in investments_data:
+                try:
+                    conn.execute('''
+                        INSERT OR REPLACE INTO user_investments 
+                        (id, user_id, plan_id, amount, start_date, end_date, daily_profit, total_earned, is_active, transaction_hash)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        inv.get('id'), inv.get('user_id'), inv.get('plan_id'), 
+                        inv.get('amount'), inv.get('start_date'), inv.get('end_date'),
+                        inv.get('daily_profit'), inv.get('total_earned', 0), 
+                        inv.get('is_active', 1), inv.get('transaction_hash')
+                    ))
+                except Exception as e:
+                    print(f"⚠️ Erreur restauration investissement {inv.get('id')}: {e}")
+        
+        # Restaurer les soldes (mise à jour seulement)
+        if 'user_balances' in replit_db:
+            users_data = json.loads(replit_db['user_balances'])
+            for user in users_data:
+                try:
+                    conn.execute('''
+                        UPDATE users SET balance = ? WHERE id = ?
+                    ''', (user.get('balance', 0), user.get('id')))
+                except Exception as e:
+                    print(f"⚠️ Erreur restauration solde utilisateur {user.get('id')}: {e}")
+        
+        # Restaurer les bots de trading
+        if 'active_bots' in replit_db:
+            bots_data = json.loads(replit_db['active_bots'])
+            for bot in bots_data:
+                try:
+                    conn.execute('''
+                        INSERT OR REPLACE INTO user_trading_bots 
+                        (id, user_id, strategy_id, amount, start_date, end_date, is_active, total_profit, daily_profit, last_profit_date, transaction_hash)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        bot.get('id'), bot.get('user_id'), bot.get('strategy_id'),
+                        bot.get('amount'), bot.get('start_date'), bot.get('end_date'),
+                        bot.get('is_active', 1), bot.get('total_profit', 0),
+                        bot.get('daily_profit', 0), bot.get('last_profit_date'), bot.get('transaction_hash')
+                    ))
+                except Exception as e:
+                    print(f"⚠️ Erreur restauration bot {bot.get('id')}: {e}")
+        
+        conn.commit()
+        conn.close()
+        
+        last_backup = replit_db.get('last_backup', 'Inconnue')
+        print(f"✅ Données restaurées depuis la sauvegarde du {last_backup}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erreur restauration: {e}")
+        return False
+
+
             user_id INTEGER NOT NULL,
             type TEXT NOT NULL,
             amount REAL NOT NULL,
@@ -645,6 +793,10 @@ def add_notification(user_id, title, message, type='info'):
 
 # Scheduled tasks
 def calculate_daily_profits():
+    # Sauvegarder les données importantes si Replit DB est disponible
+    if REPLIT_DB_AVAILABLE:
+        backup_critical_data()
+    
     conn = get_db_connection()
     
     # Récupérer tous les investissements actifs
@@ -1925,6 +2077,58 @@ def admin_transactions():
         ORDER BY t.created_at DESC
     ''').fetchall()
 
+
+
+@app.route('/restore-from-backup', methods=['POST'])
+@login_required
+def restore_from_backup():
+    """Restaurer manuellement depuis la sauvegarde"""
+    try:
+        if not REPLIT_DB_AVAILABLE:
+            return jsonify({
+                'error': 'Sauvegarde Replit non disponible'
+            }), 400
+        
+        success = restore_critical_data()
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Données restaurées depuis la sauvegarde!'
+            })
+        else:
+            return jsonify({
+                'error': 'Aucune sauvegarde disponible ou données déjà présentes'
+            }), 400
+            
+    except Exception as e:
+        return jsonify({
+            'error': f'Erreur: {str(e)}'
+        }), 500
+
+@app.route('/force-backup', methods=['POST'])
+@login_required
+def force_backup():
+    """Forcer une sauvegarde manuelle"""
+    try:
+        if not REPLIT_DB_AVAILABLE:
+            return jsonify({
+                'error': 'Sauvegarde Replit non disponible'
+            }), 400
+        
+        backup_critical_data()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Sauvegarde effectuée avec succès!'
+        })
+            
+    except Exception as e:
+        return jsonify({
+            'error': f'Erreur: {str(e)}'
+        }), 500
+
+
     conn.close()
 
     return render_template('admin_transactions.html', transactions=pending_transactions)
@@ -2889,6 +3093,11 @@ if __name__ == '__main__':
         try:
             init_db()
             print("✅ Base de données initialisée avec succès")
+            
+            # Tenter de restaurer les données depuis la sauvegarde
+            if REPLIT_DB_AVAILABLE:
+                restore_critical_data()
+            
             break
         except sqlite3.OperationalError as e:
             if "database is locked" in str(e) and init_attempt < max_init_retries - 1:
@@ -2913,7 +3122,7 @@ if __name__ == '__main__':
     # Mettre à jour le mot de passe du compte a@gmail.com
     update_admin_password('a@gmail.com', 'aaaaaa')
 
-    # Setup scheduler for daily profit calculation
+    # Setup scheduler for daily profit calculation and backup
     scheduler = BackgroundScheduler()
     scheduler.add_job(
         func=calculate_daily_profits,
@@ -2922,6 +3131,16 @@ if __name__ == '__main__':
         minute=0,
         id='daily_profits'
     )
+    
+    # Sauvegarde périodique toutes les 30 minutes si Replit DB disponible
+    if REPLIT_DB_AVAILABLE:
+        scheduler.add_job(
+            func=backup_critical_data,
+            trigger="interval",
+            minutes=30,
+            id='backup_data'
+        )
+    
     scheduler.start()
 
     # Shutdown scheduler when exiting the app

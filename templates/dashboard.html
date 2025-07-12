@@ -184,7 +184,7 @@
                 </div>
             </a>
         </div>
-        
+
         <!-- Indicateurs visuels supplémentaires -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
             <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-200">
@@ -637,6 +637,7 @@ async function restoreInvestments() {
 
     try {
         const response = await fetch('/restore-investments', {
+            ```python
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -717,7 +718,7 @@ class RealTimeEarnings {
         this.investments.forEach((investment, investmentId) => {
             const elapsed = now - this.startTimes.get(investmentId);
             const elapsedSeconds = elapsed / 1000;
-            
+
             // Calculer les gains accumulés depuis le début
             const newEarnings = elapsedSeconds * investment.profitPerSecond;
             const totalEarnings = investment.baseEarned + newEarnings;
@@ -736,7 +737,7 @@ class RealTimeEarnings {
 
         // Mettre à jour le solde principal (simulation visuelle)
         this.updateMainBalance(totalNewEarnings);
-        
+
         // Effet visuel de croissance
         this.addGrowthEffect();
     }
@@ -744,7 +745,7 @@ class RealTimeEarnings {
     updateMainBalance(totalNewEarnings) {
         const balanceElement = document.getElementById('main-balance');
         const indicatorElement = document.getElementById('balance-indicator');
-        
+
         if (balanceElement) {
             const baseBalance = parseFloat(balanceElement.getAttribute('data-base-balance')) || 0;
             const newBalance = baseBalance + totalNewEarnings;
@@ -781,21 +782,21 @@ style.textContent = `
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.02); }
     }
-    
+
     .realtime-earnings[data-is-active="True"] {
         transition: all 0.3s ease;
         text-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
     }
-    
+
     .live-earnings {
         animation: fadeInOut 2s ease-in-out infinite;
     }
-    
+
     @keyframes fadeInOut {
         0%, 100% { opacity: 0.7; }
         50% { opacity: 1; }
     }
-    
+
     #balance-indicator {
         transition: all 0.3s ease;
     }
@@ -806,13 +807,13 @@ document.head.appendChild(style);
 document.addEventListener('DOMContentLoaded', function() {
     // Vérifier s'il y a des investissements actifs
     const activeInvestments = document.querySelectorAll('.realtime-earnings[data-is-active="True"]');
-    
+
     if (activeInvestments.length > 0) {
         console.log(`🚀 Démarrage du système de gains en temps réel pour ${activeInvestments.length} investissement(s)`);
-        
+
         // Créer une instance du système de gains
         window.realTimeEarnings = new RealTimeEarnings();
-        
+
         // Afficher un message de confirmation
         showNotification(`💰 Gains en temps réel activés pour ${activeInvestments.length} plan(s) !`, 'success');
     } else {
@@ -831,7 +832,7 @@ window.addEventListener('beforeunload', function() {
 async function recalculateProfits() {
     try {
         showNotification('🔄 Recalcul de vos profits en cours...', 'info');
-        
+
         const response = await fetch('/calculate-profits-now', {
             method: 'POST',
             headers: {
@@ -855,5 +856,46 @@ async function recalculateProfits() {
         console.error('Erreur recalcul profits:', error);
     }
 }
+
+    function forceBackup() {
+        fetch('/force-backup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.error || 'Erreur lors de la sauvegarde', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur de connexion', 'error');
+        });
+    }
+
+    function restoreFromBackup() {
+        if (confirm('Êtes-vous sûr de vouloir restaurer depuis la sauvegarde ? Cela peut remplacer vos données actuelles.')) {
+            fetch('/restore-from-backup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showNotification(data.error || 'Erreur lors de la restauration', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur de connexion', 'error');
+            });
+        }
+    }
 </script>
 {% endblock %}
