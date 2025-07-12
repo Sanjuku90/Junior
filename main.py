@@ -574,10 +574,11 @@ def restore_critical_data():
         ('Quel est le montant minimum d investissement ?', 'Le montant minimum est de 20 USDT pour tous nos plans d investissement.', 'investment')
     ''')
 
-    # Clear existing plans first to avoid duplicates
-    cursor.execute('DELETE FROM roi_plans')
+    # Insert ROI plans only if they don't exist (avoid clearing existing plans)
+    plans_count = cursor.execute('SELECT COUNT(*) as count FROM roi_plans').fetchone()['count']
     
-    # Insert clean ROI plans - ALL starting from 20 USDT minimum
+    if plans_count == 0:
+        # Insert clean ROI plans - ALL starting from 20 USDT minimum
     cursor.execute('''
         INSERT INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
@@ -595,9 +596,12 @@ def restore_critical_data():
         ('Rocket Launch', '🚀 METEORE ! 35% quotidien pendant 3 jours ! Stratégie ultra-secrète ! Rendement historique jamais vu !', 0.35, 3, 20, 20000)
     ''')
 
-    # Insert top 10 staking plans - Starting from 20 USDT
-    cursor.execute('''
-        INSERT OR IGNORE INTO staking_plans (name, description, duration_days, annual_rate, min_amount, max_amount, penalty_rate)
+    # Insert top 10 staking plans - Starting from 20 USDT (only if not exist)
+    staking_count = cursor.execute('SELECT COUNT(*) as count FROM staking_plans').fetchone()['count']
+    
+    if staking_count == 0:
+        cursor.execute('''
+            INSERT INTO staking_plans (name, description, duration_days, annual_rate, min_amount, max_amount, penalty_rate)
         VALUES 
         ('Quick Stake', '⚡ Staking rapide 7 jours ! 8% annuel. Parfait pour tester le staking.', 7, 0.08, 20, 300, 0.02),
         ('Flex Stake', '🔄 Staking flexible 15 jours ! 12% annuel. Idéal pour débutants.', 15, 0.12, 20, 500, 0.03),
@@ -611,9 +615,12 @@ def restore_critical_data():
         ('Ultimate Stake', '🚀 Staking ultimate 365 jours ! 80% annuel. Performance ultime.', 365, 0.80, 20, 50000, 0.12)
     ''')
 
-    # Insert top 10 frozen plans - Starting from 20 USDT
-    cursor.execute('''
-        INSERT OR IGNORE INTO frozen_plans (name, description, duration_days, total_return_rate, min_amount, max_amount)
+    # Insert top 10 frozen plans - Starting from 20 USDT (only if not exist)
+    frozen_count = cursor.execute('SELECT COUNT(*) as count FROM frozen_plans').fetchone()['count']
+    
+    if frozen_count == 0:
+        cursor.execute('''
+            INSERT INTO frozen_plans (name, description, duration_days, total_return_rate, min_amount, max_amount)
         VALUES 
         ('Ice Starter', '🧊 Plan gelé débutant ! 30 jours gelés pour 150% de retour total.', 30, 1.5, 20, 400),
         ('Frost Basic', '❄️ Plan frost basique ! 60 jours gelés pour 180% de retour total.', 60, 1.8, 20, 600),
@@ -627,9 +634,12 @@ def restore_critical_data():
         ('Cosmic Ice', '🌌 Plan glace cosmique ! 450 jours gelés pour 2000% de retour total.', 450, 20.0, 20, 50000)
     ''')
 
-    # Insert top 10 projects - Starting from 20 USDT
-    cursor.execute('''
-        INSERT OR IGNORE INTO projects (title, description, category, target_amount, expected_return, duration_months, min_investment, max_investment, deadline)
+    # Insert top 10 projects - Starting from 20 USDT (only if not exist)
+    projects_count = cursor.execute('SELECT COUNT(*) as count FROM projects').fetchone()['count']
+    
+    if projects_count == 0:
+        cursor.execute('''
+            INSERT INTO projects (title, description, category, target_amount, expected_return, duration_months, min_investment, max_investment, deadline)
         VALUES 
         ('Crypto Mining Farm', '⛏️ Ferme de minage crypto moderne ! 15% de retour en 6 mois.', 'Mining', 10000, 0.15, 6, 20, 1000, datetime("now", "+30 days")),
         ('E-commerce Platform', '🛒 Plateforme e-commerce innovante ! 18% de retour en 8 mois.', 'Tech', 15000, 0.18, 8, 20, 1500, datetime("now", "+45 days")),
@@ -643,9 +653,12 @@ def restore_critical_data():
         ('Quantum Computing', '⚛️ Informatique quantique ! 50% de retour en 36 mois.', 'Quantique', 100000, 0.50, 36, 20, 10000, datetime("now", "+120 days"))
     ''')
 
-    # Insert trading strategies
-    cursor.execute('''
-        INSERT OR IGNORE INTO trading_strategies (name, description, risk_level, expected_daily_return, min_amount, max_amount, strategy_type, parameters)
+    # Insert trading strategies (only if not exist)
+    strategies_count = cursor.execute('SELECT COUNT(*) as count FROM trading_strategies').fetchone()['count']
+    
+    if strategies_count == 0:
+        cursor.execute('''
+            INSERT INTO trading_strategies (name, description, risk_level, expected_daily_return, min_amount, max_amount, strategy_type, parameters)
         VALUES 
         ('IA Conservateur', '🛡️ Stratégie IA sécurisée avec analyse de risque avancée. Idéale pour débuter le trading automatique.', 'Faible', 0.015, 20, 1000, 'ai_conservative', '{"stop_loss": 0.05, "take_profit": 0.03, "max_trades": 3}'),
         ('IA Équilibré', '⚖️ Stratégie IA équilibrée combinant sécurité et performance. Parfait équilibre risque/rendement.', 'Moyen', 0.025, 20, 2000, 'ai_balanced', '{"stop_loss": 0.08, "take_profit": 0.05, "max_trades": 5}'),
@@ -659,9 +672,12 @@ def restore_critical_data():
         ('Multi-Strategy IA', '🎯 Bot combinant plusieurs stratégies IA adaptatives. Performance optimisée automatiquement.', 'Moyen', 0.032, 20, 15000, 'multi_ai', '{"strategies": 5, "allocation_dynamic": true, "rebalance": "weekly"}')
     ''')
 
-    # Insert top traders for copy trading
-    cursor.execute('''
-        INSERT OR IGNORE INTO top_traders (name, avatar_url, total_return, win_rate, followers_count, monthly_return, risk_score, trading_style, min_copy_amount, max_copy_amount)
+    # Insert top traders for copy trading (only if not exist)
+    traders_count = cursor.execute('SELECT COUNT(*) as count FROM top_traders').fetchone()['count']
+    
+    if traders_count == 0:
+        cursor.execute('''
+            INSERT INTO top_traders (name, avatar_url, total_return, win_rate, followers_count, monthly_return, risk_score, trading_style, min_copy_amount, max_copy_amount)
         VALUES 
         ('CryptoKing_AI', '/static/avatars/trader1.png', 245.5, 78.5, 1250, 25.2, 6.2, 'Swing Trading + IA', 20, 5000),
         ('QuantMaster_Pro', '/static/avatars/trader2.png', 189.3, 82.1, 980, 18.7, 4.8, 'Algorithmic Trading', 20, 3000),
