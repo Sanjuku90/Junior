@@ -21,6 +21,11 @@ DATABASE = 'investment_platform.db'
 # Liste des administrateurs (IDs Telegram)
 ADMIN_IDS = [123456789, 7474306991, 8186612060]  # IDs Telegram des administrateurs
 
+# États de conversation admin
+ADMIN_BROADCAST_MESSAGE = range(1)
+ADMIN_USER_SEARCH = range(1)
+ADMIN_KYC_UPDATE = range(1)
+
 # États de conversation
 REGISTER_EMAIL, REGISTER_PASSWORD, REGISTER_FIRSTNAME, REGISTER_LASTNAME, REGISTER_REFERRAL = range(5)
 LOGIN_EMAIL, LOGIN_PASSWORD = range(2)
@@ -562,36 +567,62 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await show_admin_menu(update, context)
 
 async def show_admin_menu(update, context):
-    """Afficher le menu administrateur"""
+    """Afficher le menu administrateur complet"""
     # Récupérer les statistiques
     pending_deposits = get_pending_deposits()
     pending_withdrawals = get_pending_withdrawals()
-
-    # Récupérer les tickets de support en attente
     pending_support_tickets = get_pending_support_tickets()
+    
+    # Statistiques générales
+    conn = get_db_connection()
+    
+    total_users = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()['count']
+    pending_kyc = conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "pending"').fetchone()['count']
+    total_investments = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM user_investments').fetchone()['total']
+    today_deposits = conn.execute('''
+        SELECT COALESCE(SUM(amount), 0) as total 
+        FROM transactions 
+        WHERE type = "deposit" AND DATE(created_at) = DATE('now')
+    ''').fetchone()['total']
+    
+    conn.close()
 
     keyboard = [
-        [InlineKeyboardButton(f"💳 Dépôts en attente ({len(pending_deposits)})", callback_data="admin_deposits")],
-        [InlineKeyboardButton(f"💸 Retraits en attente ({len(pending_withdrawals)})", callback_data="admin_withdrawals")],
-        [InlineKeyboardButton(f"🎫 Support en attente ({len(pending_support_tickets)})", callback_data="admin_support")],
-        [InlineKeyboardButton("📊 Statistiques", callback_data="admin_stats")],
-        [InlineKeyboardButton("👥 Utilisateurs", callback_data="admin_users")],
+        [InlineKeyboardButton(f"💳 Dépôts ({len(pending_deposits)})", callback_data="admin_deposits"),
+         InlineKeyboardButton(f"💸 Retraits ({len(pending_withdrawals)})", callback_data="admin_withdrawals")],
+        [InlineKeyboardButton(f"🎫 Support ({len(pending_support_tickets)})", callback_data="admin_support"),
+         InlineKeyboardButton(f"🆔 KYC ({pending_kyc})", callback_data="admin_kyc")],
+        [InlineKeyboardButton("👥 Utilisateurs", callback_data="admin_users"),
+         InlineKeyboardButton("📊 Statistiques", callback_data="admin_stats")],
+        [InlineKeyboardButton("🔍 Rechercher utilisateur", callback_data="admin_search_user"),
+         InlineKeyboardButton("📢 Diffusion", callback_data="admin_broadcast")],
+        [InlineKeyboardButton("⚙️ Système", callback_data="admin_system"),
+         InlineKeyboardButton("📈 Plans", callback_data="admin_plans")],
         [InlineKeyboardButton("🔙 Menu utilisateur", callback_data="admin_to_user")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     message = f"""
-🔧 **PANNEAU ADMINISTRATEUR**
+🔧 **PANNEAU ADMINISTRATEUR COMPLET**
 
-📊 **Résumé :**
+📊 **Statistiques rapides :**
+• Utilisateurs totaux : {total_users}
+• KYC en attente : {pending_kyc}
 • Dépôts en attente : {len(pending_deposits)}
 • Retraits en attente : {len(pending_withdrawals)}
+• Support en attente : {len(pending_support_tickets)}
 
-🛠️ **Actions disponibles :**
-• Valider/rejeter les dépôts
-• Traiter les retraits
-• Voir les statistiques
-• Gérer les utilisateurs
+💰 **Financier :**
+• Investissements totaux : {total_investments:.2f} USDT
+• Dépôts aujourd'hui : {today_deposits:.2f} USDT
+
+🛠️ **Fonctionnalités disponibles :**
+• Gestion complète des transactions
+• Validation KYC
+• Support client
+• Diffusion de messages
+• Gestion des utilisateurs
+• Statistiques détaillées
 
 ⚡ **Choisissez une action :**
     """
@@ -1736,6 +1767,22 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await show_admin_users(update, context)
         elif data == "admin_support":
             await show_admin_support_tickets(update, context)
+        elif data == "admin_kyc":
+            await show_admin_kyc(update, context)
+        elif data == "admin_broadcast":
+            await show_admin_broadcast(update, context)
+        elif data == "admin_search_user":
+            await admin_search_user_start(update, context)
+        elif data.startswith("admin_kyc_user_"):
+            await show_admin_kyc_user(update, context)
+        elif data.startswith("admin_approve_kyc_"):
+            await approve_kyc(update, context)
+        elif data.startswith("admin_reject_kyc_"):
+            await reject_kyc(update, context)
+        elif data.startswith("admin_user_details_"):
+            await show_admin_user_details(update, context)
+        elif data.startswith("admin_broadcast_"):
+            await admin_broadcast_start(update, context)
         elif data == "admin_to_user":
             # Passer en mode utilisateur
             user = get_user_by_telegram_id(update.effective_user.id)
@@ -2671,7 +2718,7 @@ async def show_admin_withdrawals(update: Update, context: ContextTypes.DEFAULT_T
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher les statistiques administrateur"""
+    """Afficher les statistiques administrateur détaillées"""
     await update.callback_query.answer()
 
     conn = get_db_connection()
@@ -2681,56 +2728,402 @@ async def show_admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total_deposits = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = "deposit" AND status = "completed"').fetchone()['total']
     total_withdrawals = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = "withdrawal" AND status = "completed"').fetchone()['total']
     total_investments = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM user_investments').fetchone()['total']
+    total_profits_paid = conn.execute('SELECT COALESCE(SUM(total_earned), 0) as total FROM user_investments').fetchone()['total']
 
     # Statistiques du jour
     today = datetime.now().strftime('%Y-%m-%d')
     daily_users = conn.execute('SELECT COUNT(*) as count FROM users WHERE DATE(created_at) = ?', (today,)).fetchone()['count']
     daily_deposits = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = "deposit" AND DATE(created_at) = ?', (today,)).fetchone()['total']
+    daily_investments = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM user_investments WHERE DATE(start_date) = ?', (today,)).fetchone()['total']
+
+    # Statistiques par plan
+    roi_stats = conn.execute('SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total FROM user_investments WHERE is_active = 1').fetchone()
+    project_stats = conn.execute('SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total FROM project_investments').fetchone()
+
+    # Top utilisateurs
+    top_investors = conn.execute('''
+        SELECT u.first_name, u.last_name, COALESCE(SUM(ui.amount), 0) as total_invested
+        FROM users u
+        LEFT JOIN user_investments ui ON u.id = ui.user_id
+        GROUP BY u.id
+        ORDER BY total_invested DESC
+        LIMIT 3
+    ''').fetchall()
 
     conn.close()
 
-    keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
+    keyboard = [
+        [InlineKeyboardButton("📈 Stats avancées", callback_data="admin_stats_advanced")],
+        [InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     message = f"""
-📊 **STATISTIQUES PLATEFORME**
+📊 **STATISTIQUES PLATEFORME DÉTAILLÉES**
 
 👥 **Utilisateurs :**
 • Total : {total_users}
 • Nouveaux aujourd'hui : {daily_users}
 
-💰 **Finances :**
+💰 **Finances globales :**
 • Dépôts totaux : {total_deposits:.2f} USDT
 • Retraits totaux : {total_withdrawals:.2f} USDT
-• Investissements : {total_investments:.2f} USDT
+• Investissements actifs : {total_investments:.2f} USDT
+• Profits payés : {total_profits_paid:.2f} USDT
 
 📈 **Aujourd'hui :**
 • Dépôts : {daily_deposits:.2f} USDT
+• Investissements : {daily_investments:.2f} USDT
 • Nouveaux utilisateurs : {daily_users}
 
-💼 **Solde plateforme :**
-• Liquidité : {total_deposits - total_withdrawals:.2f} USDT
+📊 **Répartition investissements :**
+• Plans ROI : {roi_stats['count']} actifs ({roi_stats['total']:.2f} USDT)
+• Projets : {project_stats['count']} investissements ({project_stats['total']:.2f} USDT)
+
+💼 **Performance :**
+• Liquidité disponible : {total_deposits - total_withdrawals:.2f} USDT
+• ROI moyen plateforme : {((total_profits_paid / total_investments) * 100) if total_investments > 0 else 0:.1f}%
+
+🏆 **Top investisseurs :**
+"""
+
+    for i, investor in enumerate(top_investors, 1):
+        if investor['total_invested'] > 0:
+            message += f"{i}. {investor['first_name']} {investor['last_name'] or ''}: {investor['total_invested']:.2f} USDT\n"
+
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_admin_broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Menu de diffusion de messages"""
+    await update.callback_query.answer()
+
+    keyboard = [
+        [InlineKeyboardButton("📢 Diffusion générale", callback_data="admin_broadcast_all")],
+        [InlineKeyboardButton("💎 Utilisateurs actifs", callback_data="admin_broadcast_active")],
+        [InlineKeyboardButton("🆕 Nouveaux utilisateurs", callback_data="admin_broadcast_new")],
+        [InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    message = """
+📢 **DIFFUSION DE MESSAGES**
+
+🎯 **Types de diffusion disponibles :**
+
+**📢 Diffusion générale**
+Envoie un message à tous les utilisateurs
+
+**💎 Utilisateurs actifs**
+Utilisateurs avec des investissements actifs
+
+**🆕 Nouveaux utilisateurs**
+Utilisateurs inscrits dans les 7 derniers jours
+
+⚡ **Choisissez le type de diffusion :**
     """
 
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
+async def admin_broadcast_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Commencer la diffusion"""
+    await update.callback_query.answer()
+    
+    broadcast_type = update.callback_query.data.split('_')[-1]
+    context.user_data['broadcast_type'] = broadcast_type
+    
+    type_names = {
+        'all': 'tous les utilisateurs',
+        'active': 'les utilisateurs actifs',
+        'new': 'les nouveaux utilisateurs'
+    }
+    
+    message = f"""
+📢 **DIFFUSION - {type_names.get(broadcast_type, 'inconnu').upper()}**
+
+✍️ **Rédigez votre message :**
+
+💡 **Conseils :**
+• Gardez le message clair et concis
+• Utilisez des emojis pour rendre le message attrayant
+• Évitez les informations trop techniques
+
+📝 **Tapez votre message :**
+    """
+    
+    await update.callback_query.edit_message_text(message, parse_mode='Markdown')
+    return ADMIN_BROADCAST_MESSAGE
+
+async def admin_broadcast_send(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Envoyer le message de diffusion"""
+    message_text = update.message.text
+    broadcast_type = context.user_data.get('broadcast_type', 'all')
+    
+    conn = get_db_connection()
+    
+    # Déterminer les utilisateurs cibles
+    if broadcast_type == 'all':
+        users = conn.execute('SELECT telegram_id, first_name FROM users WHERE telegram_id IS NOT NULL').fetchall()
+    elif broadcast_type == 'active':
+        users = conn.execute('''
+            SELECT DISTINCT u.telegram_id, u.first_name
+            FROM users u
+            JOIN user_investments ui ON u.id = ui.user_id
+            WHERE u.telegram_id IS NOT NULL AND ui.is_active = 1
+        ''').fetchall()
+    elif broadcast_type == 'new':
+        users = conn.execute('''
+            SELECT telegram_id, first_name 
+            FROM users 
+            WHERE telegram_id IS NOT NULL 
+            AND created_at > datetime('now', '-7 days')
+        ''').fetchall()
+    
+    conn.close()
+    
+    if not users:
+        await update.message.reply_text("❌ Aucun utilisateur cible trouvé.")
+        return ConversationHandler.END
+    
+    # Envoyer le message à tous les utilisateurs
+    success_count = 0
+    failed_count = 0
+    
+    broadcast_message = f"""
+📢 **MESSAGE DE L'ÉQUIPE INVESTCRYPTO PRO**
+
+{message_text}
+
+---
+💬 Pour toute question : @InvestCryptoPro_Support
+    """
+    
+    await update.message.reply_text(f"📤 Envoi en cours à {len(users)} utilisateurs...")
+    
+    for user in users:
+        try:
+            await context.bot.send_message(
+                chat_id=user['telegram_id'],
+                text=broadcast_message,
+                parse_mode='Markdown'
+            )
+            success_count += 1
+            await asyncio.sleep(0.1)  # Éviter le spam
+        except Exception as e:
+            failed_count += 1
+            print(f"Erreur envoi à {user['telegram_id']}: {e}")
+    
+    context.user_data.clear()
+    
+    await update.message.reply_text(
+        f"""
+✅ **DIFFUSION TERMINÉE**
+
+📊 **Résultats :**
+• Messages envoyés : {success_count}
+• Échecs : {failed_count}
+• Total ciblé : {len(users)}
+
+📈 **Taux de réussite : {(success_count/len(users)*100):.1f}%**
+        """,
+        parse_mode='Markdown'
+    )
+    
+    return ConversationHandler.END
+
+async def admin_search_user_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Commencer la recherche d'utilisateur"""
+    await update.callback_query.answer()
+    
+    message = """
+🔍 **RECHERCHER UN UTILISATEUR**
+
+📝 **Tapez l'un des éléments suivants :**
+• Email de l'utilisateur
+• Nom ou prénom
+• ID utilisateur
+• Code de parrainage
+
+💡 **Exemple :**
+- john@example.com
+- John Doe
+- 123
+- ABC123XYZ
+    """
+    
+    await update.callback_query.edit_message_text(message, parse_mode='Markdown')
+    return ADMIN_USER_SEARCH
+
+async def admin_search_user_results(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les résultats de recherche"""
+    search_term = update.message.text.strip()
+    
+    conn = get_db_connection()
+    
+    # Recherche flexible
+    users = conn.execute('''
+        SELECT id, first_name, last_name, email, balance, kyc_status, created_at,
+               (SELECT COUNT(*) FROM user_investments WHERE user_id = users.id) as investments_count
+        FROM users 
+        WHERE email LIKE ? 
+           OR first_name LIKE ? 
+           OR last_name LIKE ?
+           OR CAST(id AS TEXT) = ?
+           OR referral_code LIKE ?
+        ORDER BY created_at DESC
+        LIMIT 10
+    ''', (f'%{search_term}%', f'%{search_term}%', f'%{search_term}%', search_term, f'%{search_term}%')).fetchall()
+    
+    conn.close()
+    
+    if not users:
+        await update.message.reply_text(
+            f"❌ Aucun utilisateur trouvé pour : `{search_term}`",
+            parse_mode='Markdown'
+        )
+        return ConversationHandler.END
+    
+    keyboard = []
+    message = f"🔍 **RÉSULTATS DE RECHERCHE** : `{search_term}`\n\n"
+    
+    for user in users:
+        try:
+            date_str = datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).strftime('%d/%m/%Y')
+        except:
+            date_str = "N/A"
+        
+        kyc_emoji = "✅" if user['kyc_status'] == 'approved' else "⏳" if user['kyc_status'] == 'pending' else "❌"
+        
+        message += f"👤 **{user['first_name']} {user['last_name'] or ''}** (ID: {user['id']})\n"
+        message += f"📧 {user['email']}\n"
+        message += f"💰 {user['balance']:.2f} USDT | {kyc_emoji} {user['kyc_status']}\n"
+        message += f"📈 {user['investments_count']} investissements | 📅 {date_str}\n\n"
+        
+        keyboard.append([InlineKeyboardButton(
+            f"👤 {user['first_name']} {user['last_name'] or ''}", 
+            callback_data=f"admin_user_details_{user['id']}"
+        )])
+    
+    keyboard.append([InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+    return ConversationHandler.END
+
+async def show_admin_user_details(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les détails complets d'un utilisateur"""
+    await update.callback_query.answer()
+    
+    user_id = int(update.callback_query.data.split('_')[-1])
+    
+    conn = get_db_connection()
+    
+    # Informations utilisateur
+    user = conn.execute('''
+        SELECT id, first_name, last_name, email, balance, pending_balance, 
+               kyc_status, referral_code, referred_by, created_at,
+               (SELECT COUNT(*) FROM users WHERE referred_by = users.referral_code) as referrals_count
+        FROM users 
+        WHERE id = ?
+    ''', (user_id,)).fetchone()
+    
+    if not user:
+        await update.callback_query.edit_message_text("❌ Utilisateur non trouvé")
+        return
+    
+    # Statistiques d'investissement
+    investment_stats = conn.execute('''
+        SELECT COUNT(*) as count, COALESCE(SUM(amount), 0) as total, 
+               COALESCE(SUM(total_earned), 0) as earned
+        FROM user_investments 
+        WHERE user_id = ?
+    ''', (user_id,)).fetchone()
+    
+    # Dernières transactions
+    recent_transactions = conn.execute('''
+        SELECT type, amount, status, created_at
+        FROM transactions 
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT 5
+    ''', (user_id,)).fetchall()
+    
+    conn.close()
+
+    keyboard = [
+        [InlineKeyboardButton("💰 Ajuster solde", callback_data=f"admin_adjust_balance_{user_id}"),
+         InlineKeyboardButton("🆔 Gérer KYC", callback_data=f"admin_kyc_user_{user_id}")],
+        [InlineKeyboardButton("📢 Envoyer message", callback_data=f"admin_message_user_{user_id}"),
+         InlineKeyboardButton("🚫 Bloquer/Débloquer", callback_data=f"admin_block_user_{user_id}")],
+        [InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    try:
+        date_str = datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).strftime('%d/%m/%Y %H:%M')
+    except:
+        date_str = "N/A"
+
+    message = f"""
+👤 **PROFIL UTILISATEUR COMPLET**
+
+**Informations personnelles :**
+• Nom : {user['first_name']} {user['last_name'] or ''}
+• Email : {user['email']}
+• ID : {user['id']}
+• Inscription : {date_str}
+
+**Statut financier :**
+• Solde disponible : {user['balance']:.2f} USDT
+• Solde en attente : {user['pending_balance']:.2f} USDT
+• Total investi : {investment_stats['total']:.2f} USDT
+• Total gagné : {investment_stats['earned']:.2f} USDT
+• Investissements : {investment_stats['count']}
+
+**Parrainage :**
+• Code personnel : `{user['referral_code']}`
+• Parrainé par : {user['referred_by'] or 'Aucun'}
+• Filleuls : {user['referrals_count']}
+
+**Statut KYC :** {user['kyc_status']}
+
+**Dernières transactions :**
+"""
+
+    if recent_transactions:
+        for tx in recent_transactions:
+            status_emoji = "✅" if tx['status'] == 'completed' else "⏳" if tx['status'] == 'pending' else "❌"
+            type_emoji = "📥" if tx['type'] == 'deposit' else "📤" if tx['type'] == 'withdrawal' else "💎"
+            try:
+                tx_date = datetime.fromisoformat(tx['created_at'].replace('Z', '+00:00')).strftime('%d/%m')
+            except:
+                tx_date = "N/A"
+            message += f"{status_emoji} {type_emoji} {tx['amount']:.2f} USDT ({tx['type']}) - {tx_date}\n"
+    else:
+        message += "Aucune transaction"
+
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
 async def show_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher les utilisateurs récents"""
+    """Afficher les utilisateurs récents avec plus de détails"""
     await update.callback_query.answer()
 
     conn = get_db_connection()
     recent_users = conn.execute('''
-        SELECT first_name, last_name, balance, created_at
+        SELECT id, first_name, last_name, balance, kyc_status, created_at,
+               (SELECT COUNT(*) FROM user_investments WHERE user_id = users.id) as investments_count
         FROM users 
         ORDER BY created_at DESC 
         LIMIT 10
     ''').fetchall()
     conn.close()
 
-    keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
+    keyboard = [
+        [InlineKeyboardButton("🔍 Rechercher utilisateur", callback_data="admin_search_user")],
+        [InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    message = "👥 **UTILISATEURS RÉCENTS**\n\n"
+    message = "👥 **UTILISATEURS RÉCENTS** (10 derniers)\n\n"
 
     for user in recent_users:
         try:
@@ -2738,10 +3131,222 @@ async def show_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except:
             date_str = "N/A"
 
-        message += f"👤 {user['first_name']} {user['last_name'] or ''}\n"
-        message += f"💰 {user['balance']:.2f} USDT | 📅 {date_str}\n\n"
+        kyc_emoji = "✅" if user['kyc_status'] == 'approved' else "⏳" if user['kyc_status'] == 'pending' else "❌"
+        
+        message += f"👤 **{user['first_name']} {user['last_name'] or ''}** (ID: {user['id']})\n"
+        message += f"💰 {user['balance']:.2f} USDT | {kyc_emoji} {user['kyc_status']}\n"
+        message += f"📈 {user['investments_count']} investissements | 📅 {date_str}\n\n"
 
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_admin_kyc(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher la gestion KYC"""
+    await update.callback_query.answer()
+
+    conn = get_db_connection()
+    
+    # Statistiques KYC
+    kyc_stats = {
+        'pending': conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "pending"').fetchone()['count'],
+        'approved': conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "approved"').fetchone()['count'],
+        'rejected': conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "rejected"').fetchone()['count']
+    }
+    
+    # Utilisateurs avec KYC en attente
+    pending_kyc_users = conn.execute('''
+        SELECT id, first_name, last_name, email, created_at, balance
+        FROM users 
+        WHERE kyc_status = "pending"
+        ORDER BY created_at ASC
+        LIMIT 5
+    ''').fetchall()
+    
+    conn.close()
+
+    keyboard = []
+    
+    # Boutons pour chaque utilisateur en attente
+    for user in pending_kyc_users:
+        keyboard.append([InlineKeyboardButton(
+            f"👤 {user['first_name']} {user['last_name'] or ''}", 
+            callback_data=f"admin_kyc_user_{user['id']}"
+        )])
+    
+    keyboard.extend([
+        [InlineKeyboardButton("📋 Tous les KYC", callback_data="admin_kyc_all")],
+        [InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]
+    ])
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    message = f"""
+🆔 **GESTION KYC**
+
+📊 **Statistiques :**
+• En attente : {kyc_stats['pending']}
+• Approuvés : {kyc_stats['approved']}
+• Rejetés : {kyc_stats['rejected']}
+
+⏳ **KYC en attente :**
+"""
+
+    if pending_kyc_users:
+        for user in pending_kyc_users:
+            try:
+                date_str = datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).strftime('%d/%m/%Y')
+            except:
+                date_str = "N/A"
+            
+            message += f"\n👤 **{user['first_name']} {user['last_name'] or ''}**\n"
+            message += f"📧 {user['email']}\n"
+            message += f"💰 {user['balance']:.2f} USDT | 📅 {date_str}\n"
+    else:
+        message += "\n✅ Aucun KYC en attente"
+
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_admin_kyc_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les détails KYC d'un utilisateur spécifique"""
+    await update.callback_query.answer()
+    
+    user_id = int(update.callback_query.data.split('_')[-1])
+    
+    conn = get_db_connection()
+    user = conn.execute('''
+        SELECT id, first_name, last_name, email, kyc_status, created_at, balance,
+               (SELECT COUNT(*) FROM user_investments WHERE user_id = users.id) as investments_count,
+               (SELECT COALESCE(SUM(amount), 0) FROM user_investments WHERE user_id = users.id) as total_invested
+        FROM users 
+        WHERE id = ?
+    ''', (user_id,)).fetchone()
+    
+    if not user:
+        await update.callback_query.edit_message_text("❌ Utilisateur non trouvé")
+        return
+    
+    # Dernières transactions
+    recent_transactions = conn.execute('''
+        SELECT type, amount, status, created_at
+        FROM transactions 
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT 3
+    ''', (user_id,)).fetchall()
+    
+    conn.close()
+
+    keyboard = [
+        [InlineKeyboardButton("✅ Approuver KYC", callback_data=f"admin_approve_kyc_{user_id}"),
+         InlineKeyboardButton("❌ Rejeter KYC", callback_data=f"admin_reject_kyc_{user_id}")],
+        [InlineKeyboardButton("🔍 Détails complets", callback_data=f"admin_user_details_{user_id}")],
+        [InlineKeyboardButton("🔙 Retour KYC", callback_data="admin_kyc")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    try:
+        date_str = datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).strftime('%d/%m/%Y %H:%M')
+    except:
+        date_str = "N/A"
+
+    message = f"""
+👤 **PROFIL UTILISATEUR - KYC**
+
+**Informations personnelles :**
+• Nom : {user['first_name']} {user['last_name'] or ''}
+• Email : {user['email']}
+• Inscription : {date_str}
+
+**Statut financier :**
+• Solde actuel : {user['balance']:.2f} USDT
+• Total investi : {user['total_invested']:.2f} USDT
+• Investissements : {user['investments_count']}
+
+**Statut KYC :** {user['kyc_status']}
+
+**Dernières transactions :**
+"""
+
+    if recent_transactions:
+        for tx in recent_transactions:
+            status_emoji = "✅" if tx['status'] == 'completed' else "⏳" if tx['status'] == 'pending' else "❌"
+            type_emoji = "📥" if tx['type'] == 'deposit' else "📤" if tx['type'] == 'withdrawal' else "💎"
+            message += f"{status_emoji} {type_emoji} {tx['amount']:.2f} USDT ({tx['type']})\n"
+    else:
+        message += "Aucune transaction"
+
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def approve_kyc(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Approuver un KYC"""
+    await update.callback_query.answer()
+    
+    user_id = int(update.callback_query.data.split('_')[-1])
+    
+    conn = get_db_connection()
+    
+    # Mettre à jour le statut KYC
+    conn.execute('UPDATE users SET kyc_status = "approved" WHERE id = ?', (user_id,))
+    
+    # Récupérer le nom de l'utilisateur
+    user = conn.execute('SELECT first_name, last_name FROM users WHERE id = ?', (user_id,)).fetchone()
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification à l'utilisateur
+    add_notification(
+        user_id,
+        'KYC Approuvé',
+        'Félicitations ! Votre vérification d\'identité a été approuvée. Vous avez maintenant accès à toutes les fonctionnalités.',
+        'success'
+    )
+    
+    await update.callback_query.edit_message_text(
+        f"✅ **KYC APPROUVÉ**\n\n"
+        f"Le KYC de {user['first_name']} {user['last_name'] or ''} a été approuvé avec succès.\n"
+        f"L'utilisateur a été notifié.",
+        parse_mode='Markdown'
+    )
+    
+    # Retourner au menu KYC après 2 secondes
+    await asyncio.sleep(2)
+    await show_admin_kyc(update, context)
+
+async def reject_kyc(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Rejeter un KYC"""
+    await update.callback_query.answer()
+    
+    user_id = int(update.callback_query.data.split('_')[-1])
+    
+    conn = get_db_connection()
+    
+    # Mettre à jour le statut KYC
+    conn.execute('UPDATE users SET kyc_status = "rejected" WHERE id = ?', (user_id,))
+    
+    # Récupérer le nom de l'utilisateur
+    user = conn.execute('SELECT first_name, last_name FROM users WHERE id = ?', (user_id,)).fetchone()
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification à l'utilisateur
+    add_notification(
+        user_id,
+        'KYC Rejeté',
+        'Votre vérification d\'identité a été rejetée. Veuillez contacter le support pour plus d\'informations et soumettre de nouveaux documents.',
+        'error'
+    )
+    
+    await update.callback_query.edit_message_text(
+        f"❌ **KYC REJETÉ**\n\n"
+        f"Le KYC de {user['first_name']} {user['last_name'] or ''} a été rejeté.\n"
+        f"L'utilisateur a été notifié et peut contacter le support.",
+        parse_mode='Markdown'
+    )
+    
+    # Retourner au menu KYC après 2 secondes
+    await asyncio.sleep(2)
+    await show_admin_kyc(update, context)
 
 async def show_admin_support_tickets(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher les tickets de support pour l'admin"""
@@ -2870,6 +3475,25 @@ def setup_user_telegram_bot():
         per_message=False
     )
 
+    # Handlers de conversation pour l'admin
+    admin_broadcast_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(admin_broadcast_start, pattern="^admin_broadcast_")],
+        states={
+            ADMIN_BROADCAST_MESSAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, admin_broadcast_send)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+        per_message=False
+    )
+
+    admin_search_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(admin_search_user_start, pattern="^admin_search_user$")],
+        states={
+            ADMIN_USER_SEARCH: [MessageHandler(filters.TEXT & ~filters.COMMAND, admin_search_user_results)],
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+        per_message=False
+    )
+
     # Handler pour les réponses de support admin
     async def handle_support_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Gérer les réponses de support admin"""
@@ -2900,6 +3524,8 @@ def setup_user_telegram_bot():
     application.add_handler(deposit_handler)
     application.add_handler(withdraw_handler)
     application.add_handler(invest_roi_handler)
+    application.add_handler(admin_broadcast_handler)
+    application.add_handler(admin_search_handler)
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_support_reply))
     application.add_handler(CallbackQueryHandler(handle_callback))
 
