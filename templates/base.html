@@ -3,7 +3,10 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>{% block title %}InvestCrypto Pro{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
@@ -500,49 +503,240 @@
 
         /* Mobile Optimizations */
         @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+
             .nav-container {
-                padding: 0 1rem;
-                height: 64px;
+                padding: 0 0.75rem;
+                height: 60px;
+                flex-wrap: wrap;
+            }
+
+            .nav-logo {
+                gap: 0.5rem;
+            }
+
+            .nav-logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
             }
 
             .nav-logo-text {
-                font-size: 1.25rem;
-            }
-
-            .nav-item {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.85rem;
-                flex-direction: column;
-                gap: 0.25rem;
-            }
-
-            .nav-icon {
                 font-size: 1.1rem;
             }
 
+            .nav-menu {
+                gap: 0.25rem;
+            }
+
+            .nav-item {
+                padding: 0.5rem 0.5rem;
+                font-size: 0.8rem;
+                flex-direction: column;
+                gap: 0.2rem;
+                min-width: auto;
+            }
+
+            .nav-icon {
+                font-size: 1rem;
+            }
+
+            .balance-card {
+                margin-left: 0.5rem;
+                padding: 0.75rem;
+                min-width: auto;
+            }
+
+            .balance-card .text-sm {
+                font-size: 0.7rem;
+            }
+
+            .balance-card .text-xs {
+                font-size: 0.65rem;
+            }
+
             .professional-card {
-                padding: 1.5rem;
+                padding: 1.25rem;
                 border-radius: 16px;
+                margin-bottom: 1rem;
             }
 
             .modal-content {
-                padding: 2rem;
+                padding: 1.5rem;
                 border-radius: 20px;
-                margin: 1rem;
+                margin: 0.5rem;
+                max-width: calc(100vw - 1rem);
             }
 
             .stat-card {
-                padding: 1.5rem;
+                padding: 1.25rem;
             }
 
             .stat-icon {
-                width: 48px;
-                height: 48px;
-                font-size: 20px;
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
             }
 
             .stat-value {
-                font-size: 1.75rem;
+                font-size: 1.5rem;
+            }
+
+            .btn-primary, .btn-secondary, .btn-success {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.85rem;
+            }
+
+            .professional-input, .professional-select {
+                padding: 0.875rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .notification {
+                max-width: calc(100vw - 2rem);
+                right: 1rem;
+                left: 1rem;
+                top: 80px;
+            }
+
+            .support-chat {
+                width: calc(100vw - 1rem);
+                height: calc(100vh - 140px);
+                bottom: 70px;
+                right: 0.5rem;
+                max-height: 480px;
+            }
+
+            .support-button {
+                width: 56px;
+                height: 56px;
+                font-size: 20px;
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .quick-action-icon {
+                width: 56px;
+                height: 56px;
+                font-size: 24px;
+            }
+
+            .quick-action-card {
+                padding: 1.5rem;
+            }
+
+            /* Amélioration du footer mobile */
+            .footer-content {
+                padding: 2rem 1rem 1.5rem;
+            }
+
+            .footer-content .grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+            }
+
+            .footer-bottom {
+                padding: 1.5rem 0;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 0.5rem;
+                height: 56px;
+            }
+
+            .nav-logo-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .nav-logo-text {
+                font-size: 1rem;
+            }
+
+            .nav-item {
+                padding: 0.4rem 0.4rem;
+                font-size: 0.75rem;
+            }
+
+            .balance-card {
+                display: none; /* Cache le solde sur très petits écrans */
+            }
+
+            .professional-card {
+                padding: 1rem;
+                border-radius: 14px;
+            }
+
+            .modal-content {
+                padding: 1.25rem;
+                margin: 0.25rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+                margin-bottom: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+
+            .btn-primary, .btn-secondary, .btn-success {
+                padding: 0.625rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .support-chat {
+                width: calc(100vw - 0.5rem);
+                height: calc(100vh - 120px);
+                bottom: 60px;
+                right: 0.25rem;
+            }
+
+            .support-button {
+                width: 52px;
+                height: 52px;
+                font-size: 18px;
+                bottom: 16px;
+                right: 16px;
+            }
+
+            .footer-content .grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Landscape mobile orientation */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .nav-container {
+                height: 52px;
+            }
+
+            .professional-card {
+                padding: 1rem;
+            }
+
+            .support-chat {
+                height: calc(100vh - 80px);
+                max-height: 420px;
             }
         }
 
@@ -608,6 +802,37 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Navigation Items */
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            margin: 0.125rem 0;
+        }
+
+        .mobile-nav-item:hover {
+            background: var(--bg-secondary);
+            color: var(--accent-blue);
+        }
+
+        .mobile-nav-item.active {
+            background: linear-gradient(135deg, #dbeafe, #eff6ff);
+            color: var(--accent-blue);
+            box-shadow: inset 0 1px 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .mobile-nav-item i {
+            width: 20px;
+            text-align: center;
         }
 
         /* Custom Scrollbar */
@@ -807,8 +1032,8 @@
 
             <!-- Mobile Navigation Button -->
             <div class="lg:hidden flex items-center">
-                <button id="mobile-menu-button" class="btn-primary p-3">
-                    <i class="fas fa-bars"></i>
+                <button id="mobile-menu-button" class="p-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-colors">
+                    <i class="fas fa-bars text-lg"></i>
                 </button>
             </div>
             {% else %}
@@ -826,40 +1051,56 @@
 
         {% if session.user_id %}
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="lg:hidden hidden bg-white border-t border-gray-100 px-4 py-4">
-            <div class="space-y-2">
-                <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }} w-full justify-start">
-                    <i class="nav-icon fas fa-home"></i>
-                    Dashboard
+        <div id="mobile-menu" class="lg:hidden hidden bg-white border-t border-gray-100 shadow-lg">
+            <div class="px-3 py-3 space-y-1">
+                <a href="{{ url_for('dashboard') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'dashboard' }}">
+                    <i class="fas fa-home text-lg"></i>
+                    <span>Dashboard</span>
                 </a>
-                <a href="{{ url_for('roi_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'roi_plans' }} w-full justify-start">
-                    <i class="nav-icon fas fa-percentage"></i>
-                    Plans ROI
+                <a href="{{ url_for('roi_plans') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'roi_plans' }}">
+                    <i class="fas fa-percentage text-lg"></i>
+                    <span>Plans ROI</span>
                 </a>
-                <a href="{{ url_for('staking_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'staking_plans' }} w-full justify-start">
-                    <i class="nav-icon fas fa-lock"></i>
-                    Staking
+                <a href="{{ url_for('staking_plans') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'staking_plans' }}">
+                    <i class="fas fa-lock text-lg"></i>
+                    <span>Staking</span>
                 </a>
-                <a href="{{ url_for('frozen_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'frozen_plans' }} w-full justify-start">
-                    <i class="nav-icon fas fa-snowflake"></i>
-                    Plans Gelés
+                <a href="{{ url_for('frozen_plans') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'frozen_plans' }}">
+                    <i class="fas fa-snowflake text-lg"></i>
+                    <span>Plans Gelés</span>
                 </a>
-                <a href="{{ url_for('projects') }}" class="nav-item {{ 'active' if request.endpoint == 'projects' }} w-full justify-start">
-                    <i class="nav-icon fas fa-rocket"></i>
-                    Projets
+                <a href="{{ url_for('projects') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'projects' }}">
+                    <i class="fas fa-rocket text-lg"></i>
+                    <span>Projets</span>
                 </a>
-                <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }} w-full justify-start">
-                    <i class="nav-icon fas fa-user"></i>
-                    Profil
+                <a href="{{ url_for('profile') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'profile' }}">
+                    <i class="fas fa-user text-lg"></i>
+                    <span>Profil</span>
                 </a>
-                <a href="{{ url_for('support') }}" class="nav-item {{ 'active' if request.endpoint == 'support' }} w-full justify-start">
-                    <i class="nav-icon fas fa-headset"></i>
-                    Support
+                <a href="{{ url_for('support') }}" class="mobile-nav-item {{ 'active' if request.endpoint == 'support' }}">
+                    <i class="fas fa-headset text-lg"></i>
+                    <span>Support</span>
                 </a>
-                <div class="border-t border-gray-100 mt-4 pt-4">
-                    <a href="{{ url_for('logout') }}" class="nav-item w-full justify-start text-red-600">
-                        <i class="nav-icon fas fa-sign-out-alt"></i>
-                        Déconnexion
+                
+                <!-- Balance Mobile -->
+                <div class="border-t border-gray-100 mt-3 pt-3">
+                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-3 mx-1">
+                        <div class="flex items-center gap-3 text-white">
+                            <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-wallet text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs opacity-80">Solde</div>
+                                <div class="text-sm font-bold">0.00 USDT</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-100 mt-3 pt-3">
+                    <a href="{{ url_for('logout') }}" class="mobile-nav-item text-red-600">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                        <span>Déconnexion</span>
                     </a>
                 </div>
             </div>
