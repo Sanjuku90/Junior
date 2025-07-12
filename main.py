@@ -442,8 +442,10 @@ def get_admin_status():
 
 # Utility functions
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(DATABASE, timeout=30.0)
     conn.row_factory = sqlite3.Row
+    # Enable WAL mode for better concurrency
+    conn.execute('PRAGMA journal_mode=WAL;')
     return conn
 
 def generate_transaction_hash():
@@ -453,16 +455,28 @@ def generate_referral_code():
     return secrets.token_urlsafe(8).upper()
 
 def add_notification(user_id, title, message, type='info'):
-    try:
-        conn = get_db_connection()
-        conn.execute('''
-            INSERT INTO notifications (user_id, title, message, type)
-            VALUES (?, ?, ?, ?)
-        ''', (user_id, title, message, type))
-        conn.commit()
-        conn.close()
-    except Exception as e:
-        print(f"❌ Erreur ajout notification: {e}")
+    import time
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            conn = get_db_connection()
+            conn.execute('''
+                INSERT INTO notifications (user_id, title, message, type)
+                VALUES (?, ?, ?, ?)
+            ''', (user_id, title, message, type))
+            conn.commit()
+            conn.close()
+            return
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e) and attempt < max_retries - 1:
+                time.sleep(0.1 * (attempt + 1))  # Progressive backoff
+                continue
+            else:
+                print(f"❌ Erreur ajout notification après {attempt + 1} tentatives: {e}")
+                break
+        except Exception as e:
+            print(f"❌ Erreur ajout notification: {e}")
+            break
 
 # Scheduled tasks
 def calculate_daily_profits():
@@ -1460,8 +1474,8 @@ def deactivate_admin_access():
     if 'user_id' not in session:
         session['user_id'] = 1
     
-    if not session.get('is_admin'):
-        return jsonify({'error': 'Accès admin non actif'}), 403
+    # Permettre la désactivation même si is_admin est False
+    # car l'utilisateur peut vouloir désactiver un accès expiré
     
     disable_admin_access()
     session['is_admin'] = False
