@@ -1,6 +1,6 @@
-
-const CACHE_NAME = 'investcrypto-v1.0.0';
-const API_CACHE_NAME = 'investcrypto-api-v1.0.0';
+const CACHE_NAME = 'ttrust-v1.1.0';
+const STATIC_CACHE = 'ttrust-static-v1.1.0';
+const DYNAMIC_CACHE = 'ttrust-dynamic-v1.1.0';
 
 // Ressources à mettre en cache immédiatement
 const STATIC_CACHE_URLS = [
@@ -31,7 +31,7 @@ const API_CACHE_PATTERNS = [
 // Installation du Service Worker
 self.addEventListener('install', event => {
   console.log('[SW] Installing...');
-  
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -53,7 +53,7 @@ self.addEventListener('install', event => {
 // Activation du Service Worker
 self.addEventListener('activate', event => {
   console.log('[SW] Activating...');
-  
+
   event.waitUntil(
     Promise.all([
       // Nettoyer les anciens caches
@@ -111,26 +111,26 @@ self.addEventListener('fetch', event => {
 async function networkFirstWithFallback(request) {
   try {
     const networkResponse = await fetch(request);
-    
+
     if (networkResponse.ok) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, networkResponse.clone());
     }
-    
+
     return networkResponse;
   } catch (error) {
     console.log('[SW] Network failed, trying cache:', request.url);
-    
+
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       return cachedResponse;
     }
-    
+
     // Fallback vers la page offline pour les requêtes de navigation
     if (request.mode === 'navigate') {
       return caches.match('/static/offline.html');
     }
-    
+
     throw error;
   }
 }
@@ -139,21 +139,21 @@ async function networkFirstWithFallback(request) {
 async function networkFirstWithCache(request) {
   try {
     const networkResponse = await fetch(request);
-    
+
     if (networkResponse.ok) {
       const cache = await caches.open(API_CACHE_NAME);
       cache.put(request, networkResponse.clone());
     }
-    
+
     return networkResponse;
   } catch (error) {
     console.log('[SW] Network failed, trying cache:', request.url);
-    
+
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       return cachedResponse;
     }
-    
+
     throw error;
   }
 }
@@ -161,7 +161,7 @@ async function networkFirstWithCache(request) {
 // Stratégie: Cache First avec network fallback
 async function cacheFirstWithNetwork(request) {
   const cachedResponse = await caches.match(request);
-  
+
   if (cachedResponse) {
     // Mise à jour en arrière-plan
     fetch(request).then(response => {
@@ -170,18 +170,18 @@ async function cacheFirstWithNetwork(request) {
         cache.then(c => c.put(request, response));
       }
     }).catch(() => {});
-    
+
     return cachedResponse;
   }
-  
+
   try {
     const networkResponse = await fetch(request);
-    
+
     if (networkResponse.ok) {
       const cache = await caches.open(CACHE_NAME);
       cache.put(request, networkResponse.clone());
     }
-    
+
     return networkResponse;
   } catch (error) {
     console.error('[SW] Both cache and network failed:', request.url);
@@ -205,7 +205,7 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
+
   if (event.data && event.data.type === 'GET_VERSION') {
     event.ports[0].postMessage({ version: CACHE_NAME });
   }
@@ -222,10 +222,10 @@ async function doBackgroundSync() {
   try {
     // Synchroniser les données en attente
     console.log('[SW] Background sync triggered');
-    
+
     // Ici vous pouvez ajouter la logique pour synchroniser les données
     // Par exemple, envoyer les transactions en attente
-    
+
   } catch (error) {
     console.error('[SW] Background sync failed:', error);
   }
@@ -234,7 +234,7 @@ async function doBackgroundSync() {
 // Notifications push
 self.addEventListener('push', event => {
   if (!event.data) return;
-  
+
   const data = event.data.json();
   const options = {
     body: data.body || 'Nouvelle notification Ttrust',
@@ -257,7 +257,7 @@ self.addEventListener('push', event => {
     requireInteraction: data.requireInteraction || false,
     tag: data.tag || 'default'
   };
-  
+
   event.waitUntil(
     self.registration.showNotification(data.title || 'Ttrust', options)
   );
@@ -266,7 +266,7 @@ self.addEventListener('push', event => {
 // Gestion des clics sur notifications
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  
+
   if (event.action === 'view') {
     event.waitUntil(
       clients.openWindow(event.notification.data.url || '/dashboard')
