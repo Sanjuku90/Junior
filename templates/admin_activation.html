@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}Activation Admin - InvestCrypto Pro{% endblock %}
@@ -37,129 +36,70 @@
             </div>
         </div>
         {% else %}
+</div>
+        </div>
+
         <form id="activationForm" class="space-y-6">
             <div>
-                <label for="activation_code" class="block text-sm font-medium text-gray-700 mb-2">
-                    Code d'Activation
-                </label>
-                <input type="password" id="activation_code" name="activation_code" required
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                <label for="activation_code" class="block text-sm font-medium text-gray-700 mb-2">Code d'activation</label>
+                <input type="password" id="activation_code" name="activation_code" required 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                        placeholder="Entrez le code d'activation">
             </div>
 
             <div>
-                <label for="duration" class="block text-sm font-medium text-gray-700 mb-2">
-                    Durée d'activation (minutes)
-                </label>
-                <select id="duration" name="duration" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="15">15 minutes</option>
-                    <option value="30" selected>30 minutes</option>
+                <label for="duration" class="block text-sm font-medium text-gray-700 mb-2">Durée (minutes)</label>
+                <select id="duration" name="duration" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="30">30 minutes</option>
                     <option value="60">1 heure</option>
                     <option value="120">2 heures</option>
+                    <option value="480">8 heures</option>
                 </select>
             </div>
 
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
-                Activer l'Accès Admin
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
+                🔓 Activer l'accès admin
             </button>
         </form>
-        {% endif %}
 
-        <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h3 class="text-sm font-semibold text-gray-800 mb-2">🔒 Sécurité Renforcée</h3>
-            <ul class="text-xs text-gray-600 space-y-1">
-                <li>• L'accès admin est désactivé par défaut</li>
-                <li>• Activation temporaire avec code sécurisé</li>
-                <li>• Expiration automatique</li>
-                <li>• Logs de sécurité complets</li>
-            </ul>
-        </div>
-
-        <div class="mt-4 text-center">
-            <a href="/dashboard" class="text-blue-600 hover:text-blue-800 text-sm">
-                ← Retour au Dashboard
+        <div class="text-center">
+            <a href="{{ url_for('dashboard') }}" class="text-gray-600 hover:text-gray-800">
+                ← Retour au tableau de bord
             </a>
         </div>
     </div>
 </div>
 
 <script>
-// S'assurer que le DOM est chargé
-document.addEventListener('DOMContentLoaded', function() {
-    const activationForm = document.getElementById('activationForm');
-    if (!activationForm) return;
-    
-    activationForm.addEventListener('submit', async function(e) {
+document.getElementById('activationForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
-    const formData = new FormData(e.target);
+
+    const formData = new FormData(this);
     const data = {
         activation_code: formData.get('activation_code'),
-        duration: formData.get('duration')
+        duration: parseInt(formData.get('duration'))
     };
-    
-    try {
-        const response = await fetch('/admin/activate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('✅ ' + result.message);
+
+    fetch('/admin/activate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Accès admin activé avec succès!');
             window.location.href = '/admin';
         } else {
-            alert('❌ ' + result.error);
+            alert('Erreur: ' + (data.error || 'Code d\'activation invalide'));
         }
-    } catch (error) {
-        alert('❌ Erreur: ' + error.message);
-    }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Erreur de communication');
     });
 });
-
-async function deactivateAdmin() {
-    if (!confirm('Êtes-vous sûr de vouloir désactiver l\'accès admin ?')) {
-        return;
-    }
-    
-    try {
-        const response = await fetch('/admin/deactivate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            alert('✅ ' + result.message);
-            window.location.reload();
-        } else {
-            alert('❌ ' + result.error);
-        }
-    } catch (error) {
-        alert('❌ Erreur: ' + error.message);
-    }
-}
-
-// Actualiser le statut toutes les 30 secondes
-setInterval(async function() {
-    try {
-        const response = await fetch('/admin/status');
-        const status = await response.json();
-        
-        if (!status.access_enabled && status.is_admin_active) {
-            alert('⏰ Accès admin expiré');
-            window.location.reload();
-        }
-    } catch (error) {
-        console.error('Erreur vérification statut:', error);
-    }
-}, 30000);
 </script>
 {% endblock %}
