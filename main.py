@@ -1173,22 +1173,7 @@ def dashboard():
 
 
 
-@app.route('/roi-plans')
-@login_required
-def roi_plans():
-    """Page des plans d'investissement ROI"""
-    conn = get_db_connection()
-    
-    # Récupérer tous les plans ROI actifs
-    plans = conn.execute('''
-        SELECT * FROM roi_plans 
-        WHERE is_active = 1
-        ORDER BY daily_rate ASC, duration_days ASC
-    ''').fetchall()
-    
-    conn.close()
 
-    return render_template('roi_plans.html', plans=plans)
 
 @app.route('/ultra-plans')
 @login_required
