@@ -754,14 +754,7 @@ def dashboard():
                          project_investments=project_investments,
                          notifications=notifications)
 
-@app.route('/roi-plans')
-@login_required
-def roi_plans():
-    conn = get_db_connection()
-    plans = conn.execute('SELECT * FROM roi_plans WHERE is_active = 1').fetchall()
-    conn.close()
 
-    return render_template('roi_plans.html', plans=plans)
 
 @app.route('/ultra-plans')
 @login_required
@@ -780,53 +773,7 @@ def ultra_plans():
 
     return render_template('ultra_plans.html', ultra_plans=ultra_plans)
 
-@app.route('/invest-roi', methods=['POST'])
-@login_required
-def invest_roi():
-    data = request.get_json()
-    plan_id = data.get('plan_id')
-    amount = float(data.get('amount', 0))
 
-    conn = get_db_connection()
-
-    # Get plan details
-    plan = conn.execute('SELECT * FROM roi_plans WHERE id = ?', (plan_id,)).fetchone()
-    if not plan:
-        return jsonify({'error': 'Plan non trouvé'}), 404
-
-    # Check amount limits
-    if amount < plan['min_amount'] or amount > plan['max_amount']:
-        return jsonify({'error': f'Montant doit être entre {plan["min_amount"]} et {plan["max_amount"]} USDT'}), 400
-
-    # Check user balance
-    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-    if user['balance'] < amount:
-        return jsonify({'error': 'Solde insuffisant'}), 400
-
-    # Calculate dates and profit
-    start_date = datetime.now()
-    end_date = start_date + timedelta(days=plan['duration_days'])
-    daily_profit = amount * plan['daily_rate']
-
-    # Create investment
-    conn.execute('''
-        INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, daily_profit, transaction_hash)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (session['user_id'], plan_id, amount, start_date, end_date, daily_profit, generate_transaction_hash()))
-
-    # Update user balance
-    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, session['user_id']))
-
-    # Add transaction record
-    conn.execute('''
-        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
-        VALUES (?, 'investment', ?, 'completed', ?)
-    ''', (session['user_id'], amount, generate_transaction_hash()))
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({'success': True, 'message': 'Investissement réalisé avec succès!'})
 
 @app.route('/projects')
 @login_required

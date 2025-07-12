@@ -992,10 +992,7 @@
                     <i class="nav-icon fas fa-home"></i>
                     Dashboard
                 </a>
-                <a href="{{ url_for('roi_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'roi_plans' }} w-full justify-start">
-                    <i class="nav-icon fas fa-percentage"></i>
-                    Plans ROI
-                </a>
+                
                 <a href="{{ url_for('staking_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'staking_plans' }} w-full justify-start">
                     <i class="nav-icon fas fa-lock"></i>
                     Staking
@@ -1075,7 +1072,7 @@
                 <div>
                     <h4>Investissements</h4>
                     <ul class="space-y-3">
-                        <li><a href="{{ url_for('roi_plans') }}" class="flex items-center"><i class="fas fa-percentage mr-2 text-xs"></i>Plans ROI</a></li>
+                        
                         <li><a href="{{ url_for('staking_plans') }}" class="flex items-center"><i class="fas fa-lock mr-2 text-xs"></i>Staking</a></li>
                         <li><a href="{{ url_for('projects') }}" class="flex items-center"><i class="fas fa-rocket mr-2 text-xs"></i>Projets</a></li>
                     </ul>
