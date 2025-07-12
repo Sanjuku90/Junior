@@ -756,6 +756,23 @@ def dashboard():
 
 
 
+@app.route('/roi-plans')
+@login_required
+def roi_plans():
+    """Page des plans d'investissement ROI"""
+    conn = get_db_connection()
+    
+    # Récupérer tous les plans ROI actifs
+    plans = conn.execute('''
+        SELECT * FROM roi_plans 
+        WHERE is_active = 1
+        ORDER BY daily_rate ASC, duration_days ASC
+    ''').fetchall()
+    
+    conn.close()
+
+    return render_template('roi_plans.html', plans=plans)
+
 @app.route('/ultra-plans')
 @login_required
 def ultra_plans():
@@ -817,6 +834,63 @@ def project_detail(project_id):
     conn.close()
 
     return render_template('project_detail.html', project=project, investments=investments)
+
+@app.route('/invest-roi', methods=['POST'])
+@login_required
+def invest_roi():
+    """Investir dans un plan ROI"""
+    data = request.get_json()
+    plan_id = data.get('plan_id')
+    amount = float(data.get('amount', 0))
+
+    conn = get_db_connection()
+
+    # Get plan details
+    plan = conn.execute('SELECT * FROM roi_plans WHERE id = ?', (plan_id,)).fetchone()
+    if not plan:
+        return jsonify({'error': 'Plan ROI non trouvé'}), 404
+
+    # Check amount limits
+    if amount < plan['min_amount'] or amount > plan['max_amount']:
+        return jsonify({'error': f'Montant doit être entre {plan["min_amount"]} et {plan["max_amount"]} USDT'}), 400
+
+    # Check user balance
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user['balance'] < amount:
+        return jsonify({'error': 'Solde insuffisant'}), 400
+
+    # Calculate dates and daily profit
+    start_date = datetime.now()
+    end_date = start_date + timedelta(days=plan['duration_days'])
+    daily_profit = amount * plan['daily_rate']
+
+    # Create investment
+    conn.execute('''
+        INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, daily_profit, transaction_hash)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (session['user_id'], plan_id, amount, start_date, end_date, daily_profit, generate_transaction_hash()))
+
+    # Update user balance
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, session['user_id']))
+
+    # Add transaction record
+    conn.execute('''
+        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+        VALUES (?, 'roi_investment', ?, 'completed', ?)
+    ''', (session['user_id'], amount, generate_transaction_hash()))
+
+    conn.commit()
+    conn.close()
+
+    # Add notification
+    add_notification(
+        session['user_id'],
+        'Investissement ROI créé',
+        f'Votre investissement de {amount} USDT dans le plan {plan["name"]} a été créé avec succès!',
+        'success'
+    )
+
+    return jsonify({'success': True, 'message': f'Investissement de {amount} USDT créé avec succès!'})
 
 @app.route('/invest-project', methods=['POST'])
 @login_required
