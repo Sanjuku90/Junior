@@ -847,6 +847,79 @@
 
         .form-help {
             font-size: 0.8rem;
+
+
+    <script>
+        // Support Widget Functions
+        function toggleSupportChat() {
+            const chat = document.getElementById('supportChat');
+            chat.classList.toggle('active');
+        }
+
+        function closeSupportChat() {
+            const chat = document.getElementById('supportChat');
+            chat.classList.remove('active');
+        }
+
+        function sendSupportMessage(event) {
+            event.preventDefault();
+            
+            const messageInput = event.target.querySelector('textarea');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+
+            // Ajouter le message de l'utilisateur
+            const messageArea = document.getElementById('messageArea');
+            const userMessage = document.createElement('div');
+            userMessage.innerHTML = `
+                <div style="text-align: right; margin-bottom: 12px;">
+                    <div style="display: inline-block; background: #667eea; color: white; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px;">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            messageArea.appendChild(userMessage);
+
+            // Vider le champ
+            messageInput.value = '';
+
+            // Scroll vers le bas
+            messageArea.scrollTop = messageArea.scrollHeight;
+
+            // Simuler une réponse automatique
+            setTimeout(() => {
+                const botResponse = document.createElement('div');
+                botResponse.innerHTML = `
+                    <div class="bot-message">
+                        <i class="fas fa-robot"></i>
+                        <div>
+                            <strong>Support</strong>
+                            <p>Merci pour votre message ! Un agent va vous répondre dans les plus brefs délais. Pour une assistance immédiate, vous pouvez créer un ticket de support.</p>
+                        </div>
+                    </div>
+                `;
+                messageArea.appendChild(botResponse);
+                messageArea.scrollTop = messageArea.scrollHeight;
+            }, 1000);
+        }
+
+        // Fermer le chat en cliquant à l'extérieur
+        document.addEventListener('click', function(event) {
+            const widget = document.getElementById('supportWidget');
+            const chat = document.getElementById('supportChat');
+            
+            if (widget && !widget.contains(event.target)) {
+                chat.classList.remove('active');
+            }
+        });
+
+        // Empêcher la fermeture quand on clique dans le chat
+        document.getElementById('supportChat')?.addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+    </script>
+
             color: var(--text-muted);
             margin-top: 0.25rem;
         }
@@ -1160,7 +1233,7 @@
 
     <!-- Professional Support Widget -->
     {% if session.user_id %}
-    <div class="support-widget">
+    <div class="support-widget" id="supportWidget">
         <button class="support-button" onclick="toggleSupportChat()" title="Support Client">
             <i class="fas fa-comment-alt"></i>
         </button>
@@ -1177,9 +1250,33 @@
             </div>
             
             <div class="chat-body">
-                <div id="messageArea"></div>
+                <div id="messageArea" class="message-area">
+                    <div class="welcome-message">
+                        <div class="bot-message">
+                            <i class="fas fa-robot"></i>
+                            <div>
+                                <strong>Support InvestCrypto Pro</strong>
+                                <p>Bonjour ! Comment puis-je vous aider aujourd'hui ? 😊</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                <form class="support-form" id="supportForm">
+                <form class="support-form" onsubmit="sendSupportMessage(event)">
+                    <textarea class="form-input" rows="3" placeholder="Tapez votre message..." required></textarea>
+                    <div class="form-actions">
+                        <button type="submit" class="send-btn">
+                            <i class="fas fa-paper-plane"></i> Envoyer
+                        </button>
+                        <a href="{{ url_for('support') }}" class="support-link">
+                            <i class="fas fa-ticket-alt"></i> Créer un ticket
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %} id="supportForm">
                     <div class="form-group">
                         <label for="subject" class="form-label">Sujet</label>
                         <input type="text" id="subject" name="subject" required placeholder="Décrivez votre problème" class="professional-input">
@@ -1237,58 +1334,231 @@
     <style>
         .support-widget {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 1000;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
             font-family: 'Inter', sans-serif;
         }
 
         .support-button {
-            width: 64px;
-            height: 64px;
-            border-radius: 20px;
-            background: var(--primary-gradient);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             cursor: pointer;
-            box-shadow: var(--shadow-xl);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 24px;
+            font-size: 20px;
             transition: all 0.3s ease;
+            position: relative;
         }
 
         .support-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .support-button:active {
+            transform: translateY(0);
         }
 
         .support-chat {
             position: absolute;
-            bottom: 80px;
+            bottom: 70px;
             right: 0;
-            width: 380px;
-            height: 500px;
-            background: var(--bg-card);
-            border-radius: 24px;
-            box-shadow: var(--shadow-xl);
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
             display: none;
             flex-direction: column;
             overflow: hidden;
-            border: 1px solid var(--border-color);
+            border: 1px solid #e5e7eb;
         }
 
         .support-chat.active {
             display: flex;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .chat-header {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 1.5rem;
+            padding: 16px 20px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .close-chat {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .close-chat:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .chat-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-area {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+
+        .welcome-message {
+            margin-bottom: 16px;
+        }
+
+        .bot-message {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .bot-message i {
+            color: #667eea;
+            font-size: 16px;
+            margin-top: 2px;
+        }
+
+        .bot-message strong {
+            color: #374151;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .bot-message p {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .support-form {
+            padding: 16px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: #667eea;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .support-link {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .support-link:hover {
+            background: #e5e7eb;
+        }
+
+        /* Responsivité mobile */
+        @media (max-width: 768px) {
+            .support-widget {
+                bottom: 16px;
+                right: 16px;
+            }
+
+            .support-button {
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+
+            .support-chat {
+                width: calc(100vw - 32px);
+                height: 400px;
+                right: -16px;
+                bottom: 60px;
+            }
+
+            .message-area {
+                max-height: 250px;
+            }
+        }
+
+        /* Cache le widget sur les très petits écrans si nécessaire */
+        @media (max-width: 480px) {
+            .support-chat {
+                width: calc(100vw - 20px);
+                right: -10px;
+                height: 350px;
+            }
+        }content: space-between;
             align-items: center;
         }
 
