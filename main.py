@@ -16,13 +16,9 @@ import atexit
 TELEGRAM_ENABLED = False
 TELEGRAM_USER_BOT_ENABLED = False
 try:
-    import os
-    if os.getenv('TELEGRAM_BOT_TOKEN'):
-        from telegram_investment_bot import setup_user_telegram_bot
-        TELEGRAM_USER_BOT_ENABLED = True
-        print("✅ Bot Telegram disponible")
-    else:
-        print("⚠️ Token Telegram non configuré")
+    from telegram_investment_bot import setup_user_telegram_bot
+    TELEGRAM_USER_BOT_ENABLED = True
+    print("✅ Bot Telegram disponible")
 except ImportError as e:
     print(f"⚠️ Bot Telegram non disponible: {e}")
 except Exception as e:

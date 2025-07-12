@@ -11,7 +11,7 @@ import json
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Configuration
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_BOT_TOKEN = "7703189686:AAGArcOUnZImdOUTkwBggcyI9QSk5GSAB10"
 if not TELEGRAM_BOT_TOKEN:
     print("❌ ERREUR: Token de bot Telegram non défini")
     print("💡 Veuillez définir la variable d'environnement TELEGRAM_BOT_TOKEN")
