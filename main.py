@@ -1300,7 +1300,7 @@ def investment_history():
             'id': inv['id'],
             'type': 'roi',
             'amount': inv['amount'],
-            'total_earned': inv.get('total_earned', 0),
+            'total_earned': inv['total_earned'] if inv['total_earned'] else 0,
             'is_active': inv['is_active'],
             'start_date': inv['start_date']
         })
@@ -1311,7 +1311,7 @@ def investment_history():
             'id': inv['id'],
             'type': 'staking',
             'amount': inv['amount'],
-            'total_earned': inv.get('total_earned', 0),
+            'total_earned': inv['total_earned'] if inv['total_earned'] else 0,
             'is_active': inv['is_active'],
             'start_date': inv['start_date']
         })
@@ -1321,7 +1321,7 @@ def investment_history():
             'id': bot['id'],
             'type': 'trading',
             'amount': bot['amount'],
-            'total_earned': bot.get('total_profit', 0),
+            'total_earned': bot['total_profit'] if bot['total_profit'] else 0,
             'is_active': bot['is_active'],
             'start_date': bot['start_date']
         })
@@ -1331,7 +1331,7 @@ def investment_history():
             'id': trade['id'],
             'type': 'copy',
             'amount': trade['amount'],
-            'total_earned': trade.get('total_profit', 0),
+            'total_earned': trade['total_profit'] if trade['total_profit'] else 0,
             'is_active': trade['is_active'],
             'start_date': trade['start_date']
         })
