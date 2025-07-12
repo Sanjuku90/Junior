@@ -1880,6 +1880,21 @@ def admin_close_ticket(ticket_id):
     finally:
         conn.close()
 
+@app.route('/admin/calculate-profits', methods=['POST'])
+@admin_required
+def admin_calculate_profits():
+    """Déclencher manuellement le calcul des profits quotidiens"""
+    try:
+        calculate_daily_profits()
+        return jsonify({
+            'success': True, 
+            'message': 'Profits quotidiens calculés avec succès!'
+        })
+    except Exception as e:
+        return jsonify({
+            'error': f'Erreur lors du calcul des profits: {str(e)}'
+        }), 500
+
 # Security Routes
 @app.route('/security')
 @login_required

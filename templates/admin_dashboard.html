@@ -204,5 +204,30 @@ function deactivateAdmin() {
         });
     }
 }
+
+function calculateProfits() {
+    if (confirm('Êtes-vous sûr de vouloir lancer le calcul des profits quotidiens ?')) {
+        fetch('/admin/calculate_profits', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Calcul des profits lancé avec succès!');
+                // Optionally refresh the page or update a specific element
+                window.location.reload();
+            } else {
+                alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur de communication');
+        });
+    }
+}
 </script>
 {% endblock %}
