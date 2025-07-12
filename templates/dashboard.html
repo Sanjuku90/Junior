@@ -1,9 +1,55 @@
-
 {% extends "base.html" %}
 
-{% block title %}Dashboard - InvestCrypto Pro{% endblock %}
-
 {% block content %}
+<style>
+    /* Dashboard Mobile Optimizations */
+    @media (max-width: 768px) {
+        .messenger-card {
+            padding: 1rem !important;
+            margin-bottom: 1rem;
+        }
+
+        .messenger-btn, .messenger-btn-success {
+            padding: 1rem !important;
+            font-size: 0.9rem;
+        }
+
+        .chat-bubble {
+            padding: 1rem !important;
+        }
+
+        .investment-grid {
+            gap: 0.75rem;
+        }
+
+        .investment-card {
+            padding: 0.875rem;
+        }
+
+        .balance-display {
+            font-size: 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .messenger-card {
+            padding: 0.875rem !important;
+        }
+
+        .investment-card {
+            padding: 0.75rem;
+        }
+
+        .balance-display {
+            font-size: 1.25rem;
+        }
+
+        .messenger-btn, .messenger-btn-success {
+            padding: 0.875rem !important;
+            font-size: 0.85rem;
+        }
+    }
+</style>
 <div class="space-y-6">
     <!-- Welcome Header -->
     <div class="chat-bubble">
@@ -31,7 +77,7 @@
             <div class="text-2xl font-bold text-gray-900 mb-1">{{ "%.2f"|format(user.balance) }} USDT</div>
             <div class="text-xs text-green-600 font-medium">💚 Prêt à investir</div>
         </div>
-        
+
         <div class="stat-card">
             <div class="stat-icon bg-gradient-to-r from-blue-500 to-blue-600">
                 <i class="fas fa-chart-line"></i>
@@ -40,7 +86,7 @@
             <div class="text-2xl font-bold text-gray-900 mb-1">{{ investments|length }}</div>
             <div class="text-xs" style="color: var(--messenger-blue)">{{ investments|length }} plan{{ 's' if investments|length != 1 else '' }} en cours</div>
         </div>
-        
+
         <div class="stat-card">
             <div class="stat-icon bg-gradient-to-r from-purple-500 to-purple-600">
                 <i class="fas fa-coins"></i>
@@ -70,7 +116,7 @@
                     <p class="text-green-100 text-sm">Ajouter des fonds</p>
                 </div>
             </button>
-            
+
             <button onclick="showWithdrawModal()" class="messenger-btn w-full p-6 rounded-2xl flex items-center justify-center space-x-4">
                 <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                     <i class="fas fa-minus text-2xl text-white"></i>
@@ -124,7 +170,7 @@
                 </div>
                 {% endfor %}
             </div>
-            
+
             <!-- Desktop View -->
             <div class="hidden md:block overflow-x-auto">
                 <table class="messenger-table">
@@ -265,7 +311,7 @@
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            
+
             <div class="space-y-4">
                 <div class="bg-yellow-50 p-4 rounded-2xl border border-yellow-200">
                     <div class="flex items-start">
@@ -279,17 +325,17 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">💵 Montant à déposer</label>
                     <input type="number" id="depositAmount" class="messenger-input" placeholder="Montant en USDT">
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">🔗 Hash de transaction</label>
                     <input type="text" id="transactionHash" class="messenger-input" placeholder="Hash de la transaction">
                 </div>
-                
+
                 <button onclick="submitDeposit()" class="messenger-btn w-full py-3">
                     <i class="fas fa-check mr-2"></i>Confirmer le dépôt
                 </button>
@@ -308,7 +354,7 @@
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            
+
             <div class="space-y-4">
                 <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200">
                     <div class="flex items-center">
@@ -319,24 +365,24 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">📍 Adresse de destination (USDT TRC20)</label>
                     <input type="text" id="withdrawAddress" class="messenger-input" placeholder="Votre adresse USDT TRC20">
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">💰 Montant à retirer</label>
                     <input type="number" id="withdrawAmount" class="messenger-input" placeholder="Montant en USDT" min="10" max="{{ user.balance }}">
                 </div>
-                
+
                 <div class="bg-gray-50 p-3 rounded-2xl border border-gray-200">
                     <div class="text-xs text-gray-600">
                         <div class="flex justify-between"><span>Frais de réseau:</span><span>2 USDT</span></div>
                         <div class="flex justify-between mt-1 font-bold"><span>Montant reçu:</span><span id="netAmount">0 USDT</span></div>
                     </div>
                 </div>
-                
+
                 <button onclick="submitWithdraw()" class="messenger-btn w-full py-3">
                     <i class="fas fa-paper-plane mr-2"></i>Confirmer le retrait
                 </button>
@@ -380,12 +426,12 @@ function copyDepositAddress() {
 async function submitDeposit() {
     const amount = document.getElementById('depositAmount').value;
     const hash = document.getElementById('transactionHash').value;
-    
+
     if (!amount || !hash) {
         showNotification('❌ Veuillez remplir tous les champs', 'error');
         return;
     }
-    
+
     try {
         const response = await fetch('/deposit', {
             method: 'POST',
@@ -397,9 +443,9 @@ async function submitDeposit() {
                 transaction_hash: hash
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             showNotification('✅ ' + data.message, 'success');
             hideDepositModal();
@@ -417,17 +463,17 @@ async function submitDeposit() {
 async function submitWithdraw() {
     const address = document.getElementById('withdrawAddress').value;
     const amount = parseFloat(document.getElementById('withdrawAmount').value);
-    
+
     if (!address || !amount) {
         showNotification('❌ Veuillez remplir tous les champs', 'error');
         return;
     }
-    
+
     if (amount < 10) {
         showNotification('❌ Le montant minimum de retrait est de 10 USDT', 'error');
         return;
     }
-    
+
     try {
         const response = await fetch('/withdraw', {
             method: 'POST',
@@ -439,9 +485,9 @@ async function submitWithdraw() {
                 withdrawal_address: address
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             showNotification('✅ ' + data.message, 'success');
             hideWithdrawModal();

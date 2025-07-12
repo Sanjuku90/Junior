@@ -22,26 +22,25 @@
     </div>
 
     <!-- Plans Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {% for plan in plans %}
-        <div class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg shadow-lg p-6 text-white relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -translate-y-16 translate-x-16"></div>
-            <div class="relative z-10">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-2xl font-bold">{{ plan.name }}</h3>
-                    <i class="fas fa-gem text-3xl"></i>
+        <div class="bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-4 sm:p-6">
+                <div class="flex items-center justify-between mb-3 sm:mb-4">
+                    <h3 class="text-lg sm:text-xl font-bold">{{ plan.name }}</h3>
+                    <div class="text-xl sm:text-2xl">❄️</div>
                 </div>
 
-                <p class="text-purple-100 mb-6">{{ plan.description }}</p>
+                <p class="text-purple-100 mb-4 sm:mb-6">{{ plan.description }}</p>
 
-                <div class="text-center mb-6">
-                    <div class="text-5xl font-bold mb-2">
+                <div class="text-center mb-4 sm:mb-6">
+                    <div class="text-4xl sm:text-5xl font-bold mb-1 sm:mb-2">
                         {{ "%.0f"|format(plan.total_return_rate * 100) }}%
                     </div>
                     <div class="text-purple-200">retour total</div>
                 </div>
 
-                <div class="space-y-3 mb-6">
+                <div class="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                     <div class="flex items-center justify-between">
                         <span class="text-purple-200">Durée:</span>
                         <span class="font-semibold">{{ plan.duration_days }} jours</span>
@@ -56,16 +55,16 @@
                     </div>
                 </div>
 
-                <div class="bg-white bg-opacity-20 rounded-lg p-4 mb-6">
+                <div class="bg-white bg-opacity-20 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
                     <div class="text-center">
-                        <div class="text-sm text-purple-200 mb-1">Exemple avec 1,000 USDT</div>
-                        <div class="text-2xl font-bold">{{ "{:,.0f}".format(1000 * plan.total_return_rate) }} USDT</div>
-                        <div class="text-sm text-purple-200">après {{ plan.duration_days }} jours</div>
+                        <div class="text-xs sm:text-sm text-purple-200 mb-1">Exemple avec 1,000 USDT</div>
+                        <div class="text-xl sm:text-2xl font-bold">{{ "{:,.0f}".format(1000 * plan.total_return_rate) }} USDT</div>
+                        <div class="text-xs sm:text-sm text-purple-200">après {{ plan.duration_days }} jours</div>
                     </div>
                 </div>
 
                 <button onclick="showFrozenModal({{ plan.id }}, '{{ plan.name }}', {{ plan.min_amount }}, {{ plan.max_amount }}, {{ plan.total_return_rate }}, {{ plan.duration_days }})" 
-                        class="w-full bg-white text-purple-600 py-3 px-4 rounded-md font-bold hover:bg-purple-50 transition-colors">
+                        class="w-full bg-white text-purple-600 py-2 sm:py-3 px-3 sm:px-4 rounded-md font-bold hover:bg-purple-50 transition-colors">
                     Investir maintenant
                 </button>
             </div>
@@ -152,7 +151,7 @@ function showNotification(message, type) {
     } text-white`;
     notification.textContent = message;
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.remove();
     }, 3000);
@@ -199,11 +198,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Calculator event listeners
     const frozenAmount = document.getElementById('frozenAmount');
     const frozenPlan = document.getElementById('frozenPlan');
-    
+
     if (frozenAmount) {
         frozenAmount.addEventListener('input', updateFrozenCalculator);
     }
-    
+
     if (frozenPlan) {
         frozenPlan.addEventListener('change', updateFrozenCalculator);
     }
