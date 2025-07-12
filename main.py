@@ -147,7 +147,10 @@ def init_db():
         column_names = [column[1] for column in columns]
         
         if 'updated_at' not in column_names:
-            cursor.execute('ALTER TABLE transactions ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
+            # Ajouter la colonne sans valeur par défaut d'abord
+            cursor.execute('ALTER TABLE transactions ADD COLUMN updated_at TIMESTAMP')
+            # Puis mettre à jour les enregistrements existants avec la date actuelle
+            cursor.execute('UPDATE transactions SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL')
             print("✅ Colonne updated_at ajoutée à la table transactions")
     except sqlite3.OperationalError as e:
         print(f"⚠️ Erreur ajout colonne updated_at: {e}")
@@ -1599,7 +1602,7 @@ def approve_transaction(transaction_id):
             new_balance = transaction['balance'] + transaction['amount']
             conn.execute('''
                 UPDATE users 
-                SET balance = ?, updated_at = CURRENT_TIMESTAMP
+                SET balance = ?
                 WHERE id = ?
             ''', (new_balance, transaction['user_id']))
 
@@ -1615,10 +1618,10 @@ def approve_transaction(transaction_id):
             conn.close()
             return jsonify({'error': 'Type de transaction non supporté'}), 400
 
-        # Marquer la transaction comme complétée
+        # Marquer la transaction comme complétée avec updated_at
         conn.execute('''
             UPDATE transactions 
-            SET status = 'completed'
+            SET status = 'completed', updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (transaction_id,))
 
