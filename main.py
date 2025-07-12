@@ -1080,45 +1080,80 @@ def create_support_ticket():
     category = data.get('category', 'general')
     priority = data.get('priority', 'normal')
     
+    # Informations supplémentaires optionnelles
+    amount = data.get('amount', '')
+    tx_hash = data.get('tx_hash', '')
+    
     if not subject or not message:
         return jsonify({'error': 'Sujet et message requis'}), 400
     
+    # Enrichir le message avec les informations supplémentaires
+    enriched_message = message
+    if amount or tx_hash:
+        enriched_message += "\n\n--- Informations supplémentaires ---"
+        if amount:
+            enriched_message += f"\n💰 Montant concerné: {amount} USDT"
+        if tx_hash:
+            enriched_message += f"\n🔗 Hash de transaction: {tx_hash}"
+    
     conn = get_db_connection()
     
-    # Create ticket
-    cursor = conn.execute('''
-        INSERT INTO support_tickets (user_id, subject, category, priority)
-        VALUES (?, ?, ?, ?)
-    ''', (session['user_id'], subject, category, priority))
-    
-    ticket_id = cursor.lastrowid
-    
-    # Add first message
-    conn.execute('''
-        INSERT INTO support_messages (ticket_id, user_id, message, is_admin)
-        VALUES (?, ?, ?, 0)
-    ''', (ticket_id, session['user_id'], message))
-    
-    conn.commit()
-    conn.close()
-    
-    # Notification admin
-    add_notification(
-        1,  # Admin user ID
-        'Nouveau ticket de support',
-        f'Nouveau ticket #{ticket_id}: {subject}',
-        'info'
-    )
-    
-    # Notifier l'admin via Telegram si disponible
     try:
-        from telegram_investment_bot import notify_admin_new_support_ticket
-        import asyncio
-        asyncio.create_task(notify_admin_new_support_ticket(ticket_id, subject, message, category, priority))
-    except:
-        pass  # Si le bot Telegram n'est pas disponible
-    
-    return jsonify({'success': True, 'ticket_id': ticket_id})
+        # Create ticket
+        cursor = conn.execute('''
+            INSERT INTO support_tickets (user_id, subject, category, priority)
+            VALUES (?, ?, ?, ?)
+        ''', (session['user_id'], subject, category, priority))
+        
+        ticket_id = cursor.lastrowid
+        
+        # Add first message
+        conn.execute('''
+            INSERT INTO support_messages (ticket_id, user_id, message, is_admin)
+            VALUES (?, ?, ?, 0)
+        ''', (ticket_id, session['user_id'], enriched_message))
+        
+        conn.commit()
+        
+        # Notification utilisateur
+        add_notification(
+            session['user_id'],
+            'Ticket de support créé',
+            f'Votre ticket #{ticket_id} a été créé avec succès. Notre équipe va vous répondre rapidement.',
+            'success'
+        )
+        
+        # Notification admin
+        add_notification(
+            1,  # Admin user ID
+            'Nouveau ticket de support',
+            f'Nouveau ticket #{ticket_id} - {category.upper()} - Priorité: {priority}',
+            'info'
+        )
+        
+        # Notifier l'admin via Telegram si disponible
+        try:
+            from telegram_investment_bot import notify_admin_new_support_ticket
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(notify_admin_new_support_ticket(ticket_id, subject, enriched_message, category, priority))
+            loop.close()
+        except Exception as e:
+            print(f"Erreur notification Telegram: {e}")
+        
+        return jsonify({
+            'success': True, 
+            'ticket_id': ticket_id,
+            'message': f'Ticket #{ticket_id} créé avec succès!'
+        })
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"Erreur création ticket: {e}")
+        return jsonify({'error': 'Erreur lors de la création du ticket'}), 500
+    finally:
+        conn.close()
 
 @app.route('/support/send-message', methods=['POST'])
 @login_required
@@ -1162,39 +1197,57 @@ def send_support_message():
 @app.route('/support/get-messages/<int:ticket_id>')
 @login_required
 def get_support_messages(ticket_id):
-    conn = get_db_connection()
-    
-    # Verify ticket belongs to user
-    ticket = conn.execute('''
-        SELECT id FROM support_tickets 
-        WHERE id = ? AND user_id = ?
-    ''', (ticket_id, session['user_id'])).fetchone()
-    
-    if not ticket:
-        return jsonify({'error': 'Ticket non trouvé'}), 404
-    
-    # Get messages
-    messages = conn.execute('''
-        SELECT sm.*, u.first_name, u.last_name
-        FROM support_messages sm
-        LEFT JOIN users u ON sm.user_id = u.id
-        WHERE sm.ticket_id = ?
-        ORDER BY sm.created_at ASC
-    ''', (ticket_id,)).fetchall()
-    
-    conn.close()
-    
-    messages_list = []
-    for msg in messages:
-        messages_list.append({
-            'id': msg['id'],
-            'message': msg['message'],
-            'is_admin': bool(msg['is_admin']),
-            'created_at': msg['created_at'],
-            'sender_name': 'Support' if msg['is_admin'] else f"{msg['first_name']} {msg['last_name']}" if msg['first_name'] else 'Utilisateur'
+    try:
+        conn = get_db_connection()
+        
+        # Verify ticket belongs to user
+        ticket = conn.execute('''
+            SELECT id FROM support_tickets 
+            WHERE id = ? AND user_id = ?
+        ''', (ticket_id, session['user_id'])).fetchone()
+        
+        if not ticket:
+            conn.close()
+            return jsonify({'error': 'Ticket non trouvé'}), 404
+        
+        # Get messages
+        messages = conn.execute('''
+            SELECT sm.*, u.first_name, u.last_name
+            FROM support_messages sm
+            LEFT JOIN users u ON sm.user_id = u.id
+            WHERE sm.ticket_id = ?
+            ORDER BY sm.created_at ASC
+        ''', (ticket_id,)).fetchall()
+        
+        conn.close()
+        
+        messages_list = []
+        for msg in messages:
+            # Gérer les valeurs NULL proprement
+            first_name = msg['first_name'] if msg['first_name'] else ''
+            last_name = msg['last_name'] if msg['last_name'] else ''
+            
+            sender_name = 'Support' if msg['is_admin'] else f"{first_name} {last_name}".strip()
+            if not sender_name or sender_name.isspace():
+                sender_name = 'Utilisateur'
+            
+            messages_list.append({
+                'id': msg['id'],
+                'message': msg['message'] if msg['message'] else '',
+                'is_admin': bool(msg['is_admin']),
+                'created_at': msg['created_at'] if msg['created_at'] else '',
+                'sender_name': sender_name
+            })
+        
+        return jsonify({
+            'success': True,
+            'messages': messages_list,
+            'ticket_id': ticket_id
         })
-    
-    return jsonify({'messages': messages_list})
+        
+    except Exception as e:
+        print(f"Erreur get_support_messages: {e}")
+        return jsonify({'error': 'Erreur serveur'}), 500
 
 @app.route('/admin')
 @admin_required

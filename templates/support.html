@@ -10,13 +10,13 @@
     </div>
 
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div class="messenger-card text-center">
             <div class="stat-icon bg-gradient-to-r from-blue-500 to-blue-600">
                 <i class="fas fa-plus"></i>
             </div>
             <h3 class="text-lg font-semibold mb-2">Nouveau Ticket</h3>
-            <p class="text-gray-600 mb-4">Créer une nouvelle demande de support</p>
+            <p class="text-gray-600 mb-4">Créer une nouvelle demande</p>
             <button onclick="openNewTicketModal()" class="messenger-btn w-full">
                 <i class="fas fa-ticket-alt mr-2"></i>Créer un ticket
             </button>
@@ -27,7 +27,7 @@
                 <i class="fas fa-comments"></i>
             </div>
             <h3 class="text-lg font-semibold mb-2">Chat Rapide</h3>
-            <p class="text-gray-600 mb-4">Assistance instantanée via chat</p>
+            <p class="text-gray-600 mb-4">Assistance instantanée</p>
             <button onclick="openLiveChat()" class="messenger-btn-success w-full">
                 <i class="fas fa-comment mr-2"></i>Chat en direct
             </button>
@@ -38,44 +38,118 @@
                 <i class="fas fa-question-circle"></i>
             </div>
             <h3 class="text-lg font-semibold mb-2">FAQ</h3>
-            <p class="text-gray-600 mb-4">Réponses aux questions fréquentes</p>
+            <p class="text-gray-600 mb-4">Questions fréquentes</p>
             <button onclick="showFAQ()" class="messenger-btn-outline w-full">
                 <i class="fas fa-book mr-2"></i>Consulter la FAQ
             </button>
+        </div>
+
+        <div class="messenger-card text-center">
+            <div class="stat-icon bg-gradient-to-r from-orange-500 to-orange-600">
+                <i class="fas fa-headset"></i>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Guide Vidéo</h3>
+            <p class="text-gray-600 mb-4">Tutoriels vidéo</p>
+            <button onclick="showVideoGuides()" class="messenger-btn-outline w-full">
+                <i class="fas fa-play mr-2"></i>Voir guides
+            </button>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="messenger-card">
+        <div class="flex flex-col md:flex-row gap-4 mb-6">
+            <div class="flex-1">
+                <input type="text" id="searchTickets" placeholder="🔍 Rechercher dans vos tickets..." 
+                       class="messenger-input" onkeyup="filterTickets()">
+            </div>
+            <div class="flex gap-2">
+                <select id="statusFilter" class="messenger-input" onchange="filterTickets()">
+                    <option value="">Tous les statuts</option>
+                    <option value="open">Ouvert</option>
+                    <option value="admin_reply">Réponse admin</option>
+                    <option value="user_reply">En attente</option>
+                    <option value="closed">Fermé</option>
+                </select>
+                <select id="categoryFilter" class="messenger-input" onchange="filterTickets()">
+                    <option value="">Toutes catégories</option>
+                    <option value="wallet">Portefeuille</option>
+                    <option value="investment">Investissement</option>
+                    <option value="technical">Technique</option>
+                    <option value="security">Sécurité</option>
+                    <option value="general">Général</option>
+                </select>
+            </div>
         </div>
     </div>
 
     <!-- My Tickets -->
     <div class="messenger-card">
-        <h2 class="text-xl font-semibold mb-6">🎫 Mes Tickets de Support</h2>
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold">🎫 Mes Tickets de Support</h2>
+            <div class="text-sm text-gray-600">
+                Total: <span id="ticketCount">{{ tickets|length if tickets else 0 }}</span> tickets
+            </div>
+        </div>
         
         {% if tickets %}
-            <div class="space-y-4">
+            <div id="ticketsList" class="space-y-4">
                 {% for ticket in tickets %}
-                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div class="ticket-item border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors" 
+                         data-status="{{ ticket.status }}" data-category="{{ ticket.category }}" 
+                         data-search="{{ ticket.subject|lower }} {{ ticket.category|lower }}">
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
                                 <div class="flex items-center space-x-3 mb-2">
                                     <h3 class="font-semibold text-gray-900">#{{ ticket.id }} - {{ ticket.subject }}</h3>
                                     <span class="status-indicator 
-                                        {% if ticket.status == 'open' %}status-pending{% endif %}
-                                        {% if ticket.status == 'admin_reply' %}status-active{% endif %}
-                                        {% if ticket.status == 'user_reply' %}bg-blue-100 text-blue-800{% endif %}
-                                        {% if ticket.status == 'closed' %}status-completed{% endif %}">
-                                        {{ ticket.status.replace('_', ' ').title() }}
+                                        {% if ticket.status == 'open' %}bg-yellow-100 text-yellow-800 border-yellow-200{% endif %}
+                                        {% if ticket.status == 'admin_reply' %}bg-green-100 text-green-800 border-green-200{% endif %}
+                                        {% if ticket.status == 'user_reply' %}bg-blue-100 text-blue-800 border-blue-200{% endif %}
+                                        {% if ticket.status == 'closed' %}bg-gray-100 text-gray-800 border-gray-200{% endif %}
+                                        px-2 py-1 rounded-full text-xs font-medium border">
+                                        {% if ticket.status == 'open' %}🟡 Nouveau{% endif %}
+                                        {% if ticket.status == 'admin_reply' %}🟢 Répondu{% endif %}
+                                        {% if ticket.status == 'user_reply' %}🔵 En attente{% endif %}
+                                        {% if ticket.status == 'closed' %}⚫ Fermé{% endif %}
                                     </span>
+                                    {% if ticket.priority == 'urgent' %}
+                                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
+                                            🚨 Urgent
+                                        </span>
+                                    {% elif ticket.priority == 'high' %}
+                                        <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                                            ⚡ Priorité élevée
+                                        </span>
+                                    {% endif %}
                                 </div>
                                 <div class="flex items-center space-x-4 text-sm text-gray-600">
-                                    <span><i class="fas fa-tag mr-1"></i>{{ ticket.category.title() }}</span>
+                                    <span>
+                                        <i class="fas fa-tag mr-1"></i>
+                                        {% if ticket.category == 'wallet' %}💰 Portefeuille
+                                        {% elif ticket.category == 'investment' %}📈 Investissement
+                                        {% elif ticket.category == 'technical' %}🔧 Technique
+                                        {% elif ticket.category == 'security' %}🔒 Sécurité
+                                        {% else %}📋 Général{% endif %}
+                                    </span>
                                     <span><i class="fas fa-calendar mr-1"></i>{{ ticket.created_at[:10] }}</span>
                                     <span><i class="fas fa-message mr-1"></i>{{ ticket.message_count }} messages</span>
+                                    {% if ticket.last_message_at %}
+                                        <span><i class="fas fa-clock mr-1"></i>Dernière activité: {{ ticket.last_message_at[:10] }}</span>
+                                    {% endif %}
                                 </div>
                             </div>
                             <div class="flex space-x-2">
                                 <a href="{{ url_for('support_ticket', ticket_id=ticket.id) }}" 
-                                   class="messenger-btn-outline text-sm px-4 py-2">
+                                   class="messenger-btn-outline text-sm px-4 py-2 hover:bg-blue-50">
                                     <i class="fas fa-eye mr-1"></i>Voir
                                 </a>
+                                {% if ticket.status != 'closed' %}
+                                    <button onclick="quickReply({{ ticket.id }})" 
+                                            class="bg-blue-500 text-white text-sm px-4 py-2 rounded hover:bg-blue-600">
+                                        <i class="fas fa-reply mr-1"></i>Répondre
+                                    </button>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -87,7 +161,10 @@
                     <i class="fas fa-ticket-alt text-2xl text-gray-400"></i>
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">Aucun ticket</h3>
-                <p class="text-gray-600">Vous n'avez pas encore créé de ticket de support.</p>
+                <p class="text-gray-600 mb-4">Vous n'avez pas encore créé de ticket de support.</p>
+                <button onclick="openNewTicketModal()" class="messenger-btn">
+                    <i class="fas fa-plus mr-2"></i>Créer votre premier ticket
+                </button>
             </div>
         {% endif %}
     </div>
@@ -124,6 +201,21 @@
         </div>
         
         <form id="newTicketForm" class="space-y-4">
+            <!-- Templates prédéfinis -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">🎯 Templates rapides (optionnel)</label>
+                <select id="ticketTemplate" class="messenger-input" onchange="applyTemplate()">
+                    <option value="">Sélectionnez un template ou rédigez librement</option>
+                    <option value="deposit_issue">💰 Problème de dépôt</option>
+                    <option value="withdrawal_issue">💸 Problème de retrait</option>
+                    <option value="investment_question">📈 Question sur investissement</option>
+                    <option value="profit_issue">💵 Problème de profits</option>
+                    <option value="account_security">🔒 Sécurité du compte</option>
+                    <option value="technical_bug">🐛 Bug technique</option>
+                    <option value="kyc_question">🆔 Question KYC</option>
+                </select>
+            </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Sujet *</label>
                 <input type="text" id="ticketSubject" class="messenger-input" placeholder="Décrivez brièvement votre problème" required>
@@ -133,27 +225,44 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
                     <select id="ticketCategory" class="messenger-input">
-                        <option value="general">Général</option>
-                        <option value="wallet">Portefeuille</option>
-                        <option value="investment">Investissement</option>
-                        <option value="security">Sécurité</option>
-                        <option value="technical">Technique</option>
+                        <option value="general">📋 Général</option>
+                        <option value="wallet">💰 Portefeuille</option>
+                        <option value="investment">📈 Investissement</option>
+                        <option value="security">🔒 Sécurité</option>
+                        <option value="technical">🔧 Technique</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
                     <select id="ticketPriority" class="messenger-input">
-                        <option value="low">Faible</option>
-                        <option value="normal">Normale</option>
-                        <option value="high">Élevée</option>
-                        <option value="urgent">Urgente</option>
+                        <option value="normal">🟢 Normale</option>
+                        <option value="high">🟡 Élevée</option>
+                        <option value="urgent">🔴 Urgente</option>
                     </select>
                 </div>
             </div>
             
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Message *</label>
-                <textarea id="ticketMessage" class="messenger-input h-24" placeholder="Décrivez votre problème en détail..." required></textarea>
+                <textarea id="ticketMessage" class="messenger-input h-32" placeholder="Décrivez votre problème en détail..." required></textarea>
+                <div class="text-xs text-gray-500 mt-1">
+                    💡 Plus vous donnez de détails, plus nous pourrons vous aider rapidement
+                </div>
+            </div>
+
+            <!-- Informations supplémentaires -->
+            <div id="additionalInfo" class="bg-blue-50 p-3 rounded-lg">
+                <h4 class="font-medium text-blue-900 mb-2">📋 Informations utiles (optionnel)</h4>
+                <div class="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <label class="block text-blue-700 mb-1">Montant concerné</label>
+                        <input type="number" id="ticketAmount" class="w-full px-2 py-1 border border-blue-200 rounded" placeholder="0.00 USDT">
+                    </div>
+                    <div>
+                        <label class="block text-blue-700 mb-1">Hash de transaction</label>
+                        <input type="text" id="ticketTxHash" class="w-full px-2 py-1 border border-blue-200 rounded" placeholder="0x...">
+                    </div>
+                </div>
             </div>
             
             <div class="flex space-x-3">
@@ -315,6 +424,165 @@ function sendChatMessage() {
         chatMessages.appendChild(botMessage);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }, 1000);
+}
+
+// Templates prédéfinis
+function applyTemplate() {
+    const template = document.getElementById('ticketTemplate').value;
+    const subjectField = document.getElementById('ticketSubject');
+    const messageField = document.getElementById('ticketMessage');
+    const categoryField = document.getElementById('ticketCategory');
+    const priorityField = document.getElementById('ticketPriority');
+
+    const templates = {
+        'deposit_issue': {
+            subject: 'Problème avec mon dépôt USDT',
+            message: 'Bonjour,\n\nJ\'ai effectué un dépôt de [MONTANT] USDT le [DATE] mais celui-ci n\'apparaît pas dans mon portefeuille.\n\nHash de transaction: [HASH]\nAdresse utilisée: [ADRESSE]\n\nPouvez-vous vérifier et créditer mon compte ?\n\nMerci',
+            category: 'wallet',
+            priority: 'high'
+        },
+        'withdrawal_issue': {
+            subject: 'Problème avec ma demande de retrait',
+            message: 'Bonjour,\n\nJ\'ai demandé un retrait de [MONTANT] USDT le [DATE] mais je n\'ai toujours rien reçu.\n\nAdresse de retrait: [ADRESSE]\nStatut affiché: [STATUT]\n\nPouvez-vous vérifier le statut de ma demande ?\n\nMerci',
+            category: 'wallet',
+            priority: 'high'
+        },
+        'investment_question': {
+            subject: 'Question sur les plans d\'investissement',
+            message: 'Bonjour,\n\nJ\'ai une question concernant [PLAN/SUJET]:\n\n[VOTRE QUESTION]\n\nPouvez-vous m\'éclairer sur ce point ?\n\nMerci',
+            category: 'investment',
+            priority: 'normal'
+        },
+        'profit_issue': {
+            subject: 'Problème avec mes profits quotidiens',
+            message: 'Bonjour,\n\nJe n\'ai pas reçu mes profits quotidiens pour mon investissement #[ID].\n\nPlan: [NOM DU PLAN]\nMontant investi: [MONTANT] USDT\nDate d\'investissement: [DATE]\n\nPouvez-vous vérifier ?\n\nMerci',
+            category: 'investment',
+            priority: 'high'
+        },
+        'account_security': {
+            subject: 'Question de sécurité du compte',
+            message: 'Bonjour,\n\nJ\'ai une préoccupation concernant la sécurité de mon compte:\n\n[DÉCRIVEZ LE PROBLÈME]\n\nPouvez-vous m\'aider à sécuriser mon compte ?\n\nMerci',
+            category: 'security',
+            priority: 'high'
+        },
+        'technical_bug': {
+            subject: 'Bug technique sur la plateforme',
+            message: 'Bonjour,\n\nJe rencontre un problème technique:\n\n- Page concernée: [URL/PAGE]\n- Problème: [DESCRIPTION]\n- Navigateur: [CHROME/FIREFOX/SAFARI]\n- Appareil: [ORDINATEUR/MOBILE]\n\nÉtapes pour reproduire:\n1. [ÉTAPE 1]\n2. [ÉTAPE 2]\n3. [RÉSULTAT OBTENU]\n\nMerci',
+            category: 'technical',
+            priority: 'normal'
+        },
+        'kyc_question': {
+            subject: 'Question sur la vérification KYC',
+            message: 'Bonjour,\n\nJ\'ai une question concernant ma vérification KYC:\n\n[VOTRE QUESTION/PROBLÈME]\n\nStatut actuel: [STATUT]\nDocuments soumis: [LISTE]\n\nPouvez-vous m\'aider ?\n\nMerci',
+            category: 'security',
+            priority: 'normal'
+        }
+    };
+
+    if (templates[template]) {
+        const t = templates[template];
+        subjectField.value = t.subject;
+        messageField.value = t.message;
+        categoryField.value = t.category;
+        priorityField.value = t.priority;
+    }
+}
+
+// Filtrage des tickets
+function filterTickets() {
+    const search = document.getElementById('searchTickets').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const tickets = document.querySelectorAll('.ticket-item');
+    let visibleCount = 0;
+
+    tickets.forEach(ticket => {
+        const searchData = ticket.getAttribute('data-search');
+        const status = ticket.getAttribute('data-status');
+        const category = ticket.getAttribute('data-category');
+
+        const matchesSearch = !search || searchData.includes(search);
+        const matchesStatus = !statusFilter || status === statusFilter;
+        const matchesCategory = !categoryFilter || category === categoryFilter;
+
+        if (matchesSearch && matchesStatus && matchesCategory) {
+            ticket.style.display = 'block';
+            visibleCount++;
+        } else {
+            ticket.style.display = 'none';
+        }
+    });
+
+    document.getElementById('ticketCount').textContent = visibleCount;
+}
+
+// Réponse rapide
+function quickReply(ticketId) {
+    window.location.href = `/support/ticket/${ticketId}#reply`;
+}
+
+// Guides vidéo
+function showVideoGuides() {
+    const guides = [
+        { title: "Comment effectuer un dépôt", url: "#", duration: "2 min" },
+        { title: "Comment investir dans un plan ROI", url: "#", duration: "3 min" },
+        { title: "Comment retirer ses profits", url: "#", duration: "2 min" },
+        { title: "Comprendre le système de parrainage", url: "#", duration: "4 min" }
+    ];
+
+    let guidesHtml = '<div class="space-y-3">';
+    guides.forEach(guide => {
+        guidesHtml += `
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-play-circle text-red-500 text-xl"></i>
+                    <div>
+                        <div class="font-medium">${guide.title}</div>
+                        <div class="text-sm text-gray-600">${guide.duration}</div>
+                    </div>
+                </div>
+                <button class="messenger-btn-outline text-sm">Regarder</button>
+            </div>
+        `;
+    });
+    guidesHtml += '</div>';
+
+    showNotification('Guides vidéo disponibles bientôt!', 'info');
+}
+
+// Notification améliorée
+function showNotification(message, type = 'info', duration = 5000) {
+    const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500',
+        warning: 'bg-yellow-500'
+    };
+
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+    notification.innerHTML = `
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Animation d'entrée
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+
+    // Suppression automatique
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => notification.remove(), 300);
+    }, duration);
 }
 
 // Close modal when clicking outside

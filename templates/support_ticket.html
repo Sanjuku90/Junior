@@ -126,35 +126,98 @@ document.getElementById('replyForm')?.addEventListener('submit', async function(
 });
 
 // Auto-refresh messages every 30 seconds
+let lastMessageCount = {{ messages|length }};
 setInterval(async () => {
     try {
         const response = await fetch('/support/get-messages/{{ ticket.id }}');
+        
+        if (!response.ok) {
+            console.log('Erreur réponse serveur:', response.status);
+            return;
+        }
+        
         const result = await response.json();
         
-        if (result.messages) {
+        if (result.messages && Array.isArray(result.messages)) {
             const messagesContainer = document.getElementById('messagesContainer');
+            
+            // Vérifier s'il y a de nouveaux messages
+            if (result.messages.length > lastMessageCount) {
+                // Notification de nouveau message
+                showNotification('💬 Nouveau message reçu!', 'info', 3000);
+                lastMessageCount = result.messages.length;
+            }
+            
+            // Reconstruire la liste des messages
             messagesContainer.innerHTML = '';
             
             result.messages.forEach(message => {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = message.is_admin ? 'flex' : 'flex justify-end';
+                
+                // Formater la date de manière sécurisée
+                let dateStr = 'À l\'instant';
+                if (message.created_at) {
+                    try {
+                        dateStr = new Date(message.created_at).toLocaleString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (e) {
+                        dateStr = message.created_at.substring(0, 16);
+                    }
+                }
+                
                 messageDiv.innerHTML = `
-                    <div class="max-w-md ${message.is_admin ? 'bg-gray-100' : 'bg-blue-500 text-white'} rounded-lg p-4">
+                    <div class="max-w-md ${message.is_admin ? 'bg-gray-100 border border-gray-200' : 'bg-blue-500 text-white'} rounded-lg p-4 shadow-sm">
                         <div class="text-xs ${message.is_admin ? 'text-gray-600' : 'text-blue-100'} mb-1">
-                            ${message.is_admin ? '💼 Support' : '👤 ' + message.sender_name}
-                            • ${message.created_at.substring(0, 16)}
+                            ${message.is_admin ? '💼 Support' : '👤 ' + (message.sender_name || 'Vous')}
+                            • ${dateStr}
                         </div>
-                        <div class="text-sm">${message.message}</div>
+                        <div class="text-sm whitespace-pre-wrap">${message.message}</div>
                     </div>
                 `;
                 messagesContainer.appendChild(messageDiv);
             });
             
+            // Scroll vers le bas seulement s'il y a de nouveaux messages
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     } catch (error) {
-        console.log('Erreur lors du rafraîchissement des messages');
+        console.log('Erreur lors du rafraîchissement des messages:', error.message);
     }
 }, 30000);
+
+// Fonction de notification
+function showNotification(message, type = 'info', duration = 5000) {
+    const colors = {
+        success: 'bg-green-500',
+        error: 'bg-red-500',
+        info: 'bg-blue-500',
+        warning: 'bg-yellow-500'
+    };
+
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
+    notification.innerHTML = `
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Animation d'entrée
+    setTimeout(() => notification.classList.remove('translate-x-full'), 100);
+
+    // Suppression automatique
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => notification.remove(), 300);
+    }, duration);
+}
 </script>
 {% endblock %}

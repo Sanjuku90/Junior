@@ -127,14 +127,14 @@ def reply_to_support_ticket(ticket_id, admin_message):
             INSERT INTO support_messages (ticket_id, message, is_admin)
             VALUES (?, ?, 1)
         ''', (ticket_id, admin_message))
-        
+
         # Mettre à jour le statut du ticket
         conn.execute('''
             UPDATE support_tickets 
             SET status = 'admin_reply', updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (ticket_id,))
-        
+
         # Récupérer les infos du ticket pour notification
         ticket = conn.execute('''
             SELECT st.*, u.first_name, u.telegram_id
@@ -142,9 +142,9 @@ def reply_to_support_ticket(ticket_id, admin_message):
             JOIN users u ON st.user_id = u.id
             WHERE st.id = ?
         ''', (ticket_id,)).fetchone()
-        
+
         conn.commit()
-        
+
         # Ajouter notification à l'utilisateur
         if ticket:
             add_notification(
@@ -153,7 +153,7 @@ def reply_to_support_ticket(ticket_id, admin_message):
                 f'Vous avez reçu une réponse à votre ticket de support #{ticket_id}',
                 'info'
             )
-        
+
         return True, "Réponse envoyée avec succès"
     except Exception as e:
         return False, f"Erreur: {e}"
@@ -169,7 +169,7 @@ def close_support_ticket(ticket_id):
             SET status = 'closed', updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (ticket_id,))
-        
+
         # Récupérer les infos du ticket pour notification
         ticket = conn.execute('''
             SELECT st.*, u.first_name
@@ -177,9 +177,9 @@ def close_support_ticket(ticket_id):
             JOIN users u ON st.user_id = u.id
             WHERE st.id = ?
         ''', (ticket_id,)).fetchone()
-        
+
         conn.commit()
-        
+
         # Ajouter notification à l'utilisateur
         if ticket:
             add_notification(
@@ -188,7 +188,7 @@ def close_support_ticket(ticket_id):
                 f'Votre ticket de support #{ticket_id} a été résolu et fermé.',
                 'success'
             )
-        
+
         return True, "Ticket fermé avec succès"
     except Exception as e:
         return False, f"Erreur: {e}"
@@ -200,7 +200,7 @@ async def notify_admin_new_support_ticket(ticket_id, subject, message, category,
     try:
         priority_emoji = "🔴" if priority == 'urgent' else "🟡" if priority == 'high' else "🟢"
         category_emoji = "💰" if category == 'wallet' else "📈" if category == 'investment' else "🔧" if category == 'technical' else "👤" if category == 'account' else "❓"
-        
+
         notification_message = f"""
 🎫 **NOUVEAU TICKET DE SUPPORT**
 
@@ -215,7 +215,7 @@ async def notify_admin_new_support_ticket(ticket_id, subject, message, category,
 
 Utilisez /admin pour gérer les tickets.
         """
-        
+
         # Envoyer à tous les admins
         for admin_id in ADMIN_IDS:
             try:
@@ -234,28 +234,28 @@ Utilisez /admin pour gérer les tickets.
 def approve_deposit(transaction_id):
     """Approuver un dépôt"""
     conn = get_db_connection()
-    
+
     # Récupérer la transaction
     transaction = conn.execute('''
         SELECT * FROM transactions WHERE id = ? AND type = 'deposit' AND status = 'pending'
     ''', (transaction_id,)).fetchone()
-    
+
     if not transaction:
         conn.close()
         return False, "Transaction non trouvée"
-    
+
     # Mettre à jour le statut et créditer le solde
     conn.execute('''
         UPDATE transactions SET status = 'completed' WHERE id = ?
     ''', (transaction_id,))
-    
+
     conn.execute('''
         UPDATE users SET balance = balance + ? WHERE id = ?
     ''', (transaction['amount'], transaction['user_id']))
-    
+
     conn.commit()
     conn.close()
-    
+
     # Ajouter notification
     add_notification(
         transaction['user_id'],
@@ -263,30 +263,30 @@ def approve_deposit(transaction_id):
         f'Votre dépôt de {transaction["amount"]:.2f} USDT a été approuvé et crédité.',
         'success'
     )
-    
+
     return True, "Dépôt approuvé avec succès"
 
 def reject_deposit(transaction_id, reason=""):
     """Rejeter un dépôt"""
     conn = get_db_connection()
-    
+
     # Récupérer la transaction
     transaction = conn.execute('''
         SELECT * FROM transactions WHERE id = ? AND type = 'deposit' AND status = 'pending'
     ''', (transaction_id,)).fetchone()
-    
+
     if not transaction:
         conn.close()
         return False, "Transaction non trouvée"
-    
+
     # Mettre à jour le statut
     conn.execute('''
         UPDATE transactions SET status = 'rejected' WHERE id = ?
     ''', (transaction_id,))
-    
+
     conn.commit()
     conn.close()
-    
+
     # Ajouter notification
     add_notification(
         transaction['user_id'],
@@ -294,30 +294,30 @@ def reject_deposit(transaction_id, reason=""):
         f'Votre dépôt de {transaction["amount"]:.2f} USDT a été rejeté. Raison: {reason or "Non spécifiée"}',
         'error'
     )
-    
+
     return True, "Dépôt rejeté"
 
 def approve_withdrawal(transaction_id):
     """Approuver un retrait"""
     conn = get_db_connection()
-    
+
     # Récupérer la transaction
     transaction = conn.execute('''
         SELECT * FROM transactions WHERE id = ? AND type = 'withdrawal' AND status = 'pending'
     ''', (transaction_id,)).fetchone()
-    
+
     if not transaction:
         conn.close()
         return False, "Transaction non trouvée"
-    
+
     # Mettre à jour le statut
     conn.execute('''
         UPDATE transactions SET status = 'completed' WHERE id = ?
     ''', (transaction_id,))
-    
+
     conn.commit()
     conn.close()
-    
+
     # Ajouter notification
     add_notification(
         transaction['user_id'],
@@ -325,34 +325,34 @@ def approve_withdrawal(transaction_id):
         f'Votre retrait de {transaction["amount"]:.2f} USDT a été traité avec succès.',
         'success'
     )
-    
+
     return True, "Retrait approuvé avec succès"
 
 def reject_withdrawal(transaction_id, reason=""):
     """Rejeter un retrait et rembourser"""
     conn = get_db_connection()
-    
+
     # Récupérer la transaction
     transaction = conn.execute('''
         SELECT * FROM transactions WHERE id = ? AND type = 'withdrawal' AND status = 'pending'
     ''', (transaction_id,)).fetchone()
-    
+
     if not transaction:
         conn.close()
         return False, "Transaction non trouvée"
-    
+
     # Mettre à jour le statut et rembourser
     conn.execute('''
         UPDATE transactions SET status = 'rejected' WHERE id = ?
     ''', (transaction_id,))
-    
+
     conn.execute('''
         UPDATE users SET balance = balance + ? WHERE id = ?
     ''', (transaction['amount'], transaction['user_id']))
-    
+
     conn.commit()
     conn.close()
-    
+
     # Ajouter notification
     add_notification(
         transaction['user_id'],
@@ -360,7 +360,7 @@ def reject_withdrawal(transaction_id, reason=""):
         f'Votre retrait de {transaction["amount"]:.2f} USDT a été rejeté et remboursé. Raison: {reason or "Non spécifiée"}',
         'warning'
     )
-    
+
     return True, "Retrait rejeté et remboursé"
 
 # Fonction pour obtenir ou créer l'utilisateur depuis Telegram ID
@@ -558,7 +558,7 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.id):
         await update.message.reply_text("❌ Accès refusé.")
         return
-    
+
     await show_admin_menu(update, context)
 
 async def show_admin_menu(update, context):
@@ -566,10 +566,10 @@ async def show_admin_menu(update, context):
     # Récupérer les statistiques
     pending_deposits = get_pending_deposits()
     pending_withdrawals = get_pending_withdrawals()
-    
+
     # Récupérer les tickets de support en attente
     pending_support_tickets = get_pending_support_tickets()
-    
+
     keyboard = [
         [InlineKeyboardButton(f"💳 Dépôts en attente ({len(pending_deposits)})", callback_data="admin_deposits")],
         [InlineKeyboardButton(f"💸 Retraits en attente ({len(pending_withdrawals)})", callback_data="admin_withdrawals")],
@@ -579,7 +579,7 @@ async def show_admin_menu(update, context):
         [InlineKeyboardButton("🔙 Menu utilisateur", callback_data="admin_to_user")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     message = f"""
 🔧 **PANNEAU ADMINISTRATEUR**
 
@@ -595,7 +595,7 @@ async def show_admin_menu(update, context):
 
 ⚡ **Choisissez une action :**
     """
-    
+
     if hasattr(update, 'message') and update.message:
         await update.message.reply_text(message, reply_markup=reply_markup, parse_mode='Markdown')
     else:
@@ -1717,13 +1717,13 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     data = query.data
-    
+
     # Vérifier si c'est une action admin
     if data.startswith("admin_"):
         if not is_admin(update.effective_user.id):
             await query.edit_message_text("❌ Accès refusé.")
             return
-        
+
         if data == "admin_menu":
             await show_admin_menu(update, context)
         elif data == "admin_deposits":
@@ -1744,16 +1744,16 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await query.edit_message_text("❌ Utilisateur non trouvé.")
         return
-    
+
     # Actions de validation admin
     if data.startswith("approve_deposit_"):
         if not is_admin(update.effective_user.id):
             await query.edit_message_text("❌ Accès refusé.")
             return
-        
+
         transaction_id = int(data.split("_")[-1])
         success, message = approve_deposit(transaction_id)
-        
+
         if success:
             await query.edit_message_text(f"✅ {message}")
             # Retourner au menu des dépôts après 2 secondes
@@ -1762,15 +1762,15 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await query.edit_message_text(f"❌ {message}")
         return
-    
+
     elif data.startswith("reject_deposit_"):
         if not is_admin(update.effective_user.id):
             await query.edit_message_text("❌ Accès refusé.")
             return
-        
+
         transaction_id = int(data.split("_")[-1])
         success, message = reject_deposit(transaction_id, "Transaction invalide")
-        
+
         if success:
             await query.edit_message_text(f"❌ {message}")
             # Retourner au menu des dépôts après 2 secondes
@@ -1779,15 +1779,15 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await query.edit_message_text(f"❌ {message}")
         return
-    
+
     elif data.startswith("approve_withdrawal_"):
         if not is_admin(update.effective_user.id):
             await query.edit_message_text("❌ Accès refusé.")
             return
-        
+
         transaction_id = int(data.split("_")[-1])
         success, message = approve_withdrawal(transaction_id)
-        
+
         if success:
             await query.edit_message_text(f"✅ {message}")
             # Retourner au menu des retraits après 2 secondes
@@ -1796,15 +1796,15 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await query.edit_message_text(f"❌ {message}")
         return
-    
+
     elif data.startswith("reject_withdrawal_"):
         if not is_admin(update.effective_user.id):
             await query.edit_message_text("❌ Accès refusé.")
             return
-        
+
         transaction_id = int(data.split("_")[-1])
         success, message = reject_withdrawal(transaction_id, "Retrait refusé")
-        
+
         if success:
             await query.edit_message_text(f"❌ {message}")
             # Retourner au menu des retraits après 2 secondes
@@ -1813,12 +1813,12 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await query.edit_message_text(f"❌ {message}")
         return
-    
+
     elif data.startswith("support_reply_"):
         if not is_admin(update.effective_user.id):
             await query.edit_message_text("❌ Accès refusé.")
             return
-        
+
         ticket_id = int(data.split("_")[-1])
         context.user_data['support_ticket_reply'] = ticket_id
         await query.edit_message_text(
@@ -1826,15 +1826,15 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Tapez votre réponse :"
         )
         return
-    
+
     elif data.startswith("support_close_"):
         if not is_admin(update.effective_user.id):
             await query.edit_message_text("❌ Accès refusé.")
             return
-        
+
         ticket_id = int(data.split("_")[-1])
         success, message = close_support_ticket(ticket_id)
-        
+
         if success:
             await query.edit_message_text(f"✅ {message}")
             await asyncio.sleep(2)
@@ -2580,118 +2580,118 @@ Pour le moment, utilisez les sections individuelles pour voir vos données.
 async def show_admin_deposits(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher les dépôts en attente"""
     await update.callback_query.answer()
-    
+
     deposits = get_pending_deposits()
-    
+
     if not deposits:
         keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await update.callback_query.edit_message_text(
             "✅ **Aucun dépôt en attente**",
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
         return
-    
+
     keyboard = []
     message = "💳 **DÉPÔTS EN ATTENTE**\n\n"
-    
+
     for deposit in deposits[:5]:  # Limiter à 5 pour éviter un message trop long
         user_name = f"{deposit['first_name']} {deposit['last_name'] or ''}"
         try:
             date_str = datetime.fromisoformat(deposit['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
         except:
             date_str = "Non disponible"
-        
+
         message += f"👤 **{user_name}**\n"
         message += f"💰 {deposit['amount']:.2f} USDT\n"
         message += f"📅 {date_str}\n"
         message += f"🔗 `{deposit['transaction_hash'][:20]}...`\n\n"
-        
+
         keyboard.append([
             InlineKeyboardButton(f"✅ Approuver #{deposit['id']}", callback_data=f"approve_deposit_{deposit['id']}"),
             InlineKeyboardButton(f"❌ Rejeter #{deposit['id']}", callback_data=f"reject_deposit_{deposit['id']}")
         ])
-    
+
     if len(deposits) > 5:
         message += f"... et {len(deposits) - 5} autres dépôts"
-    
+
     keyboard.append([InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_admin_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher les retraits en attente"""
     await update.callback_query.answer()
-    
+
     withdrawals = get_pending_withdrawals()
-    
+
     if not withdrawals:
         keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await update.callback_query.edit_message_text(
             "✅ **Aucun retrait en attente**",
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
         return
-    
+
     keyboard = []
     message = "💸 **RETRAITS EN ATTENTE**\n\n"
-    
+
     for withdrawal in withdrawals[:5]:  # Limiter à 5 pour éviter un message trop long
         user_name = f"{withdrawal['first_name']} {withdrawal['last_name'] or ''}"
         try:
             date_str = datetime.fromisoformat(withdrawal['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
         except:
             date_str = "Non disponible"
-        
+
         # Extraire l'adresse du hash
         address = withdrawal['transaction_hash'].split('|')[0] if '|' in withdrawal['transaction_hash'] else "Non disponible"
-        
+
         message += f"👤 **{user_name}**\n"
         message += f"💰 {withdrawal['amount']:.2f} USDT\n"
         message += f"📅 {date_str}\n"
         message += f"📍 `{address[:20]}...`\n\n"
-        
+
         keyboard.append([
             InlineKeyboardButton(f"✅ Traiter #{withdrawal['id']}", callback_data=f"approve_withdrawal_{withdrawal['id']}"),
             InlineKeyboardButton(f"❌ Rejeter #{withdrawal['id']}", callback_data=f"reject_withdrawal_{withdrawal['id']}")
         ])
-    
+
     if len(withdrawals) > 5:
         message += f"... et {len(withdrawals) - 5} autres retraits"
-    
+
     keyboard.append([InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")])
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher les statistiques administrateur"""
     await update.callback_query.answer()
-    
+
     conn = get_db_connection()
-    
+
     # Statistiques générales
     total_users = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()['count']
     total_deposits = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = "deposit" AND status = "completed"').fetchone()['total']
     total_withdrawals = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = "withdrawal" AND status = "completed"').fetchone()['total']
     total_investments = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM user_investments').fetchone()['total']
-    
+
     # Statistiques du jour
     today = datetime.now().strftime('%Y-%m-%d')
     daily_users = conn.execute('SELECT COUNT(*) as count FROM users WHERE DATE(created_at) = ?', (today,)).fetchone()['count']
     daily_deposits = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = "deposit" AND DATE(created_at) = ?', (today,)).fetchone()['total']
-    
+
     conn.close()
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     message = f"""
 📊 **STATISTIQUES PLATEFORME**
 
@@ -2711,13 +2711,13 @@ async def show_admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
 💼 **Solde plateforme :**
 • Liquidité : {total_deposits - total_withdrawals:.2f} USDT
     """
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher les utilisateurs récents"""
     await update.callback_query.answer()
-    
+
     conn = get_db_connection()
     recent_users = conn.execute('''
         SELECT first_name, last_name, balance, created_at
@@ -2726,73 +2726,84 @@ async def show_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
         LIMIT 10
     ''').fetchall()
     conn.close()
-    
+
     keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     message = "👥 **UTILISATEURS RÉCENTS**\n\n"
-    
+
     for user in recent_users:
         try:
             date_str = datetime.fromisoformat(user['created_at'].replace('Z', '+00:00')).strftime('%d/%m')
         except:
             date_str = "N/A"
-        
+
         message += f"👤 {user['first_name']} {user['last_name'] or ''}\n"
         message += f"💰 {user['balance']:.2f} USDT | 📅 {date_str}\n\n"
-    
+
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_admin_support_tickets(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher les tickets de support en attente"""
-    await update.callback_query.answer()
-    
-    tickets = get_pending_support_tickets()
-    
-    if not tickets:
-        keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
+    """Afficher les tickets de support pour l'admin"""
+    try:
+        conn = get_db_connection()
+
+        # Récupérer les tickets ouverts
+        tickets = conn.execute('''
+            SELECT st.*, u.first_name, u.last_name, u.email,
+                   COUNT(sm.id) as message_count
+            FROM support_tickets st
+            JOIN users u ON st.user_id = u.id
+            LEFT JOIN support_messages sm ON st.id = sm.ticket_id
+            WHERE st.status IN ('open', 'user_reply')
+            GROUP BY st.id
+            ORDER BY st.updated_at DESC
+            LIMIT 10
+        ''').fetchall()
+
+        if not tickets:
+            text = "📋 Aucun ticket de support en attente"
+            keyboard = [[InlineKeyboardButton("🔄 Actualiser", callback_data="admin_support_refresh")]]
+        else:
+            text = f"🎫 *Tickets de Support* ({len(tickets)} en attente)\n\n"
+
+            keyboard = []
+            for ticket in tickets:
+                status_emoji = "🆕" if ticket['status'] == 'open' else "💬"
+                priority_emoji = "🔴" if ticket['priority'] == 'urgent' else "🟡" if ticket['priority'] == 'high' else "🟢"
+
+                text += f"{status_emoji} *#{ticket['id']}* - {ticket['subject'][:30]}...\n"
+                text += f"👤 {ticket['first_name']} {ticket['last_name']}\n"
+                text += f"📝 {ticket['message_count']} messages • {priority_emoji} {ticket['priority']}\n\n"
+
+                keyboard.append([
+                    InlineKeyboardButton(f"📖 Ticket #{ticket['id']}", callback_data=f"admin_ticket_{ticket['id']}")
+                ])
+
+            keyboard.append([InlineKeyboardButton("🔄 Actualiser", callback_data="admin_support_refresh")])
+
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        await update.callback_query.edit_message_text(
-            "✅ **Aucun ticket de support en attente**",
-            reply_markup=reply_markup,
-            parse_mode='Markdown'
-        )
-        return
-    
-    keyboard = []
-    message = "🎫 **TICKETS DE SUPPORT EN ATTENTE**\n\n"
-    
-    for ticket in tickets[:5]:  # Limiter à 5 pour éviter un message trop long
-        user_name = f"{ticket['first_name']} {ticket['last_name'] or ''}"
+
+        # Vérifier si c'est un callback query ou un message normal
+        if update.callback_query:
+            await update.callback_query.answer()
+            await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+        elif update.message:
+            await update.message.reply_text(text, reply_markup=reply_markup, parse_mode='Markdown')
+
+        conn.close()
+
+    except Exception as e:
+        error_text = f"❌ Erreur lors de la récupération des tickets: {str(e)}"
+        print(f"Erreur show_admin_support_tickets: {e}")
+
         try:
-            date_str = datetime.fromisoformat(ticket['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
-        except:
-            date_str = "Non disponible"
-        
-        priority_emoji = "🔴" if ticket['priority'] == 'urgent' else "🟡" if ticket['priority'] == 'high' else "🟢"
-        category_emoji = "💰" if ticket['category'] == 'wallet' else "📈" if ticket['category'] == 'investment' else "🔧" if ticket['category'] == 'technical' else "👤" if ticket['category'] == 'account' else "❓"
-        
-        message += f"{priority_emoji} **Ticket #{ticket['id']}**\n"
-        message += f"👤 {user_name}\n"
-        message += f"{category_emoji} {ticket['subject']}\n"
-        message += f"📅 {date_str}\n"
-        if ticket['first_message']:
-            message += f"💬 {ticket['first_message'][:50]}...\n"
-        message += "\n"
-        
-        keyboard.append([
-            InlineKeyboardButton(f"✅ Répondre #{ticket['id']}", callback_data=f"support_reply_{ticket['id']}"),
-            InlineKeyboardButton(f"❌ Fermer #{ticket['id']}", callback_data=f"support_close_{ticket['id']}")
-        ])
-    
-    if len(tickets) > 5:
-        message += f"... et {len(tickets) - 5} autres tickets"
-    
-    keyboard.append([InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")])
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+            if update.callback_query:
+                await update.callback_query.answer(error_text)
+            elif update.message:
+                await update.message.reply_text(error_text)
+        except Exception as reply_error:
+            print(f"Erreur lors de l'envoi de la réponse d'erreur: {reply_error}")
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Annuler une conversation"""
@@ -2864,13 +2875,13 @@ def setup_user_telegram_bot():
         """Gérer les réponses de support admin"""
         if not is_admin(update.effective_user.id):
             return
-        
+
         if 'support_ticket_reply' in context.user_data:
             ticket_id = context.user_data['support_ticket_reply']
             admin_message = update.message.text
-            
+
             success, message = reply_to_support_ticket(ticket_id, admin_message)
-            
+
             if success:
                 await update.message.reply_text(f"✅ {message}")
                 # Retourner au menu des tickets après la réponse
@@ -2878,8 +2889,10 @@ def setup_user_telegram_bot():
                 await show_admin_support_tickets(update, context)
             else:
                 await update.message.reply_text(f"❌ {message}")
-            
+
             del context.user_data['support_ticket_reply']
+        else:
+            await update.message.reply_text("❌ Aucune action de support en attente.")
 
     # Ajouter tous les handlers
     application.add_handler(CommandHandler("start", start))
