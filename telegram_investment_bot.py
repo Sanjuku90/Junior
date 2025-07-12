@@ -35,7 +35,7 @@ DATABASE = 'investment_platform.db'
 
 # Liste des administrateurs (IDs Telegram) - Configuration sécurisée
 ADMIN_IDS = [7474306991, 8186612060]  # IDs Telegram des administrateurs vérifiés
-ADMIN_EMAILS = ["admin@investcryptopro.com", "support@investcryptopro.com"]  # Emails admin autorisés
+ADMIN_EMAILS = ["admin@investcryptopro.com", "support@investcryptopro.com", "a@gmail.com"]  # Emails admin autorisés
 
 # États de conversation
 REGISTER_EMAIL, REGISTER_PASSWORD, REGISTER_FIRSTNAME, REGISTER_LASTNAME, REGISTER_REFERRAL = range(5)
