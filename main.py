@@ -700,8 +700,6 @@ def dashboard():
                     date_str = notif_dict['created_at'].replace('Z', '').replace('+00:00', '')
                     notif_dict['created_at'] = datetime.fromisoformat(date_str)
                 elif hasattr(notif_dict['created_at'], 'strftime'):
-                    ```python
-# Removing Telegram bot functionalities from the investment platform.
                     # Already a datetime object
                     pass
                 else:
