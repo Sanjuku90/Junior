@@ -231,7 +231,7 @@ async function doBackgroundSync() {
   }
 }
 
-// Notifications push
+// Notifications push avancées
 self.addEventListener('push', event => {
   if (!event.data) return;
   
@@ -239,29 +239,166 @@ self.addEventListener('push', event => {
   const options = {
     body: data.body || 'Nouvelle notification Ttrust',
     icon: '/static/icons/icon-192x192.png',
-    badge: '/static/icons/badge-72x72.png',
-    vibrate: [200, 100, 200],
+    badge: '/static/icons/icon-72x72.png',
+    image: data.image || null,
+    vibrate: data.vibrate || [200, 100, 200],
+    sound: data.sound || null,
     data: data.data || {},
-    actions: [
+    actions: data.actions || [
       {
         action: 'view',
         title: 'Voir',
-        icon: '/static/icons/view-24x24.png'
+        icon: '/static/icons/icon-32x32.png'
       },
       {
         action: 'dismiss',
         title: 'Ignorer',
-        icon: '/static/icons/dismiss-24x24.png'
+        icon: '/static/icons/icon-32x32.png'
       }
     ],
     requireInteraction: data.requireInteraction || false,
-    tag: data.tag || 'default'
+    tag: data.tag || 'default',
+    renotify: data.renotify || false,
+    silent: data.silent || false,
+    timestamp: Date.now(),
+    dir: 'ltr',
+    lang: 'fr'
   };
+  
+  // Notification personnalisée selon le type
+  if (data.type === 'investment') {
+    options.actions = [
+      { action: 'view_dashboard', title: '📊 Dashboard', icon: '/static/icons/icon-32x32.png' },
+      { action: 'view_profits', title: '💰 Profits', icon: '/static/icons/icon-32x32.png' },
+      { action: 'dismiss', title: 'Ignorer', icon: '/static/icons/icon-32x32.png' }
+    ];
+  } else if (data.type === 'security') {
+    options.actions = [
+      { action: 'view_security', title: '🔐 Sécurité', icon: '/static/icons/icon-32x32.png' },
+      { action: 'lock_account', title: '🔒 Verrouiller', icon: '/static/icons/icon-32x32.png' }
+    ];
+    options.requireInteraction = true;
+    options.vibrate = [300, 100, 300, 100, 300];
+  }
   
   event.waitUntil(
     self.registration.showNotification(data.title || 'Ttrust', options)
   );
 });
+
+// Cache avancé pour mode hors ligne
+const OFFLINE_CACHE_NAME = 'ttrust-offline-v1';
+const OFFLINE_PAGES = [
+  '/dashboard',
+  '/profile',
+  '/investment-history',
+  '/support',
+  '/security'
+];
+
+// Mise en cache des pages importantes
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(OFFLINE_CACHE_NAME)
+      .then(cache => {
+        return cache.addAll(OFFLINE_PAGES);
+      })
+  );
+});
+
+// Synchronisation en arrière-plan pour les données critiques
+self.addEventListener('sync', event => {
+  if (event.tag === 'sync-investments') {
+    event.waitUntil(syncInvestmentData());
+  } else if (event.tag === 'sync-security-logs') {
+    event.waitUntil(syncSecurityLogs());
+  }
+});
+
+async function syncInvestmentData() {
+  try {
+    // Synchroniser les données d'investissement en attente
+    const pendingData = await getStoredPendingData('investments');
+    if (pendingData.length > 0) {
+      for (const data of pendingData) {
+        await fetch('/api/sync-investment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+      }
+      await clearStoredPendingData('investments');
+    }
+  } catch (error) {
+    console.error('[SW] Erreur sync investissements:', error);
+  }
+}
+
+async function syncSecurityLogs() {
+  try {
+    const pendingLogs = await getStoredPendingData('security');
+    if (pendingLogs.length > 0) {
+      await fetch('/api/sync-security', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logs: pendingLogs })
+      });
+      await clearStoredPendingData('security');
+    }
+  } catch (error) {
+    console.error('[SW] Erreur sync sécurité:', error);
+  }
+}
+
+async function getStoredPendingData(type) {
+  const db = await openDB();
+  const transaction = db.transaction(['pending'], 'readonly');
+  const store = transaction.objectStore('pending');
+  const data = await store.getAll();
+  return data.filter(item => item.type === type);
+}
+
+async function clearStoredPendingData(type) {
+  const db = await openDB();
+  const transaction = db.transaction(['pending'], 'readwrite');
+  const store = transaction.objectStore('pending');
+  const data = await store.getAll();
+  
+  for (const item of data) {
+    if (item.type === type) {
+      await store.delete(item.id);
+    }
+  }
+}
+
+// IndexedDB pour stockage hors ligne
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('TtrustOfflineDB', 1);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      
+      if (!db.objectStoreNames.contains('pending')) {
+        const store = db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('type', 'type', { unique: false });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+      
+      if (!db.objectStoreNames.contains('userdata')) {
+        const userStore = db.createObjectStore('userdata', { keyPath: 'key' });
+      }
+      
+      if (!db.objectStoreNames.contains('security')) {
+        const securityStore = db.createObjectStore('security', { keyPath: 'id', autoIncrement: true });
+        securityStore.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+    };
+  });
+}
 
 // Gestion des clics sur notifications
 self.addEventListener('notificationclick', event => {

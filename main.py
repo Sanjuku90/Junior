@@ -3382,6 +3382,130 @@ def log_security_action(user_id, action, details=""):
     except Exception as e:
         print(f"❌ Erreur log sécurité: {e}")
 
+# API Routes pour PWA avancé
+@app.route('/api/user-info')
+@login_required
+def api_user_info():
+    """Retourner les informations utilisateur pour PWA"""
+    conn = get_db_connection()
+    user = conn.execute('SELECT id, email, first_name, last_name FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    conn.close()
+    
+    return jsonify({
+        'id': user['id'],
+        'email': user['email'],
+        'first_name': user['first_name'],
+        'last_name': user['last_name']
+    })
+
+@app.route('/api/push-subscribe', methods=['POST'])
+@login_required
+def api_push_subscribe():
+    """Enregistrer un abonnement push"""
+    data = request.get_json()
+    
+    # Stocker l'abonnement push (à implémenter selon vos besoins)
+    # Pour l'instant, on retourne juste un succès
+    print(f"📱 Abonnement push pour utilisateur {session['user_id']}")
+    
+    return jsonify({'success': True})
+
+@app.route('/api/security/location', methods=['POST'])
+@login_required
+def api_security_location():
+    """Enregistrer l'accès géolocalisé pour sécurité"""
+    data = request.get_json()
+    
+    try:
+        # Enregistrer dans les logs de sécurité
+        log_security_action(
+            session['user_id'], 
+            'geo_access', 
+            f"Accès depuis lat:{data['latitude']:.4f}, lon:{data['longitude']:.4f}, précision:{data.get('accuracy', 'N/A')}m"
+        )
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"❌ Erreur log géolocalisation: {e}")
+        return jsonify({'error': 'Erreur lors de l\'enregistrement'}), 500
+
+@app.route('/api/biometric/challenge', methods=['POST'])
+@login_required
+def api_biometric_challenge():
+    """Générer un challenge pour l'authentification biométrique"""
+    import secrets
+    
+    # Générer un challenge aléatoire
+    challenge = secrets.token_bytes(32)
+    
+    # Stocker le challenge temporairement (en production, utiliser Redis ou une base de données)
+    session[f'biometric_challenge_{session["user_id"]}'] = challenge.hex()
+    
+    return jsonify({
+        'challenge': list(challenge),
+        'credentialId': f"ttrust_user_{session['user_id']}"
+    })
+
+@app.route('/api/biometric/register', methods=['POST'])
+@login_required
+def api_biometric_register():
+    """Enregistrer une credential biométrique"""
+    data = request.get_json()
+    
+    try:
+        # En production, stocker la clé publique et les données d'attestation
+        # Pour l'instant, on simule juste l'enregistrement
+        
+        log_security_action(
+            session['user_id'], 
+            'biometric_registered', 
+            'Authentification biométrique configurée'
+        )
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"❌ Erreur enregistrement biométrique: {e}")
+        return jsonify({'error': 'Erreur lors de l\'enregistrement'}), 500
+
+@app.route('/api/biometric/verify', methods=['POST'])
+@login_required
+def api_biometric_verify():
+    """Vérifier une authentification biométrique"""
+    data = request.get_json()
+    
+    try:
+        # En production, vérifier la signature avec la clé publique stockée
+        # Pour l'instant, on accepte toujours (à des fins de démonstration)
+        
+        log_security_action(
+            session['user_id'], 
+            'biometric_auth_success', 
+            'Authentification biométrique réussie'
+        )
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"❌ Erreur vérification biométrique: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/notifications/send', methods=['POST'])
+@login_required
+def api_send_notification():
+    """Envoyer une notification à l'utilisateur (pour tests)"""
+    data = request.get_json()
+    
+    notification_type = data.get('type', 'info')
+    title = data.get('title', 'Test Notification')
+    body = data.get('body', 'Ceci est une notification de test')
+    
+    # En production, utiliser un service comme Firebase Cloud Messaging
+    # Pour l'instant, on retourne juste le succès
+    
+    return jsonify({
+        'success': True,
+        'message': 'Notification envoyée (simulation)'
+    })
+
 if __name__ == '__main__':
     # Initialize database with retry logic
     max_init_retries = 3
