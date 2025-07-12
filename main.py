@@ -1401,7 +1401,64 @@ def investment_history():
 
     conn.close()
 
-    # Combiner tous les investissements pour les statistiques
+    # Calculer les statistiques globales
+    total_invested = 0
+    total_profits = 0
+    active_count = 0
+    completed_count = 0
+
+    # Traiter les investissements ROI
+    for inv in roi_investments:
+        total_invested += inv['amount'] if inv['amount'] else 0
+        total_profits += inv['total_earned'] if inv['total_earned'] else 0
+        if inv['is_active']:
+            active_count += 1
+        else:
+            completed_count += 1
+
+    # Traiter les investissements staking
+    for inv in staking_investments:
+        total_invested += inv['amount'] if inv['amount'] else 0
+        total_profits += inv['total_earned'] if inv['total_earned'] else 0
+        if inv['is_active']:
+            active_count += 1
+        else:
+            completed_count += 1
+
+    # Traiter les bots de trading
+    for bot in trading_bots:
+        total_invested += bot['amount'] if bot['amount'] else 0
+        total_profits += bot['total_profit'] if bot['total_profit'] else 0
+        if bot['is_active']:
+            active_count += 1
+        else:
+            completed_count += 1
+
+    # Traiter les copy trades
+    for trade in copy_trades:
+        total_invested += trade['amount'] if trade['amount'] else 0
+        total_profits += trade['total_profit'] if trade['total_profit'] else 0
+        if trade['is_active']:
+            active_count += 1
+        else:
+            completed_count += 1
+
+    # Traiter les investissements projets
+    for proj in project_investments:
+        total_invested += proj['amount'] if proj['amount'] else 0
+        # Les projets sont considérés comme actifs
+        active_count += 1
+
+    # Créer un dictionnaire de statistiques
+    stats = {
+        'total_invested': total_invested,
+        'total_profits': total_profits,
+        'active_count': active_count,
+        'completed_count': completed_count,
+        'total_count': len(roi_investments) + len(staking_investments) + len(trading_bots) + len(copy_trades) + len(project_investments)
+    }
+
+    # Combiner tous les investissements pour les filtres
     all_investments = []
     
     # Ajouter les investissements ROI
@@ -1462,7 +1519,8 @@ def investment_history():
                          trading_bots=trading_bots,
                          copy_trades=copy_trades,
                          project_investments=project_investments,
-                         all_investments=all_investments)
+                         all_investments=all_investments,
+                         stats=stats)
 
 @app.route('/projects')
 @login_required

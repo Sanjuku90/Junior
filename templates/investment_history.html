@@ -26,11 +26,10 @@
             </div>
             <div class="text-sm text-gray-500 font-medium mb-1">Total investi</div>
             <div class="text-xl font-bold text-gray-900">
-                {% set total_invested = 0 %}
-                {% for inv in all_investments %}
-                    {% set total_invested = total_invested + inv.amount %}
-                {% endfor %}
-                {{ "%.2f"|format(total_invested) }} USDT
+                {{ "%.2f"|format(stats.total_invested) }} USDT
+            </div>
+            <div class="text-xs text-green-600 font-medium mt-1">
+                📊 Capital total déployé
             </div>
         </div>
 
@@ -40,11 +39,10 @@
             </div>
             <div class="text-sm text-gray-500 font-medium mb-1">Total des profits</div>
             <div class="text-xl font-bold text-gray-900">
-                {% set total_profits = 0 %}
-                {% for inv in all_investments %}
-                    {% set total_profits = total_profits + (inv.total_earned or 0) %}
-                {% endfor %}
-                {{ "%.2f"|format(total_profits) }} USDT
+                {{ "%.2f"|format(stats.total_profits) }} USDT
+            </div>
+            <div class="text-xs text-blue-600 font-medium mt-1">
+                💰 Gains accumulés
             </div>
         </div>
 
@@ -54,13 +52,10 @@
             </div>
             <div class="text-sm text-gray-500 font-medium mb-1">Investissements actifs</div>
             <div class="text-xl font-bold text-gray-900">
-                {% set active_count = 0 %}
-                {% for inv in all_investments %}
-                    {% if inv.is_active %}
-                        {% set active_count = active_count + 1 %}
-                    {% endif %}
-                {% endfor %}
-                {{ active_count }}
+                {{ stats.active_count }}
+            </div>
+            <div class="text-xs text-purple-600 font-medium mt-1">
+                🚀 Plans en cours
             </div>
         </div>
 
@@ -70,13 +65,10 @@
             </div>
             <div class="text-sm text-gray-500 font-medium mb-1">Investissements terminés</div>
             <div class="text-xl font-bold text-gray-900">
-                {% set completed_count = 0 %}
-                {% for inv in all_investments %}
-                    {% if not inv.is_active %}
-                        {% set completed_count = completed_count + 1 %}
-                    {% endif %}
-                {% endfor %}
-                {{ completed_count }}
+                {{ stats.completed_count }}
+            </div>
+            <div class="text-xs text-orange-600 font-medium mt-1">
+                ✅ Plans complétés
             </div>
         </div>
     </div>
