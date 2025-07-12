@@ -333,7 +333,7 @@ def init_db():
     # Clear existing plans first to avoid duplicates
     cursor.execute('DELETE FROM roi_plans')
     
-    # Insert clean ROI plans - Starting from 20 USDT
+    # Insert clean ROI plans - ALL starting from 20 USDT minimum
     cursor.execute('''
         INSERT INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
@@ -344,11 +344,11 @@ def init_db():
         ('Platinum Elite', '💎 Elite platinum ! 12% quotidien sur 40 jours. Pour investisseurs sérieux.', 0.12, 40, 20, 5000),
         ('Diamond Pro', '💍 Diamant professionnel ! 15% par jour pendant 50 jours. Rendement exceptionnel.', 0.15, 50, 20, 10000),
         ('VIP Supreme', '👑 VIP suprême ! 18% quotidien sur 60 jours. Pour les grands investisseurs.', 0.18, 60, 20, 25000),
-        ('Turbo Flash', '⚡ EXCLUSIF ! 20% par jour sur 14 jours ! Trading haute fréquence + arbitrage premium. Réservé aux VIP.', 0.20, 14, 100, 25000),
-        ('Lightning Pro', '⚡ FLASH ! 22% par jour sur 10 jours ! Technologie quantum trading + IA prédictive avancée.', 0.22, 10, 150, 30000),
-        ('Super Express', '🔥 NOUVEAU ! 25% quotidien pendant 7 jours ! Profits explosifs garantis ! IA révolutionnaire + algorithmes secrets.', 0.25, 7, 100, 10000),
-        ('Mega Booster', '💥 LIMITE ! 30% quotidien pendant 5 jours ! Stratégie secrète révolutionnaire ! Places limitées !', 0.30, 5, 200, 15000),
-        ('Rocket Launch', '🚀 METEORE ! 35% quotidien pendant 3 jours ! Stratégie ultra-secrète ! Rendement historique jamais vu !', 0.35, 3, 500, 20000)
+        ('Turbo Flash', '⚡ EXCLUSIF ! 20% par jour sur 14 jours ! Trading haute fréquence + arbitrage premium. Réservé aux VIP.', 0.20, 14, 20, 25000),
+        ('Lightning Pro', '⚡ FLASH ! 22% par jour sur 10 jours ! Technologie quantum trading + IA prédictive avancée.', 0.22, 10, 20, 30000),
+        ('Super Express', '🔥 NOUVEAU ! 25% quotidien pendant 7 jours ! Profits explosifs garantis ! IA révolutionnaire + algorithmes secrets.', 0.25, 7, 20, 10000),
+        ('Mega Booster', '💥 LIMITE ! 30% quotidien pendant 5 jours ! Stratégie secrète révolutionnaire ! Places limitées !', 0.30, 5, 20, 15000),
+        ('Rocket Launch', '🚀 METEORE ! 35% quotidien pendant 3 jours ! Stratégie ultra-secrète ! Rendement historique jamais vu !', 0.35, 3, 20, 20000)
     ''')
 
     # Insert top 10 staking plans - Starting from 20 USDT
