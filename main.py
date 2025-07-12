@@ -14,12 +14,19 @@ import atexit
 
 # Import du bot Telegram utilisateur uniquement
 TELEGRAM_ENABLED = False
+TELEGRAM_USER_BOT_ENABLED = False
 try:
-    from telegram_investment_bot import setup_user_telegram_bot
-    TELEGRAM_USER_BOT_ENABLED = True
-except ImportError:
-    TELEGRAM_USER_BOT_ENABLED = False
-    print("Bot Telegram utilisateur non disponible")
+    import os
+    if os.getenv('TELEGRAM_BOT_TOKEN'):
+        from telegram_investment_bot import setup_user_telegram_bot
+        TELEGRAM_USER_BOT_ENABLED = True
+        print("✅ Bot Telegram disponible")
+    else:
+        print("⚠️ Token Telegram non configuré")
+except ImportError as e:
+    print(f"⚠️ Bot Telegram non disponible: {e}")
+except Exception as e:
+    print(f"❌ Erreur configuration bot: {e}")
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -379,13 +386,16 @@ def generate_referral_code():
     return secrets.token_urlsafe(8).upper()
 
 def add_notification(user_id, title, message, type='info'):
-    conn = get_db_connection()
-    conn.execute('''
-        INSERT INTO notifications (user_id, title, message, type)
-        VALUES (?, ?, ?, ?)
-    ''', (user_id, title, message, type))
-    conn.commit()
-    conn.close()
+    try:
+        conn = get_db_connection()
+        conn.execute('''
+            INSERT INTO notifications (user_id, title, message, type)
+            VALUES (?, ?, ?, ?)
+        ''', (user_id, title, message, type))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"❌ Erreur ajout notification: {e}")
 
 # Scheduled tasks
 def calculate_daily_profits():
@@ -573,9 +583,15 @@ def dashboard():
         notif_dict = dict(notif)
         if notif_dict['created_at']:
             try:
-                notif_dict['created_at'] = datetime.fromisoformat(notif_dict['created_at'].replace('Z', '+00:00'))
-            except:
-                notif_dict['created_at'] = None
+                # Handle both string and datetime objects
+                if isinstance(notif_dict['created_at'], str):
+                    notif_dict['created_at'] = datetime.fromisoformat(notif_dict['created_at'].replace('Z', '+00:00'))
+                # If it's already a datetime object, leave it as is
+            except Exception as e:
+                print(f"⚠️ Erreur parsing date notification: {e}")
+                notif_dict['created_at'] = datetime.now()
+        else:
+            notif_dict['created_at'] = datetime.now()
         notifications.append(notif_dict)
 
     conn.close()
