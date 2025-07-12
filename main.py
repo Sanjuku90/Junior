@@ -13,14 +13,9 @@ import sqlite3
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
-# Import de la base de données persistante Replit
-try:
-    from replit import db as replit_db
-    REPLIT_DB_AVAILABLE = True
-    print("✅ Replit DB disponible - persistance activée")
-except ImportError:
-    REPLIT_DB_AVAILABLE = False
-    print("⚠️ Replit DB non disponible - utilisation SQLite locale")
+# Utilisation de SQLite pour la persistance
+REPLIT_DB_AVAILABLE = False
+print("✅ Utilisation de SQLite pour la persistance des données")
 
 # Import du bot Telegram utilisateur uniquement
 TELEGRAM_ENABLED = False
