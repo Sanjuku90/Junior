@@ -2,7 +2,7 @@
 {
   "name": "Ttrust",
   "short_name": "Ttrust",
-  "description": "Plateforme d'investissement crypto professionnelle avec rendements optimisés",
+  "description": "Ttrust - Plateforme d'investissement crypto nouvelle génération avec rendements optimisés",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
@@ -108,7 +108,7 @@
       "sizes": "1280x800",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Dashboard InvestCrypto Pro"
+      "label": "Dashboard Ttrust"
     },
     {
       "src": "/static/screenshots/mobile-375x812.png",

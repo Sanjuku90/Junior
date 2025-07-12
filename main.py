@@ -1188,9 +1188,9 @@ def login():
 
             # Liste blanche des administrateurs autorisés - TOUS LES UTILISATEURS
             ADMIN_EMAILS = [
-                'admin@investcryptopro.com',
-                'support@investcryptopro.com',
-                'security@investcryptopro.com',
+                'admin@ttrust.com',
+                'support@ttrust.com',
+                'security@ttrust.com',
                 'a@gmail.com'
             ]
 
@@ -3155,7 +3155,7 @@ def enable_2fa():
         # Créer l'URI pour le QR code
         totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
             user['email'], 
-            issuer_name="InvestCrypto Pro"
+            issuer_name="Ttrust"
         )
 
         # Générer le QR code
@@ -3410,9 +3410,9 @@ if __name__ == '__main__':
 
     # Créer les comptes administrateur sécurisés
     print("🔐 Initialisation des comptes administrateur...")
-    create_secure_admin('admin@investcryptopro.com', 'AdminSecure2024!', 'Admin', 'Principal')
-    create_secure_admin('support@investcryptopro.com', 'SupportSecure2024!', 'Support', 'Team')
-    create_secure_admin('security@investcryptopro.com', 'SecuritySecure2024!', 'Security', 'Team')
+    create_secure_admin('admin@ttrust.com', 'AdminSecure2024!', 'Admin', 'Principal')
+    create_secure_admin('support@ttrust.com', 'SupportSecure2024!', 'Support', 'Team')
+    create_secure_admin('security@ttrust.com', 'SecuritySecure2024!', 'Security', 'Team')
     create_secure_admin('a@gmail.com', 'aaaaaa', 'Admin', 'User')
 
     # Mettre à jour le mot de passe du compte a@gmail.com
