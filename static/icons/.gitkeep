@@ -1,15 +1,24 @@
 
 # Ce fichier maintient le répertoire des icônes dans Git
-# Ajoutez ici vos icônes PWA aux tailles suivantes :
-# - icon-72x72.png
-# - icon-96x96.png  
-# - icon-128x128.png
-# - icon-144x144.png
-# - icon-152x152.png
-# - icon-192x192.png
-# - icon-384x384.png
-# - icon-512x512.png
-# - badge-72x72.png
+# Icônes PWA créées - remplacez par vos vraies icônes :
+# ✅ icon-16x16.png - Favicon petite taille
+# ✅ icon-32x32.png - Favicon standard
+# ✅ icon-72x72.png - Mobile petite
+# ✅ icon-96x96.png - Mobile standard
+# ✅ icon-128x128.png - Tablette petite
+# ✅ icon-144x144.png - Tablette standard  
+# ✅ icon-152x152.png - Apple Touch Icon
+# ✅ icon-192x192.png - Android standard
+# ✅ icon-384x384.png - Android grande
+# ✅ icon-512x512.png - Splash screen
+
+# Pour créer de vraies icônes :
+# 1. Créez un logo 512x512 avec votre design
+# 2. Utilisez un outil comme https://realfavicongenerator.net/
+# 3. Ou redimensionnez manuellement pour chaque taille
+# 4. Remplacez les fichiers placeholder par vos vraies icônes
+
+# Icônes shortcuts optionnelles :
 # - dashboard-96x96.png
-# - invest-96x96.png
+# - invest-96x96.png  
 # - profile-96x96.png
