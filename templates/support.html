@@ -2,175 +2,171 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="space-y-6 px-4 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="text-center py-4">
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 sm:mb-4">💬 Support Client</h1>
-        <p class="text-base sm:text-lg text-gray-600">Notre équipe est là pour vous aider 24/7</p>
+<div class="space-y-4 px-3 sm:px-6 lg:px-8">
+    <!-- Header Mobile Optimisé -->
+    <div class="text-center py-3 sm:py-4">
+        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">💬 Support Client</h1>
+        <p class="text-sm sm:text-base lg:text-lg text-gray-600">Notre équipe est là pour vous aider 24/7</p>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-        <div class="messenger-card text-center p-3 sm:p-4">
-            <div class="stat-icon bg-gradient-to-r from-blue-500 to-blue-600 w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-2 sm:mb-3">
-                <i class="fas fa-plus text-lg sm:text-xl"></i>
+    <!-- Quick Actions - Grid Mobile Optimisé -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+        <div class="messenger-card text-center p-2 sm:p-4">
+            <div class="stat-icon bg-gradient-to-r from-blue-500 to-blue-600 w-10 h-10 sm:w-14 sm:h-14 mx-auto mb-2">
+                <i class="fas fa-plus text-sm sm:text-lg"></i>
             </div>
-            <h3 class="text-sm sm:text-lg font-semibold mb-1 sm:mb-2">Nouveau Ticket</h3>
-            <p class="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 hidden sm:block">Créer une nouvelle demande</p>
-            <button onclick="openNewTicketModal()" class="messenger-btn w-full text-xs sm:text-sm py-2 sm:py-3">
-                <i class="fas fa-ticket-alt mr-1 sm:mr-2"></i>
-                <span class="hidden xs:inline">Créer un </span>ticket
+            <h3 class="text-xs sm:text-sm lg:text-lg font-semibold mb-1">Nouveau Ticket</h3>
+            <p class="text-xs text-gray-600 mb-2 hidden sm:block">Créer une nouvelle demande</p>
+            <button onclick="openNewTicketModal()" class="messenger-btn w-full text-xs sm:text-sm py-1.5 sm:py-2 px-2">
+                <i class="fas fa-ticket-alt mr-1"></i>
+                <span class="hidden xs:inline">Créer</span>
+                <span class="xs:hidden">+</span>
             </button>
         </div>
 
-        <div class="messenger-card text-center p-3 sm:p-4">
-            <div class="stat-icon bg-gradient-to-r from-green-500 to-green-600 w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-2 sm:mb-3">
-                <i class="fas fa-comments text-lg sm:text-xl"></i>
+        <div class="messenger-card text-center p-2 sm:p-4">
+            <div class="stat-icon bg-gradient-to-r from-green-500 to-green-600 w-10 h-10 sm:w-14 sm:h-14 mx-auto mb-2">
+                <i class="fas fa-comments text-sm sm:text-lg"></i>
             </div>
-            <h3 class="text-sm sm:text-lg font-semibold mb-1 sm:mb-2">Chat Rapide</h3>
-            <p class="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 hidden sm:block">Assistance instantanée</p>
-            <button onclick="openLiveChat()" class="messenger-btn-success w-full text-xs sm:text-sm py-2 sm:py-3">
-                <i class="fas fa-comment mr-1 sm:mr-2"></i>
-                <span class="hidden xs:inline">Chat </span>direct
+            <h3 class="text-xs sm:text-sm lg:text-lg font-semibold mb-1">Chat Rapide</h3>
+            <p class="text-xs text-gray-600 mb-2 hidden sm:block">Assistance instantanée</p>
+            <button onclick="openLiveChat()" class="messenger-btn-success w-full text-xs sm:text-sm py-1.5 sm:py-2 px-2">
+                <i class="fas fa-comment mr-1"></i>
+                <span class="hidden xs:inline">Chat</span>
+                <span class="xs:hidden">💬</span>
             </button>
         </div>
 
-        <div class="messenger-card text-center p-3 sm:p-4">
-            <div class="stat-icon bg-gradient-to-r from-purple-500 to-purple-600 w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-2 sm:mb-3">
-                <i class="fas fa-question-circle text-lg sm:text-xl"></i>
+        <div class="messenger-card text-center p-2 sm:p-4">
+            <div class="stat-icon bg-gradient-to-r from-purple-500 to-purple-600 w-10 h-10 sm:w-14 sm:h-14 mx-auto mb-2">
+                <i class="fas fa-question-circle text-sm sm:text-lg"></i>
             </div>
-            <h3 class="text-sm sm:text-lg font-semibold mb-1 sm:mb-2">FAQ</h3>
-            <p class="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 hidden sm:block">Questions fréquentes</p>
-            <button onclick="showFAQ()" class="messenger-btn-outline w-full text-xs sm:text-sm py-2 sm:py-3">
-                <i class="fas fa-book mr-1 sm:mr-2"></i>
+            <h3 class="text-xs sm:text-sm lg:text-lg font-semibold mb-1">FAQ</h3>
+            <p class="text-xs text-gray-600 mb-2 hidden sm:block">Questions fréquentes</p>
+            <button onclick="showFAQ()" class="messenger-btn-outline w-full text-xs sm:text-sm py-1.5 sm:py-2 px-2">
+                <i class="fas fa-book mr-1"></i>
                 <span class="hidden xs:inline">FAQ</span>
-                <span class="xs:hidden">FAQ</span>
+                <span class="xs:hidden">?</span>
             </button>
         </div>
 
-        <div class="messenger-card text-center p-3 sm:p-4">
-            <div class="stat-icon bg-gradient-to-r from-orange-500 to-orange-600 w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-2 sm:mb-3">
-                <i class="fas fa-headset text-lg sm:text-xl"></i>
+        <div class="messenger-card text-center p-2 sm:p-4">
+            <div class="stat-icon bg-gradient-to-r from-orange-500 to-orange-600 w-10 h-10 sm:w-14 sm:h-14 mx-auto mb-2">
+                <i class="fas fa-headset text-sm sm:text-lg"></i>
             </div>
-            <h3 class="text-sm sm:text-lg font-semibold mb-1 sm:mb-2">Guide Vidéo</h3>
-            <p class="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-4 hidden sm:block">Tutoriels vidéo</p>
-            <button onclick="showVideoGuides()" class="messenger-btn-outline w-full text-xs sm:text-sm py-2 sm:py-3">
-                <i class="fas fa-play mr-1 sm:mr-2"></i>
-                <span class="hidden xs:inline">Voir </span>guides
+            <h3 class="text-xs sm:text-sm lg:text-lg font-semibold mb-1">Guide Vidéo</h3>
+            <p class="text-xs text-gray-600 mb-2 hidden sm:block">Tutoriels vidéo</p>
+            <button onclick="showVideoGuides()" class="messenger-btn-outline w-full text-xs sm:text-sm py-1.5 sm:py-2 px-2">
+                <i class="fas fa-play mr-1"></i>
+                <span class="hidden xs:inline">Guides</span>
+                <span class="xs:hidden">▶️</span>
             </button>
         </div>
     </div>
 
-    <!-- Search and Filter -->
-    <div class="messenger-card p-4 sm:p-6">
-        <div class="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:gap-4 mb-4 sm:mb-6">
-            <div class="flex-1">
-                <input type="text" id="searchTickets" placeholder="🔍 Rechercher dans vos tickets..." 
-                       class="messenger-input w-full text-sm sm:text-base" onkeyup="filterTickets()">
+    <!-- Search and Filter - Mobile Compact -->
+    <div class="messenger-card p-3 sm:p-6">
+        <div class="space-y-2 sm:space-y-3">
+            <div class="w-full">
+                <input type="text" id="searchTickets" placeholder="🔍 Rechercher..." 
+                       class="messenger-input w-full text-sm" onkeyup="filterTickets()">
             </div>
-            <div class="flex flex-col sm:flex-row gap-2">
-                <select id="statusFilter" class="messenger-input text-sm sm:text-base" onchange="filterTickets()">
-                    <option value="">Tous les statuts</option>
+            <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                <select id="statusFilter" class="messenger-input text-sm" onchange="filterTickets()">
+                    <option value="">Tous statuts</option>
                     <option value="open">Ouvert</option>
-                    <option value="admin_reply">Réponse admin</option>
+                    <option value="admin_reply">Répondu</option>
                     <option value="user_reply">En attente</option>
                     <option value="closed">Fermé</option>
                 </select>
-                <select id="categoryFilter" class="messenger-input text-sm sm:text-base" onchange="filterTickets()">
-                    <option value="">Toutes catégories</option>
-                    <option value="wallet">Portefeuille</option>
-                    <option value="investment">Investissement</option>
-                    <option value="technical">Technique</option>
-                    <option value="security">Sécurité</option>
-                    <option value="general">Général</option>
+                <select id="categoryFilter" class="messenger-input text-sm" onchange="filterTickets()">
+                    <option value="">Catégories</option>
+                    <option value="wallet">💰 Portefeuille</option>
+                    <option value="investment">📈 Investissement</option>
+                    <option value="technical">🔧 Technique</option>
+                    <option value="security">🔒 Sécurité</option>
+                    <option value="general">📋 Général</option>
                 </select>
             </div>
         </div>
     </div>
 
-    <!-- My Tickets -->
-    <div class="messenger-card p-4 sm:p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6">
-            <h2 class="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">🎫 Mes Tickets de Support</h2>
-            <div class="text-sm text-gray-600">
-                Total: <span id="ticketCount">{{ tickets|length if tickets else 0 }}</span> tickets
+    <!-- My Tickets - Mobile Optimisé -->
+    <div class="messenger-card p-3 sm:p-6">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 class="text-base sm:text-lg lg:text-xl font-semibold">🎫 Mes Tickets</h2>
+            <div class="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+                <span id="ticketCount">{{ tickets|length if tickets else 0 }}</span>
             </div>
         </div>
         
         {% if tickets %}
-            <div id="ticketsList" class="space-y-3 sm:space-y-4">
+            <div id="ticketsList" class="space-y-2 sm:space-y-3">
                 {% for ticket in tickets %}
-                    <div class="ticket-item border border-gray-200 rounded-lg p-3 sm:p-4 hover:bg-gray-50 transition-colors" 
+                    <div class="ticket-item border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors" 
                          data-status="{{ ticket.status }}" data-category="{{ ticket.category }}" 
                          data-search="{{ ticket.subject|lower }} {{ ticket.category|lower }}">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-2">
-                                    <h3 class="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                        
+                        <!-- Mobile Layout -->
+                        <div class="space-y-2 sm:space-y-3">
+                            <!-- Header avec sujet et statut -->
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-semibold text-gray-900 text-sm truncate">
                                         #{{ ticket.id }} - {{ ticket.subject }}
                                     </h3>
-                                    <div class="flex flex-wrap items-center gap-2 mt-1 sm:mt-0">
-                                        <span class="status-indicator 
-                                            {% if ticket.status == 'open' %}bg-yellow-100 text-yellow-800 border-yellow-200{% endif %}
-                                            {% if ticket.status == 'admin_reply' %}bg-green-100 text-green-800 border-green-200{% endif %}
-                                            {% if ticket.status == 'user_reply' %}bg-blue-100 text-blue-800 border-blue-200{% endif %}
-                                            {% if ticket.status == 'closed' %}bg-gray-100 text-gray-800 border-gray-200{% endif %}
-                                            px-2 py-1 rounded-full text-xs font-medium border">
-                                            {% if ticket.status == 'open' %}🟡 Nouveau{% endif %}
-                                            {% if ticket.status == 'admin_reply' %}🟢 Répondu{% endif %}
-                                            {% if ticket.status == 'user_reply' %}🔵 En attente{% endif %}
-                                            {% if ticket.status == 'closed' %}⚫ Fermé{% endif %}
-                                        </span>
-                                        {% if ticket.priority == 'urgent' %}
-                                            <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
-                                                🚨 Urgent
-                                            </span>
-                                        {% elif ticket.priority == 'high' %}
-                                            <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
-                                                ⚡ Priorité élevée
-                                            </span>
-                                        {% endif %}
-                                    </div>
                                 </div>
-                                <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                                    <span class="flex items-center">
-                                        <i class="fas fa-tag mr-1"></i>
-                                        <span class="hidden sm:inline">
-                                            {% if ticket.category == 'wallet' %}💰 Portefeuille
-                                            {% elif ticket.category == 'investment' %}📈 Investissement
-                                            {% elif ticket.category == 'technical' %}🔧 Technique
-                                            {% elif ticket.category == 'security' %}🔒 Sécurité
-                                            {% else %}📋 Général{% endif %}
-                                        </span>
-                                        <span class="sm:hidden">
-                                            {% if ticket.category == 'wallet' %}💰
-                                            {% elif ticket.category == 'investment' %}📈
-                                            {% elif ticket.category == 'technical' %}🔧
-                                            {% elif ticket.category == 'security' %}🔒
-                                            {% else %}📋{% endif %}
-                                        </span>
-                                    </span>
-                                    <span class="flex items-center">
-                                        <i class="fas fa-calendar mr-1"></i>{{ ticket.created_at[:10] }}
-                                    </span>
-                                    <span class="flex items-center">
-                                        <i class="fas fa-message mr-1"></i>{{ ticket.message_count }}
-                                    </span>
-                                    {% if ticket.last_message_at %}
-                                        <span class="flex items-center hidden sm:flex">
-                                            <i class="fas fa-clock mr-1"></i>{{ ticket.last_message_at[:10] }}
-                                        </span>
-                                    {% endif %}
-                                </div>
+                                <span class="status-indicator ml-2 flex-shrink-0
+                                    {% if ticket.status == 'open' %}bg-yellow-100 text-yellow-800{% endif %}
+                                    {% if ticket.status == 'admin_reply' %}bg-green-100 text-green-800{% endif %}
+                                    {% if ticket.status == 'user_reply' %}bg-blue-100 text-blue-800{% endif %}
+                                    {% if ticket.status == 'closed' %}bg-gray-100 text-gray-800{% endif %}
+                                    px-2 py-1 rounded-full text-xs font-medium">
+                                    {% if ticket.status == 'open' %}🟡 Nouveau{% endif %}
+                                    {% if ticket.status == 'admin_reply' %}🟢 Répondu{% endif %}
+                                    {% if ticket.status == 'user_reply' %}🔵 Attente{% endif %}
+                                    {% if ticket.status == 'closed' %}⚫ Fermé{% endif %}
+                                </span>
                             </div>
-                            <div class="flex flex-col sm:flex-row gap-2 sm:space-x-2 w-full sm:w-auto">
+
+                            <!-- Infos compactes -->
+                            <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">
+                                <span class="flex items-center">
+                                    {% if ticket.category == 'wallet' %}💰
+                                    {% elif ticket.category == 'investment' %}📈
+                                    {% elif ticket.category == 'technical' %}🔧
+                                    {% elif ticket.category == 'security' %}🔒
+                                    {% else %}📋{% endif %}
+                                    <span class="ml-1 hidden sm:inline">
+                                        {% if ticket.category == 'wallet' %}Portefeuille
+                                        {% elif ticket.category == 'investment' %}Investissement
+                                        {% elif ticket.category == 'technical' %}Technique
+                                        {% elif ticket.category == 'security' %}Sécurité
+                                        {% else %}Général{% endif %}
+                                    </span>
+                                </span>
+                                <span class="flex items-center">
+                                    <i class="fas fa-calendar mr-1"></i>{{ ticket.created_at[:10] }}
+                                </span>
+                                <span class="flex items-center">
+                                    <i class="fas fa-message mr-1"></i>{{ ticket.message_count }}
+                                </span>
+                                {% if ticket.priority == 'urgent' %}
+                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">🚨</span>
+                                {% elif ticket.priority == 'high' %}
+                                    <span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">⚡</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2">
                                 <a href="{{ url_for('support_ticket', ticket_id=ticket.id) }}" 
-                                   class="messenger-btn-outline text-sm px-3 py-2 hover:bg-blue-50 text-center">
+                                   class="flex-1 text-center messenger-btn-outline text-xs py-2 hover:bg-blue-50">
                                     <i class="fas fa-eye mr-1"></i>Voir
                                 </a>
                                 {% if ticket.status != 'closed' %}
                                     <button onclick="quickReply({{ ticket.id }})" 
-                                            class="bg-blue-500 text-white text-sm px-3 py-2 rounded hover:bg-blue-600 text-center">
+                                            class="flex-1 bg-blue-500 text-white text-xs py-2 rounded hover:bg-blue-600 text-center">
                                         <i class="fas fa-reply mr-1"></i>Répondre
                                     </button>
                                 {% endif %}
@@ -180,13 +176,13 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="text-center py-6 sm:py-8">
-                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                    <i class="fas fa-ticket-alt text-xl sm:text-2xl text-gray-400"></i>
+            <div class="text-center py-6">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-ticket-alt text-xl text-gray-400"></i>
                 </div>
-                <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-2">Aucun ticket</h3>
-                <p class="text-sm sm:text-base text-gray-600 mb-4">Vous n'avez pas encore créé de ticket de support.</p>
-                <button onclick="openNewTicketModal()" class="messenger-btn">
+                <h3 class="text-base font-semibold text-gray-900 mb-2">Aucun ticket</h3>
+                <p class="text-sm text-gray-600 mb-4">Vous n'avez pas encore créé de ticket.</p>
+                <button onclick="openNewTicketModal()" class="messenger-btn text-sm">
                     <i class="fas fa-plus mr-2"></i>Créer votre premier ticket
                 </button>
             </div>
@@ -194,18 +190,18 @@
     </div>
 
     <!-- FAQ Section -->
-    <div id="faq-section" class="messenger-card p-4 sm:p-6" style="display: none;">
-        <h2 class="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">❓ Questions Fréquentes</h2>
+    <div id="faq-section" class="messenger-card p-3 sm:p-6" style="display: none;">
+        <h2 class="text-base sm:text-lg lg:text-xl font-semibold mb-3 sm:mb-4">❓ Questions Fréquentes</h2>
         
-        <div class="space-y-3 sm:space-y-4">
+        <div class="space-y-2 sm:space-y-3">
             {% for faq in faq_items %}
                 <div class="border border-gray-200 rounded-lg">
                     <button onclick="toggleFAQ({{ faq.id }})" 
-                            class="w-full text-left p-3 sm:p-4 hover:bg-gray-50 flex items-center justify-between">
-                        <span class="font-medium text-sm sm:text-base pr-4">{{ faq.question }}</span>
+                            class="w-full text-left p-3 hover:bg-gray-50 flex items-center justify-between">
+                        <span class="font-medium text-sm pr-3">{{ faq.question }}</span>
                         <i id="faq-icon-{{ faq.id }}" class="fas fa-chevron-down transition-transform flex-shrink-0"></i>
                     </button>
-                    <div id="faq-answer-{{ faq.id }}" class="hidden p-3 sm:p-4 pt-0 text-gray-600 text-sm sm:text-base">
+                    <div id="faq-answer-{{ faq.id }}" class="hidden p-3 pt-0 text-gray-600 text-sm">
                         {{ faq.answer }}
                     </div>
                 </div>
@@ -214,41 +210,43 @@
     </div>
 </div>
 
-<!-- New Ticket Modal -->
-<div id="newTicketModal" class="messenger-modal fixed inset-0 z-50 flex items-center justify-center hidden p-4">
-    <div class="modal-content w-full max-w-lg max-h-screen overflow-y-auto">
-        <div class="flex justify-between items-center mb-4 sm:mb-6">
-            <h3 class="text-lg sm:text-xl font-semibold">Nouveau Ticket de Support</h3>
-            <button onclick="closeNewTicketModal()" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
-            </button>
+<!-- New Ticket Modal - Mobile Optimisé -->
+<div id="newTicketModal" class="messenger-modal fixed inset-0 z-50 flex items-center justify-center hidden p-3">
+    <div class="modal-content w-full max-w-md max-h-screen overflow-y-auto bg-white rounded-lg shadow-xl">
+        <div class="p-4 border-b border-gray-200">
+            <div class="flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Nouveau Ticket</h3>
+                <button onclick="closeNewTicketModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
         </div>
         
-        <form id="newTicketForm" class="space-y-4">
-            <!-- Templates prédéfinis -->
+        <form id="newTicketForm" class="p-4 space-y-4">
+            <!-- Template rapide -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">🎯 Templates rapides (optionnel)</label>
-                <select id="ticketTemplate" class="messenger-input w-full text-sm sm:text-base" onchange="applyTemplate()">
-                    <option value="">Sélectionnez un template ou rédigez librement</option>
+                <label class="block text-sm font-medium text-gray-700 mb-1">🎯 Template rapide</label>
+                <select id="ticketTemplate" class="messenger-input w-full text-sm" onchange="applyTemplate()">
+                    <option value="">Choisir un template...</option>
                     <option value="deposit_issue">💰 Problème de dépôt</option>
                     <option value="withdrawal_issue">💸 Problème de retrait</option>
-                    <option value="investment_question">📈 Question sur investissement</option>
+                    <option value="investment_question">📈 Question investissement</option>
                     <option value="profit_issue">💵 Problème de profits</option>
-                    <option value="account_security">🔒 Sécurité du compte</option>
+                    <option value="account_security">🔒 Sécurité compte</option>
                     <option value="technical_bug">🐛 Bug technique</option>
-                    <option value="kyc_question">🆔 Question KYC</option>
                 </select>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Sujet *</label>
-                <input type="text" id="ticketSubject" class="messenger-input w-full text-sm sm:text-base" placeholder="Décrivez brièvement votre problème" required>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Sujet *</label>
+                <input type="text" id="ticketSubject" class="messenger-input w-full text-sm" 
+                       placeholder="Décrivez brièvement..." required>
             </div>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
-                    <select id="ticketCategory" class="messenger-input w-full text-sm sm:text-base">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                    <select id="ticketCategory" class="messenger-input w-full text-sm">
                         <option value="general">📋 Général</option>
                         <option value="wallet">💰 Portefeuille</option>
                         <option value="investment">📈 Investissement</option>
@@ -257,8 +255,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
-                    <select id="ticketPriority" class="messenger-input w-full text-sm sm:text-base">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                    <select id="ticketPriority" class="messenger-input w-full text-sm">
                         <option value="normal">🟢 Normale</option>
                         <option value="high">🟡 Élevée</option>
                         <option value="urgent">🔴 Urgente</option>
@@ -267,33 +265,28 @@
             </div>
             
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Message *</label>
-                <textarea id="ticketMessage" class="messenger-input w-full h-24 sm:h-32 text-sm sm:text-base" placeholder="Décrivez votre problème en détail..." required></textarea>
-                <div class="text-xs text-gray-500 mt-1">
-                    💡 Plus vous donnez de détails, plus nous pourrons vous aider rapidement
-                </div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Message *</label>
+                <textarea id="ticketMessage" class="messenger-input w-full h-24 text-sm resize-none" 
+                          placeholder="Décrivez votre problème..." required></textarea>
+                <div class="text-xs text-gray-500 mt-1">💡 Plus de détails = réponse plus rapide</div>
             </div>
 
-            <!-- Informations supplémentaires -->
-            <div id="additionalInfo" class="bg-blue-50 p-3 rounded-lg">
-                <h4 class="font-medium text-blue-900 mb-2 text-sm sm:text-base">📋 Informations utiles (optionnel)</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    <div>
-                        <label class="block text-blue-700 mb-1">Montant concerné</label>
-                        <input type="number" id="ticketAmount" class="w-full px-2 py-1 border border-blue-200 rounded text-sm" placeholder="0.00 USDT">
-                    </div>
-                    <div>
-                        <label class="block text-blue-700 mb-1">Hash de transaction</label>
-                        <input type="text" id="ticketTxHash" class="w-full px-2 py-1 border border-blue-200 rounded text-sm" placeholder="0x...">
-                    </div>
+            <!-- Infos supplémentaires compactes -->
+            <div class="bg-blue-50 p-3 rounded-lg">
+                <h4 class="font-medium text-blue-900 mb-2 text-sm">📋 Infos utiles (optionnel)</h4>
+                <div class="space-y-2">
+                    <input type="number" id="ticketAmount" class="w-full px-2 py-1 border border-blue-200 rounded text-sm" 
+                           placeholder="Montant (USDT)">
+                    <input type="text" id="ticketTxHash" class="w-full px-2 py-1 border border-blue-200 rounded text-sm" 
+                           placeholder="Hash de transaction">
                 </div>
             </div>
             
-            <div class="flex flex-col sm:flex-row gap-3">
-                <button type="submit" class="messenger-btn flex-1 order-2 sm:order-1">
-                    <i class="fas fa-paper-plane mr-2"></i>Créer le ticket
+            <div class="flex gap-2 pt-2">
+                <button type="submit" class="flex-1 messenger-btn text-sm py-2.5">
+                    <i class="fas fa-paper-plane mr-2"></i>Créer
                 </button>
-                <button type="button" onclick="closeNewTicketModal()" class="messenger-btn-outline order-1 sm:order-2">
+                <button type="button" onclick="closeNewTicketModal()" class="messenger-btn-outline px-4 text-sm">
                     Annuler
                 </button>
             </div>
@@ -301,48 +294,126 @@
     </div>
 </div>
 
-<!-- Live Chat Widget -->
+<!-- Live Chat Widget - Mobile Optimisé -->
 <div id="chatWidget" class="fixed bottom-4 right-4 z-50">
     <button id="chatToggle" onclick="toggleChat()" 
-            class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all">
-        <i class="fas fa-comments text-lg sm:text-xl"></i>
+            class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all">
+        <i class="fas fa-comments text-lg"></i>
     </button>
     
-    <div id="chatWindow" class="hidden absolute bottom-14 sm:bottom-16 right-0 w-72 sm:w-80 h-80 sm:h-96 bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col">
-        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 sm:p-4 rounded-t-lg">
+    <div id="chatWindow" class="hidden absolute bottom-16 right-0 w-80 h-96 bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col max-w-[calc(100vw-2rem)]">
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 rounded-t-lg">
             <div class="flex justify-between items-center">
-                <h3 class="font-semibold text-sm sm:text-base">💬 Support en Direct</h3>
+                <h3 class="font-semibold text-sm">💬 Support Direct</h3>
                 <button onclick="toggleChat()" class="text-white hover:text-gray-200">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
         
-        <div id="chatMessages" class="flex-1 p-3 sm:p-4 overflow-y-auto space-y-3">
-            <div class="bg-gray-100 rounded-lg p-2 sm:p-3 max-w-xs">
-                <div class="text-xs sm:text-sm text-gray-600 mb-1">Support</div>
-                <div class="text-sm">Bonjour ! Comment puis-je vous aider aujourd'hui ? 😊</div>
+        <div id="chatMessages" class="flex-1 p-3 overflow-y-auto space-y-2">
+            <div class="bg-gray-100 rounded-lg p-2 max-w-xs">
+                <div class="text-xs text-gray-600 mb-1">Support</div>
+                <div class="text-sm">Bonjour ! Comment puis-je vous aider ? 😊</div>
             </div>
         </div>
         
-        <div class="p-3 sm:p-4 border-t border-gray-200">
+        <div class="p-3 border-t border-gray-200">
             <div class="flex space-x-2">
-                <input type="text" id="chatInput" placeholder="Tapez votre message..." 
-                       class="flex-1 border border-gray-300 rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm focus:outline-none focus:border-blue-500"
+                <input type="text" id="chatInput" placeholder="Votre message..." 
+                       class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                        onkeypress="if(event.key==='Enter') sendChatMessage()">
-                <button onclick="sendChatMessage()" class="bg-blue-500 text-white rounded-lg px-2 sm:px-3 py-1 sm:py-2 hover:bg-blue-600">
-                    <i class="fas fa-paper-plane text-xs sm:text-sm"></i>
+                <button onclick="sendChatMessage()" class="bg-blue-500 text-white rounded-lg px-3 py-2 hover:bg-blue-600">
+                    <i class="fas fa-paper-plane text-sm"></i>
                 </button>
             </div>
         </div>
     </div>
 </div>
 
+<style>
+/* Mobile-first optimizations */
+@media (max-width: 640px) {
+    .messenger-card {
+        border-radius: 12px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-icon {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .status-indicator {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+    
+    #chatWindow {
+        width: calc(100vw - 2rem);
+        height: 70vh;
+        bottom: 4rem;
+        right: 1rem;
+    }
+    
+    .modal-content {
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+    }
+    
+    .ticket-item {
+        padding: 0.75rem !important;
+    }
+    
+    .messenger-btn, .messenger-btn-success, .messenger-btn-outline {
+        font-size: 12px;
+        padding: 0.375rem 0.75rem;
+    }
+}
+
+/* Très petits écrans */
+@media (max-width: 375px) {
+    .space-y-4 > * + * {
+        margin-top: 0.75rem;
+    }
+    
+    .grid.gap-2 {
+        gap: 0.375rem;
+    }
+    
+    .text-xs {
+        font-size: 10px;
+    }
+}
+
+/* Amélioration du touch sur mobile */
+@media (hover: none) and (pointer: coarse) {
+    .ticket-item {
+        padding: 1rem !important;
+    }
+    
+    button, .messenger-btn, .messenger-btn-success, .messenger-btn-outline {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+    }
+    
+    input, select, textarea {
+        min-height: 44px;
+    }
+}
+</style>
+
 <script>
-// FAQ Functions
+// Functions conservées mais optimisées pour mobile
 function showFAQ() {
     const faqSection = document.getElementById('faq-section');
     faqSection.style.display = faqSection.style.display === 'none' ? 'block' : 'none';
+    
+    // Scroll vers la FAQ sur mobile
+    if (window.innerWidth <= 768) {
+        setTimeout(() => {
+            faqSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
 }
 
 function toggleFAQ(id) {
@@ -358,19 +429,25 @@ function toggleFAQ(id) {
     }
 }
 
-// New Ticket Modal
 function openNewTicketModal() {
     document.getElementById('newTicketModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden'; // Prevent background scroll on mobile
+    document.body.style.overflow = 'hidden';
+    
+    // Focus sur le premier champ sur desktop seulement
+    if (window.innerWidth > 768) {
+        setTimeout(() => {
+            document.getElementById('ticketSubject').focus();
+        }, 100);
+    }
 }
 
 function closeNewTicketModal() {
     document.getElementById('newTicketModal').classList.add('hidden');
     document.getElementById('newTicketForm').reset();
-    document.body.style.overflow = 'auto'; // Restore scroll
+    document.body.style.overflow = 'auto';
 }
 
-// Handle new ticket form
+// Gestion du formulaire de ticket
 document.getElementById('newTicketForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -397,14 +474,14 @@ document.getElementById('newTicketForm').addEventListener('submit', async functi
             closeNewTicketModal();
             setTimeout(() => location.reload(), 1000);
         } else {
-            showNotification(result.error || 'Erreur lors de la création du ticket', 'error');
+            showNotification(result.error || 'Erreur lors de la création', 'error');
         }
     } catch (error) {
         showNotification('Erreur de connexion', 'error');
     }
 });
 
-// Live Chat Functions
+// Chat functions
 function toggleChat() {
     const chatWindow = document.getElementById('chatWindow');
     chatWindow.classList.toggle('hidden');
@@ -420,31 +497,27 @@ function sendChatMessage() {
     
     if (!message) return;
     
-    // Add user message to chat
     const chatMessages = document.getElementById('chatMessages');
     const userMessage = document.createElement('div');
     userMessage.className = 'flex justify-end';
     userMessage.innerHTML = `
-        <div class="bg-blue-500 text-white rounded-lg p-2 sm:p-3 max-w-xs">
+        <div class="bg-blue-500 text-white rounded-lg p-2 max-w-xs">
             <div class="text-xs opacity-75 mb-1">Vous</div>
             <div class="text-sm">${message}</div>
         </div>
     `;
     chatMessages.appendChild(userMessage);
     
-    // Clear input
     input.value = '';
-    
-    // Scroll to bottom
     chatMessages.scrollTop = chatMessages.scrollHeight;
     
-    // Simulate bot response (in real implementation, this would be real-time)
+    // Réponse automatique
     setTimeout(() => {
         const botMessage = document.createElement('div');
         botMessage.innerHTML = `
-            <div class="bg-gray-100 rounded-lg p-2 sm:p-3 max-w-xs">
+            <div class="bg-gray-100 rounded-lg p-2 max-w-xs">
                 <div class="text-xs text-gray-600 mb-1">Support</div>
-                <div class="text-sm">Merci pour votre message. Un agent va vous répondre dans quelques instants...</div>
+                <div class="text-sm">Merci ! Un agent va vous répondre rapidement...</div>
             </div>
         `;
         chatMessages.appendChild(botMessage);
@@ -452,7 +525,7 @@ function sendChatMessage() {
     }, 1000);
 }
 
-// Templates prédéfinis
+// Templates de tickets
 function applyTemplate() {
     const template = document.getElementById('ticketTemplate').value;
     const subjectField = document.getElementById('ticketSubject');
@@ -463,44 +536,38 @@ function applyTemplate() {
     const templates = {
         'deposit_issue': {
             subject: 'Problème avec mon dépôt USDT',
-            message: 'Bonjour,\n\nJ\'ai effectué un dépôt de [MONTANT] USDT le [DATE] mais celui-ci n\'apparaît pas dans mon portefeuille.\n\nHash de transaction: [HASH]\nAdresse utilisée: [ADRESSE]\n\nPouvez-vous vérifier et créditer mon compte ?\n\nMerci',
+            message: 'Bonjour,\n\nJ\'ai effectué un dépôt de [MONTANT] USDT le [DATE] mais il n\'apparaît pas dans mon portefeuille.\n\nHash de transaction: [HASH]\nAdresse utilisée: [ADRESSE]\n\nPouvez-vous vérifier ?\n\nMerci',
             category: 'wallet',
             priority: 'high'
         },
         'withdrawal_issue': {
             subject: 'Problème avec ma demande de retrait',
-            message: 'Bonjour,\n\nJ\'ai demandé un retrait de [MONTANT] USDT le [DATE] mais je n\'ai toujours rien reçu.\n\nAdresse de retrait: [ADRESSE]\nStatut affiché: [STATUT]\n\nPouvez-vous vérifier le statut de ma demande ?\n\nMerci',
+            message: 'Bonjour,\n\nJ\'ai demandé un retrait de [MONTANT] USDT le [DATE] mais je n\'ai rien reçu.\n\nAdresse de retrait: [ADRESSE]\nStatut affiché: [STATUT]\n\nPouvez-vous vérifier ?\n\nMerci',
             category: 'wallet',
             priority: 'high'
         },
         'investment_question': {
             subject: 'Question sur les plans d\'investissement',
-            message: 'Bonjour,\n\nJ\'ai une question concernant [PLAN/SUJET]:\n\n[VOTRE QUESTION]\n\nPouvez-vous m\'éclairer sur ce point ?\n\nMerci',
+            message: 'Bonjour,\n\nJ\'ai une question concernant [PLAN/SUJET]:\n\n[VOTRE QUESTION]\n\nPouvez-vous m\'éclairer ?\n\nMerci',
             category: 'investment',
             priority: 'normal'
         },
         'profit_issue': {
             subject: 'Problème avec mes profits quotidiens',
-            message: 'Bonjour,\n\nJe n\'ai pas reçu mes profits quotidiens pour mon investissement #[ID].\n\nPlan: [NOM DU PLAN]\nMontant investi: [MONTANT] USDT\nDate d\'investissement: [DATE]\n\nPouvez-vous vérifier ?\n\nMerci',
+            message: 'Bonjour,\n\nJe n\'ai pas reçu mes profits pour mon investissement #[ID].\n\nPlan: [NOM DU PLAN]\nMontant: [MONTANT] USDT\nDate: [DATE]\n\nPouvez-vous vérifier ?\n\nMerci',
             category: 'investment',
             priority: 'high'
         },
         'account_security': {
             subject: 'Question de sécurité du compte',
-            message: 'Bonjour,\n\nJ\'ai une préoccupation concernant la sécurité de mon compte:\n\n[DÉCRIVEZ LE PROBLÈME]\n\nPouvez-vous m\'aider à sécuriser mon compte ?\n\nMerci',
+            message: 'Bonjour,\n\nJ\'ai une préoccupation sécuritaire:\n\n[DÉCRIVEZ LE PROBLÈME]\n\nPouvez-vous m\'aider ?\n\nMerci',
             category: 'security',
             priority: 'high'
         },
         'technical_bug': {
             subject: 'Bug technique sur la plateforme',
-            message: 'Bonjour,\n\nJe rencontre un problème technique:\n\n- Page concernée: [URL/PAGE]\n- Problème: [DESCRIPTION]\n- Navigateur: [CHROME/FIREFOX/SAFARI]\n- Appareil: [ORDINATEUR/MOBILE]\n\nÉtapes pour reproduire:\n1. [ÉTAPE 1]\n2. [ÉTAPE 2]\n3. [RÉSULTAT OBTENU]\n\nMerci',
+            message: 'Bonjour,\n\nJe rencontre un problème:\n\n- Page: [URL/PAGE]\n- Problème: [DESCRIPTION]\n- Navigateur: [CHROME/FIREFOX/SAFARI]\n- Appareil: [ORDINATEUR/MOBILE]\n\nÉtapes:\n1. [ÉTAPE 1]\n2. [ÉTAPE 2]\n3. [RÉSULTAT]\n\nMerci',
             category: 'technical',
-            priority: 'normal'
-        },
-        'kyc_question': {
-            subject: 'Question sur la vérification KYC',
-            message: 'Bonjour,\n\nJ\'ai une question concernant ma vérification KYC:\n\n[VOTRE QUESTION/PROBLÈME]\n\nStatut actuel: [STATUT]\nDocuments soumis: [LISTE]\n\nPouvez-vous m\'aider ?\n\nMerci',
-            category: 'security',
             priority: 'normal'
         }
     };
@@ -542,41 +609,15 @@ function filterTickets() {
     document.getElementById('ticketCount').textContent = visibleCount;
 }
 
-// Réponse rapide
 function quickReply(ticketId) {
     window.location.href = `/support/ticket/${ticketId}#reply`;
 }
 
-// Guides vidéo
 function showVideoGuides() {
-    const guides = [
-        { title: "Comment effectuer un dépôt", url: "#", duration: "2 min" },
-        { title: "Comment investir dans un plan ROI", url: "#", duration: "3 min" },
-        { title: "Comment retirer ses profits", url: "#", duration: "2 min" },
-        { title: "Comprendre le système de parrainage", url: "#", duration: "4 min" }
-    ];
-
-    let guidesHtml = '<div class="space-y-3">';
-    guides.forEach(guide => {
-        guidesHtml += `
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div class="flex items-center space-x-3">
-                    <i class="fas fa-play-circle text-red-500 text-xl"></i>
-                    <div>
-                        <div class="font-medium text-sm sm:text-base">${guide.title}</div>
-                        <div class="text-xs sm:text-sm text-gray-600">${guide.duration}</div>
-                    </div>
-                </div>
-                <button class="messenger-btn-outline text-xs sm:text-sm px-2 py-1">Regarder</button>
-            </div>
-        `;
-    });
-    guidesHtml += '</div>';
-
     showNotification('Guides vidéo disponibles bientôt!', 'info');
 }
 
-// Notification améliorée
+// Notification système
 function showNotification(message, type = 'info', duration = 5000) {
     const colors = {
         success: 'bg-green-500',
@@ -586,11 +627,11 @@ function showNotification(message, type = 'info', duration = 5000) {
     };
 
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full max-w-xs sm:max-w-sm`;
+    notification.className = `fixed top-4 right-4 ${colors[type]} text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full max-w-xs`;
     notification.innerHTML = `
         <div class="flex items-center space-x-2">
             <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : type === 'warning' ? 'exclamation' : 'info'}-circle"></i>
-            <span class="text-sm sm:text-base">${message}</span>
+            <span class="text-sm">${message}</span>
             <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
                 <i class="fas fa-times"></i>
             </button>
@@ -599,33 +640,47 @@ function showNotification(message, type = 'info', duration = 5000) {
 
     document.body.appendChild(notification);
 
-    // Animation d'entrée
     setTimeout(() => {
         notification.classList.remove('translate-x-full');
     }, 100);
 
-    // Suppression automatique
     setTimeout(() => {
         notification.classList.add('translate-x-full');
         setTimeout(() => notification.remove(), 300);
     }, duration);
 }
 
-// Close modal when clicking outside
+// Fermer modal en cliquant à l'extérieur
 document.getElementById('newTicketModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeNewTicketModal();
     }
 });
 
-// Mobile optimization: Prevent zoom on input focus
+// Optimisations mobile
 document.addEventListener('DOMContentLoaded', function() {
+    // Éviter le zoom sur iOS lors du focus
     const inputs = document.querySelectorAll('input, textarea, select');
     inputs.forEach(input => {
         input.addEventListener('focus', function() {
-            this.style.fontSize = '16px'; // Prevent zoom on iOS
+            if (window.innerWidth <= 768) {
+                this.style.fontSize = '16px';
+            }
         });
     });
+    
+    // Gestion du clavier virtuel
+    const viewport = document.querySelector('meta[name=viewport]');
+    if (viewport) {
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                viewport.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no');
+            });
+            input.addEventListener('blur', () => {
+                viewport.setAttribute('content', 'width=device-width, initial-scale=1, user-scalable=yes');
+            });
+        });
+    }
 });
 </script>
 {% endblock %}
