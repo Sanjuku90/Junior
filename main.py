@@ -2084,7 +2084,9 @@ def admin_transactions():
         ORDER BY t.created_at DESC
     ''').fetchall()
 
+    conn.close()
 
+    return render_template('admin_transactions.html', transactions=pending_transactions)
 
 @app.route('/restore-from-backup', methods=['POST'])
 @login_required
