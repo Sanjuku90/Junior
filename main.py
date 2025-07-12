@@ -496,12 +496,12 @@ def init_db():
         ('IA Équilibré', '⚖️ Stratégie IA équilibrée combinant sécurité et performance. Parfait équilibre risque/rendement.', 'Moyen', 0.025, 20, 2000, 'ai_balanced', '{"stop_loss": 0.08, "take_profit": 0.05, "max_trades": 5}'),
         ('IA Agressif', '🚀 Stratégie IA haute performance avec algorithmes avancés. Pour investisseurs expérimentés.', 'Élevé', 0.04, 20, 5000, 'ai_aggressive', '{"stop_loss": 0.12, "take_profit": 0.08, "max_trades": 8}'),
         ('Scalping Bot', '⚡ Bot de scalping ultra-rapide avec IA prédictive. Trades haute fréquence pour profits constants.', 'Moyen', 0.035, 20, 3000, 'scalping_ai', '{"timeframe": "1m", "trades_per_hour": 10, "profit_target": 0.02}'),
-        ('Arbitrage IA', '🔄 Bot d\'arbitrage intelligent détectant les écarts de prix entre exchanges. Profits garantis.', 'Faible', 0.02, 20, 10000, 'arbitrage_ai', '{"min_spread": 0.01, "max_exposure": 0.3, "exchanges": 5}'),
+        ('Arbitrage IA', '🔄 Bot d arbitrage intelligent détectant les écarts de prix entre exchanges. Profits garantis.', 'Faible', 0.02, 20, 10000, 'arbitrage_ai', '{"min_spread": 0.01, "max_exposure": 0.3, "exchanges": 5}'),
         ('Swing Trading Pro', '📈 IA de swing trading analysant les tendances moyennes. Positions 2-7 jours pour profits optimaux.', 'Moyen', 0.03, 20, 4000, 'swing_ai', '{"timeframe": "4h", "trend_strength": 0.7, "position_size": 0.2}'),
         ('DeFi Yield Bot', '🌾 Bot DeFi intelligent optimisant les rendements sur protocols décentralisés. Farming automatisé.', 'Moyen', 0.045, 20, 8000, 'defi_yield', '{"protocols": ["uniswap", "compound"], "rebalance_frequency": "daily"}'),
         ('Grid Trading IA', '🔳 Stratégie de trading en grille avec IA adaptative. Profits dans tous les marchés.', 'Faible', 0.018, 20, 6000, 'grid_ai', '{"grid_size": 20, "price_range": 0.1, "adaptive": true}'),
         ('News Trading Bot', '📰 Bot réagissant aux news crypto en temps réel avec analyse sentiment IA. Profits sur volatilité.', 'Élevé', 0.038, 20, 2500, 'news_ai', '{"sentiment_threshold": 0.8, "reaction_time": "30s", "news_sources": 15}'),
-        ('Multi-Strategy IA', '🎯 Bot combinant plusieurs stratégies IA adaptatives. Performance optimisée automatiquement.', 'Moyen', 0.032, 20, 15000, 'multi_ai', '{"strategies": 5, "allocation_dynamic": true, "rebalance": "weekly"}}')
+        ('Multi-Strategy IA', '🎯 Bot combinant plusieurs stratégies IA adaptatives. Performance optimisée automatiquement.', 'Moyen', 0.032, 20, 15000, 'multi_ai', '{"strategies": 5, "allocation_dynamic": true, "rebalance": "weekly"}')
     ''')
 
     # Insert top traders for copy trading
