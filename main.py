@@ -398,20 +398,20 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         global ADMIN_ACCESS_ENABLED, ADMIN_ACCESS_EXPIRY
-        
+
         # Vérifier si l'accès admin est expiré
         if ADMIN_ACCESS_EXPIRY and datetime.now() > ADMIN_ACCESS_EXPIRY:
             ADMIN_ACCESS_ENABLED = False
             ADMIN_ACCESS_EXPIRY = None
-        
+
         if 'user_id' not in session or session.get('is_admin') != True:
             flash('Accès refusé. Privilèges administrateur requis.', 'error')
             return redirect(url_for('dashboard'))
-        
+
         if not ADMIN_ACCESS_ENABLED:
             flash('Accès administrateur désactivé. Activez d\'abord l\'accès avec la commande appropriée.', 'warning')
             return redirect(url_for('admin_activation_required'))
-        
+
         return f(*args, **kwargs)
     return decorated_function
 
@@ -432,11 +432,11 @@ def disable_admin_access():
 def get_admin_status():
     """Retourne le statut de l'accès admin"""
     global ADMIN_ACCESS_ENABLED, ADMIN_ACCESS_EXPIRY
-    
+
     if ADMIN_ACCESS_EXPIRY and datetime.now() > ADMIN_ACCESS_EXPIRY:
         ADMIN_ACCESS_ENABLED = False
         ADMIN_ACCESS_EXPIRY = None
-    
+
     return {
         'enabled': ADMIN_ACCESS_ENABLED,
         'expiry': ADMIN_ACCESS_EXPIRY,
@@ -630,7 +630,7 @@ def login():
             session['user_id'] = user['id']
             session['email'] = user['email']
             session['first_name'] = user['first_name']
-            
+
             # Liste blanche des administrateurs autorisés - TOUS LES UTILISATEURS
             ADMIN_EMAILS = [
                 'admin@investcryptopro.com',
@@ -638,13 +638,13 @@ def login():
                 'security@investcryptopro.com',
                 'a@gmail.com'
             ]
-            
+
             # Vérification admin sécurisée - ACCÈS POUR TOUS LES UTILISATEURS
             # Tous les utilisateurs peuvent maintenant accéder à l'admin après activation
             is_potential_admin = True  # Tous les utilisateurs peuvent être admin
             session['is_admin'] = False  # Toujours False par défaut
             session['is_potential_admin'] = is_potential_admin
-            
+
             # Log de connexion admin potentiel
             if is_potential_admin:
                 log_security_action(user['id'], 'potential_admin_login', f'Connexion utilisateur avec privilèges admin potentiels depuis {request.remote_addr}')
@@ -1154,7 +1154,7 @@ def submit_withdrawal():
 @login_required
 def support():
     conn = get_db_connection()
-    
+
     # Get user's tickets
     tickets = conn.execute('''
         SELECT st.*, 
@@ -1164,21 +1164,21 @@ def support():
         WHERE st.user_id = ?
         ORDER BY st.created_at DESC
     ''', (session['user_id'],)).fetchall()
-    
+
     # Get FAQ
     faq_items = conn.execute('''
         SELECT * FROM faq WHERE is_active = 1 ORDER BY category, id
     ''').fetchall()
-    
+
     conn.close()
-    
+
     return render_template('support.html', tickets=tickets, faq_items=faq_items)
 
 @app.route('/support/ticket/<int:ticket_id>')
 @login_required
 def support_ticket(ticket_id):
     conn = get_db_connection()
-    
+
     # Get ticket details
     ticket = conn.execute('''
         SELECT st.*, u.first_name, u.last_name, u.email
@@ -1186,11 +1186,11 @@ def support_ticket(ticket_id):
         JOIN users u ON st.user_id = u.id
         WHERE st.id = ? AND st.user_id = ?
     ''', (ticket_id, session['user_id'])).fetchone()
-    
+
     if not ticket:
         flash('Ticket non trouvé', 'error')
         return redirect(url_for('support'))
-    
+
     # Get messages
     messages = conn.execute('''
         SELECT sm.*, u.first_name, u.last_name
@@ -1199,9 +1199,9 @@ def support_ticket(ticket_id):
         WHERE sm.ticket_id = ?
         ORDER BY sm.created_at ASC
     ''', (ticket_id,)).fetchall()
-    
+
     conn.close()
-    
+
     return render_template('support_ticket.html', ticket=ticket, messages=messages)
 
 @app.route('/support/create-ticket', methods=['POST'])
@@ -1212,14 +1212,14 @@ def create_support_ticket():
     message = data.get('message', '').strip()
     category = data.get('category', 'general')
     priority = data.get('priority', 'normal')
-    
+
     # Informations supplémentaires optionnelles
     amount = data.get('amount', '')
     tx_hash = data.get('tx_hash', '')
-    
+
     if not subject or not message:
         return jsonify({'error': 'Sujet et message requis'}), 400
-    
+
     # Enrichir le message avec les informations supplémentaires
     enriched_message = message
     if amount or tx_hash:
@@ -1228,26 +1228,26 @@ def create_support_ticket():
             enriched_message += f"\n💰 Montant concerné: {amount} USDT"
         if tx_hash:
             enriched_message += f"\n🔗 Hash de transaction: {tx_hash}"
-    
+
     conn = get_db_connection()
-    
+
     try:
         # Create ticket
         cursor = conn.execute('''
             INSERT INTO support_tickets (user_id, subject, category, priority)
             VALUES (?, ?, ?, ?)
         ''', (session['user_id'], subject, category, priority))
-        
+
         ticket_id = cursor.lastrowid
-        
+
         # Add first message
         conn.execute('''
             INSERT INTO support_messages (ticket_id, user_id, message, is_admin)
             VALUES (?, ?, ?, 0)
         ''', (ticket_id, session['user_id'], enriched_message))
-        
+
         conn.commit()
-        
+
         # Notification utilisateur
         add_notification(
             session['user_id'],
@@ -1255,7 +1255,7 @@ def create_support_ticket():
             f'Votre ticket #{ticket_id} a été créé avec succès. Notre équipe va vous répondre rapidement.',
             'success'
         )
-        
+
         # Notification admin
         add_notification(
             1,  # Admin user ID
@@ -1263,7 +1263,7 @@ def create_support_ticket():
             f'Nouveau ticket #{ticket_id} - {category.upper()} - Priorité: {priority}',
             'info'
         )
-        
+
         # Notifier l'admin via Telegram si disponible
         try:
             from telegram_investment_bot import notify_admin_new_support_ticket
@@ -1274,13 +1274,13 @@ def create_support_ticket():
             loop.close()
         except Exception as e:
             print(f"Erreur notification Telegram: {e}")
-        
+
         return jsonify({
             'success': True, 
             'ticket_id': ticket_id,
             'message': f'Ticket #{ticket_id} créé avec succès!'
         })
-        
+
     except Exception as e:
         conn.rollback()
         print(f"Erreur création ticket: {e}")
@@ -1294,37 +1294,37 @@ def send_support_message():
     data = request.get_json()
     ticket_id = data.get('ticket_id')
     message = data.get('message', '').strip()
-    
+
     if not message:
         return jsonify({'error': 'Message requis'}), 400
-    
+
     conn = get_db_connection()
-    
+
     # Verify ticket belongs to user
     ticket = conn.execute('''
         SELECT id FROM support_tickets 
         WHERE id = ? AND user_id = ?
     ''', (ticket_id, session['user_id'])).fetchone()
-    
+
     if not ticket:
         return jsonify({'error': 'Ticket non trouvé'}), 404
-    
+
     # Add message
     conn.execute('''
         INSERT INTO support_messages (ticket_id, user_id, message, is_admin)
         VALUES (?, ?, ?, 0)
     ''', (ticket_id, session['user_id'], message))
-    
+
     # Update ticket timestamp
     conn.execute('''
         UPDATE support_tickets 
         SET updated_at = CURRENT_TIMESTAMP, status = 'user_reply'
         WHERE id = ?
     ''', (ticket_id,))
-    
+
     conn.commit()
     conn.close()
-    
+
     return jsonify({'success': True})
 
 @app.route('/support/get-messages/<int:ticket_id>')
@@ -1332,17 +1332,17 @@ def send_support_message():
 def get_support_messages(ticket_id):
     try:
         conn = get_db_connection()
-        
+
         # Verify ticket belongs to user
         ticket = conn.execute('''
             SELECT id FROM support_tickets 
             WHERE id = ? AND user_id = ?
         ''', (ticket_id, session['user_id'])).fetchone()
-        
+
         if not ticket:
             conn.close()
             return jsonify({'error': 'Ticket non trouvé'}), 404
-        
+
         # Get messages
         messages = conn.execute('''
             SELECT sm.*, u.first_name, u.last_name
@@ -1351,19 +1351,19 @@ def get_support_messages(ticket_id):
             WHERE sm.ticket_id = ?
             ORDER BY sm.created_at ASC
         ''', (ticket_id,)).fetchall()
-        
+
         conn.close()
-        
+
         messages_list = []
         for msg in messages:
             # Gérer les valeurs NULL proprement
             first_name = msg['first_name'] if msg['first_name'] else ''
             last_name = msg['last_name'] if msg['last_name'] else ''
-            
+
             sender_name = 'Support' if msg['is_admin'] else f"{first_name} {last_name}".strip()
             if not sender_name or sender_name.isspace():
                 sender_name = 'Utilisateur'
-            
+
             messages_list.append({
                 'id': msg['id'],
                 'message': msg['message'] if msg['message'] else '',
@@ -1371,13 +1371,13 @@ def get_support_messages(ticket_id):
                 'created_at': msg['created_at'] if msg['created_at'] else '',
                 'sender_name': sender_name
             })
-        
+
         return jsonify({
             'success': True,
             'messages': messages_list,
             'ticket_id': ticket_id
         })
-        
+
     except Exception as e:
         print(f"Erreur get_support_messages: {e}")
         return jsonify({'error': 'Erreur serveur'}), 500
@@ -1392,12 +1392,12 @@ def admin_panel():
         session['first_name'] = 'Admin'
         session['is_potential_admin'] = True
         session['is_admin'] = False
-    
+
     # Vérifier si l'accès admin est activé
     admin_status = get_admin_status()
     if not admin_status['enabled'] or not session.get('is_admin'):
         return redirect(url_for('admin_activation_required'))
-    
+
     # Accès admin confirmé - afficher le dashboard admin
     return redirect(url_for('admin_dashboard'))
 
@@ -1406,14 +1406,14 @@ def admin_panel():
 def admin_dashboard():
     """Dashboard administrateur avec statistiques"""
     conn = get_db_connection()
-    
+
     # Statistiques générales
     stats = {}
     stats['total_users'] = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()['count']
     stats['total_investments'] = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM user_investments').fetchone()['total']
     stats['total_projects'] = conn.execute('SELECT COUNT(*) as count FROM projects').fetchone()['count']
     stats['pending_kyc'] = conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "pending"').fetchone()['count']
-    
+
     # Transactions récentes
     transactions = conn.execute('''
         SELECT t.*, u.first_name, u.last_name, u.email
@@ -1422,15 +1422,15 @@ def admin_dashboard():
         ORDER BY t.created_at DESC
         LIMIT 10
     ''').fetchall()
-    
+
     # Tickets de support ouverts
     try:
         stats['open_tickets'] = conn.execute('SELECT COUNT(*) as count FROM support_tickets WHERE status != "closed"').fetchone()['count']
     except:
         stats['open_tickets'] = 0
-    
+
     conn.close()
-    
+
     return render_template('admin_dashboard.html', stats=stats, transactions=transactions)
 
 @app.route('/admin-activation-required')
@@ -1443,7 +1443,7 @@ def admin_activation_required():
         session['first_name'] = 'Admin'
         session['is_potential_admin'] = True
         session['is_admin'] = False
-    
+
     admin_status = get_admin_status()
     return render_template('admin_activation.html', admin_status=admin_status)
 
@@ -1457,29 +1457,29 @@ def activate_admin_access():
         session['first_name'] = 'Admin'
         session['is_potential_admin'] = True
         session['is_admin'] = False
-    
+
     data = request.get_json()
     activation_code = data.get('activation_code')
     duration = int(data.get('duration', 30))  # Durée en minutes
-    
+
     # Codes d'activation sécurisés (peuvent être changés périodiquement)
     VALID_CODES = [
         'ADMIN2024!',
         'SECURE_ACCESS_' + datetime.now().strftime('%Y%m%d'),
         'EMERGENCY_' + str(datetime.now().hour * 100 + datetime.now().minute)
     ]
-    
+
     if activation_code not in VALID_CODES:
         log_security_action(session['user_id'], 'admin_activation_failed', f'Code d\'activation invalide: {activation_code}')
         return jsonify({'error': 'Code d\'activation invalide'}), 401
-    
+
     # Activer l'accès admin
     enable_admin_access(duration)
     session['is_admin'] = True
     session['admin_activated_at'] = datetime.now().isoformat()
-    
+
     log_security_action(session['user_id'], 'admin_access_activated', f'Accès admin activé pour {duration} minutes')
-    
+
     return jsonify({
         'success': True, 
         'message': f'Accès admin activé pour {duration} minutes',
@@ -1492,15 +1492,15 @@ def deactivate_admin_access():
     # Créer une session temporaire si elle n'existe pas
     if 'user_id' not in session:
         session['user_id'] = 1
-    
+
     # Permettre la désactivation même si is_admin est False
     # car l'utilisateur peut vouloir désactiver un accès expiré
-    
+
     disable_admin_access()
     session['is_admin'] = False
-    
+
     log_security_action(session['user_id'], 'admin_access_deactivated', 'Accès admin désactivé manuellement')
-    
+
     return jsonify({'success': True, 'message': 'Accès admin désactivé'})
 
 @app.route('/admin/status')
@@ -1511,7 +1511,7 @@ def admin_status():
         session['user_id'] = 1
         session['is_potential_admin'] = True
         session['is_admin'] = False
-    
+
     status = get_admin_status()
     return jsonify({
         'is_potential_admin': session.get('is_potential_admin', True),
@@ -1545,7 +1545,7 @@ def admin_console_status():
 def admin_transactions():
     """Gestion des transactions (dépôts/retraits)"""
     conn = get_db_connection()
-    
+
     # Récupérer toutes les transactions en attente
     pending_transactions = conn.execute('''
         SELECT t.*, u.first_name, u.last_name, u.email
@@ -1554,9 +1554,9 @@ def admin_transactions():
         WHERE t.status = 'pending'
         ORDER BY t.created_at DESC
     ''').fetchall()
-    
+
     conn.close()
-    
+
     return render_template('admin_transactions.html', transactions=pending_transactions)
 
 @app.route('/admin/approve-transaction/<int:transaction_id>', methods=['POST'])
@@ -1567,7 +1567,7 @@ def approve_transaction(transaction_id):
     for attempt in range(max_retries):
         try:
             conn = get_db_connection()
-            
+
             # Récupérer la transaction
             transaction = conn.execute('''
                 SELECT t.*, u.email, u.first_name
@@ -1575,49 +1575,49 @@ def approve_transaction(transaction_id):
                 JOIN users u ON t.user_id = u.id
                 WHERE t.id = ? AND t.status = 'pending'
             ''', (transaction_id,)).fetchone()
-            
+
             if not transaction:
                 conn.close()
                 return jsonify({'error': 'Transaction non trouvée ou déjà traitée'}), 404
-            
+
             if transaction['type'] == 'deposit':
-            # Approuver le dépôt - créditer le compte
+                # Approuver le dépôt - créditer le compte
+                conn.execute('''
+                    UPDATE users 
+                    SET balance = balance + ? 
+                    WHERE id = ?
+                ''', (transaction['amount'], transaction['user_id']))
+
+                # Ajouter notification
+                add_notification(
+                    transaction['user_id'],
+                    'Dépôt approuvé',
+                    f'Votre dépôt de {transaction["amount"]} USDT a été approuvé et crédité',
+                    'success'
+                )
+
+            elif transaction['type'] == 'withdrawal':
+                # Le montant a déjà été débité lors de la demande
+                # Ajouter notification
+                add_notification(
+                    transaction['user_id'],
+                    'Retrait traité',
+                    f'Votre retrait de {transaction["amount"]} USDT a été traité',
+                    'success'
+                )
+
+            # Marquer comme complété
             conn.execute('''
-                UPDATE users 
-                SET balance = balance + ? 
+                UPDATE transactions 
+                SET status = 'completed' 
                 WHERE id = ?
-            ''', (transaction['amount'], transaction['user_id']))
-            
-            # Ajouter notification
-            add_notification(
-                transaction['user_id'],
-                'Dépôt approuvé',
-                f'Votre dépôt de {transaction["amount"]} USDT a été approuvé et crédité',
-                'success'
-            )
-            
-        elif transaction['type'] == 'withdrawal':
-            # Le montant a déjà été débité lors de la demande
-            # Ajouter notification
-            add_notification(
-                transaction['user_id'],
-                'Retrait traité',
-                f'Votre retrait de {transaction["amount"]} USDT a été traité',
-                'success'
-            )
-        
-        # Marquer comme complété
-        conn.execute('''
-            UPDATE transactions 
-            SET status = 'completed' 
-            WHERE id = ?
-        ''', (transaction_id,))
-        
-        conn.commit()
+            ''', (transaction_id,))
+
+            conn.commit()
             conn.close()
-            
+
             return jsonify({'success': True, 'message': 'Transaction approuvée'})
-            
+
         except sqlite3.OperationalError as e:
             if conn:
                 conn.rollback()
@@ -1632,7 +1632,7 @@ def approve_transaction(transaction_id):
                 conn.rollback()
                 conn.close()
             return jsonify({'error': f'Erreur: {str(e)}'}), 500
-    
+
     return jsonify({'error': 'Échec après plusieurs tentatives'}), 500
 
 @app.route('/admin/reject-transaction/<int:transaction_id>', methods=['POST'])
@@ -1641,9 +1641,9 @@ def reject_transaction(transaction_id):
     """Rejeter une transaction"""
     data = request.get_json()
     reason = data.get('reason', 'Transaction rejetée par l\'administrateur')
-    
+
     conn = get_db_connection()
-    
+
     try:
         # Récupérer la transaction
         transaction = conn.execute('''
@@ -1652,10 +1652,10 @@ def reject_transaction(transaction_id):
             JOIN users u ON t.user_id = u.id
             WHERE t.id = ?
         ''', (transaction_id,)).fetchone()
-        
+
         if not transaction:
             return jsonify({'error': 'Transaction non trouvée'}), 404
-        
+
         if transaction['type'] == 'withdrawal':
             # Rembourser le montant au solde utilisateur
             conn.execute('''
@@ -1663,14 +1663,14 @@ def reject_transaction(transaction_id):
                 SET balance = balance + ? 
                 WHERE id = ?
             ''', (transaction['amount'], transaction['user_id']))
-        
+
         # Marquer comme rejetée
         conn.execute('''
             UPDATE transactions 
             SET status = 'failed' 
             WHERE id = ?
         ''', (transaction_id,))
-        
+
         # Ajouter notification
         add_notification(
             transaction['user_id'],
@@ -1678,11 +1678,11 @@ def reject_transaction(transaction_id):
             f'Votre {transaction["type"]} de {transaction["amount"]} USDT a été rejetée. Raison: {reason}',
             'error'
         )
-        
+
         conn.commit()
-        
+
         return jsonify({'success': True, 'message': 'Transaction rejetée'})
-        
+
     except Exception as e:
         conn.rollback()
         return jsonify({'error': f'Erreur: {str(e)}'}), 500
@@ -1694,7 +1694,7 @@ def reject_transaction(transaction_id):
 def admin_support():
     """Gestion des tickets de support"""
     conn = get_db_connection()
-    
+
     try:
         tickets = conn.execute('''
             SELECT st.*, u.first_name, u.last_name, u.email,
@@ -1705,9 +1705,9 @@ def admin_support():
         ''').fetchall()
     except:
         tickets = []
-    
+
     conn.close()
-    
+
     return render_template('admin_support.html', tickets=tickets)
 
 @app.route('/admin/support/ticket/<int:ticket_id>')
@@ -1715,7 +1715,7 @@ def admin_support():
 def admin_support_ticket(ticket_id):
     """Voir les détails d'un ticket de support"""
     conn = get_db_connection()
-    
+
     # Récupérer le ticket
     ticket = conn.execute('''
         SELECT st.*, u.first_name, u.last_name, u.email
@@ -1723,11 +1723,11 @@ def admin_support_ticket(ticket_id):
         JOIN users u ON st.user_id = u.id
         WHERE st.id = ?
     ''', (ticket_id,)).fetchone()
-    
+
     if not ticket:
         flash('Ticket non trouvé', 'error')
         return redirect(url_for('admin_support'))
-    
+
     # Récupérer les messages
     messages = conn.execute('''
         SELECT sm.*, u.first_name, u.last_name
@@ -1736,9 +1736,9 @@ def admin_support_ticket(ticket_id):
         WHERE sm.ticket_id = ?
         ORDER BY sm.created_at ASC
     ''', (ticket_id,)).fetchall()
-    
+
     conn.close()
-    
+
     return render_template('admin_support_ticket.html', ticket=ticket, messages=messages)
 
 @app.route('/admin/support/reply', methods=['POST'])
@@ -1748,26 +1748,26 @@ def admin_support_reply():
     data = request.get_json()
     ticket_id = data.get('ticket_id')
     message = data.get('message', '').strip()
-    
+
     if not message:
         return jsonify({'error': 'Message requis'}), 400
-    
+
     conn = get_db_connection()
-    
+
     try:
         # Ajouter la réponse admin
         conn.execute('''
             INSERT INTO support_messages (ticket_id, message, is_admin)
             VALUES (?, ?, 1)
         ''', (ticket_id, message))
-        
+
         # Mettre à jour le statut du ticket
         conn.execute('''
             UPDATE support_tickets 
             SET status = 'admin_reply', updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (ticket_id,))
-        
+
         # Récupérer les infos du ticket pour notification
         ticket = conn.execute('''
             SELECT st.*, u.first_name, u.email
@@ -1775,9 +1775,9 @@ def admin_support_reply():
             JOIN users u ON st.user_id = u.id
             WHERE st.id = ?
         ''', (ticket_id,)).fetchone()
-        
+
         conn.commit()
-        
+
         # Ajouter notification à l'utilisateur
         if ticket:
             add_notification(
@@ -1786,9 +1786,9 @@ def admin_support_reply():
                 f'Vous avez reçu une réponse à votre ticket #{ticket_id}',
                 'info'
             )
-        
+
         return jsonify({'success': True})
-        
+
     except Exception as e:
         conn.rollback()
         return jsonify({'error': f'Erreur: {str(e)}'}), 500
@@ -1800,25 +1800,25 @@ def admin_support_reply():
 def admin_close_ticket(ticket_id):
     """Fermer un ticket de support"""
     conn = get_db_connection()
-    
+
     try:
         # Récupérer les infos du ticket
         ticket = conn.execute('''
             SELECT user_id, subject FROM support_tickets WHERE id = ?
         ''', (ticket_id,)).fetchone()
-        
+
         if not ticket:
             return jsonify({'error': 'Ticket non trouvé'}), 404
-        
+
         # Fermer le ticket
         conn.execute('''
             UPDATE support_tickets 
             SET status = 'closed', updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ''', (ticket_id,))
-        
+
         conn.commit()
-        
+
         # Notification utilisateur
         add_notification(
             ticket['user_id'],
@@ -1826,9 +1826,9 @@ def admin_close_ticket(ticket_id):
             f'Votre ticket #{ticket_id} a été fermé par l\'équipe support',
             'info'
         )
-        
+
         return jsonify({'success': True})
-        
+
     except Exception as e:
         conn.rollback()
         return jsonify({'error': f'Erreur: {str(e)}'}), 500
@@ -1842,7 +1842,7 @@ def security_settings():
     """Page des paramètres de sécurité"""
     conn = get_db_connection()
     user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-    
+
     # Créer la table security_logs si elle n'existe pas
     try:
         conn.execute('''
@@ -1860,7 +1860,7 @@ def security_settings():
         conn.commit()
     except Exception as e:
         print(f"Erreur création table security_logs: {e}")
-    
+
     # Récupérer les logs de sécurité récents
     try:
         security_logs = conn.execute('''
@@ -1872,9 +1872,9 @@ def security_settings():
     except Exception as e:
         print(f"Erreur récupération logs: {e}")
         security_logs = []
-    
+
     conn.close()
-    
+
     return render_template('security.html', user=user, security_logs=security_logs)
 
 @app.route('/change-password', methods=['POST'])
@@ -1885,24 +1885,24 @@ def change_password():
     current_password = data.get('current_password')
     new_password = data.get('new_password')
     confirm_password = data.get('confirm_password')
-    
+
     if not all([current_password, new_password, confirm_password]):
         return jsonify({'error': 'Tous les champs sont requis'}), 400
-    
+
     if new_password != confirm_password:
         return jsonify({'error': 'Les nouveaux mots de passe ne correspondent pas'}), 400
-    
+
     if len(new_password) < 8:
         return jsonify({'error': 'Le mot de passe doit contenir au moins 8 caractères'}), 400
-    
+
     conn = get_db_connection()
     user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-    
+
     # Vérifier l'ancien mot de passe
     if not check_password_hash(user['password_hash'], current_password):
         conn.close()
         return jsonify({'error': 'Mot de passe actuel incorrect'}), 401
-    
+
     # Mettre à jour le mot de passe
     new_password_hash = generate_password_hash(new_password)
     conn.execute('''
@@ -1910,13 +1910,13 @@ def change_password():
         SET password_hash = ?, updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
     ''', (new_password_hash, session['user_id']))
-    
+
     # Enregistrer dans les logs de sécurité
     log_security_action(session['user_id'], 'password_changed', 'Mot de passe modifié avec succès')
-    
+
     conn.commit()
     conn.close()
-    
+
     # Ajouter notification
     add_notification(
         session['user_id'],
@@ -1924,7 +1924,7 @@ def change_password():
         'Votre mot de passe a été modifié avec succès.',
         'success'
     )
-    
+
     return jsonify({'success': True, 'message': 'Mot de passe modifié avec succès'})
 
 @app.route('/enable-2fa', methods=['POST'])
@@ -1935,52 +1935,52 @@ def enable_2fa():
     import qrcode
     import io
     import base64
-    
+
     try:
         conn = get_db_connection()
         user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-        
+
         if user['two_fa_enabled']:
             return jsonify({'error': '2FA déjà activé'}), 400
-        
+
         # Générer une clé secrète pour l'utilisateur
         secret = pyotp.random_base32()
-        
+
         # Créer l'URI pour le QR code
         totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
             user['email'], 
             issuer_name="InvestCrypto Pro"
         )
-        
+
         # Générer le QR code
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
         qr.add_data(totp_uri)
         qr.make(fit=True)
-        
+
         img = qr.make_image(fill_color="black", back_color="white")
-        
+
         # Convertir en base64
         buffer = io.BytesIO()
         img.save(buffer, format='PNG')
         qr_code_b64 = base64.b64encode(buffer.getvalue()).decode()
-        
+
         # Stocker temporairement la clé secrète
         conn.execute('''
             UPDATE users 
             SET two_fa_secret = ? 
             WHERE id = ?
         ''', (secret, session['user_id']))
-        
+
         conn.commit()
         conn.close()
-        
+
         return jsonify({
             'success': True,
             'secret': secret,
             'qr_code': f"data:image/png;base64,{qr_code_b64}",
             'manual_entry_key': secret
         })
-        
+
     except ImportError:
         return jsonify({'error': 'Modules 2FA non disponibles. Installez pyotp et qrcode'}), 500
     except Exception as e:
@@ -1991,38 +1991,38 @@ def enable_2fa():
 def verify_2fa():
     """Vérifier et finaliser l'activation 2FA"""
     import pyotp
-    
+
     try:
         data = request.get_json()
         token = data.get('token')
-        
+
         if not token:
             return jsonify({'error': 'Code de vérification requis'}), 400
-        
+
         conn = get_db_connection()
         user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-        
+
         if not user['two_fa_secret']:
             return jsonify({'error': 'Processus 2FA non initié'}), 400
-        
+
         # Vérifier le token
         totp = pyotp.TOTP(user['two_fa_secret'])
         if not totp.verify(token, valid_window=1):
             return jsonify({'error': 'Code de vérification invalide'}), 400
-        
+
         # Activer 2FA
         conn.execute('''
             UPDATE users 
             SET two_fa_enabled = 1, updated_at = CURRENT_TIMESTAMP 
             WHERE id = ?
         ''', (session['user_id'],))
-        
+
         # Enregistrer dans les logs
         log_security_action(session['user_id'], '2fa_enabled', 'Authentification 2FA activée')
-        
+
         conn.commit()
         conn.close()
-        
+
         # Ajouter notification
         add_notification(
             session['user_id'],
@@ -2030,9 +2030,9 @@ def verify_2fa():
             'Votre authentification à deux facteurs a été activée avec succès.',
             'success'
         )
-        
+
         return jsonify({'success': True, 'message': 'Authentification 2FA activée avec succès'})
-        
+
     except ImportError:
         return jsonify({'error': 'Modules 2FA non disponibles'}), 500
     except Exception as e:
@@ -2044,31 +2044,31 @@ def disable_2fa():
     """Désactiver l'authentification 2FA"""
     data = request.get_json()
     password = data.get('password')
-    
+
     if not password:
         return jsonify({'error': 'Mot de passe requis pour désactiver 2FA'}), 400
-    
+
     conn = get_db_connection()
     user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-    
+
     # Vérifier le mot de passe
     if not check_password_hash(user['password_hash'], password):
         conn.close()
         return jsonify({'error': 'Mot de passe incorrect'}), 401
-    
+
     # Désactiver 2FA
     conn.execute('''
         UPDATE users 
         SET two_fa_enabled = 0, two_fa_secret = NULL, updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
     ''', (session['user_id']))
-    
+
     # Enregistrer dans les logs
     log_security_action(session['user_id'], '2fa_disabled', 'Authentification 2FA désactivée')
-    
+
     conn.commit()
     conn.close()
-    
+
     # Ajouter notification
     add_notification(
         session['user_id'],
@@ -2076,14 +2076,14 @@ def disable_2fa():
         'Votre authentification à deux facteurs a été désactivée.',
         'warning'
     )
-    
+
     return jsonify({'success': True, 'message': 'Authentification 2FA désactivée'})
 
 def update_admin_password(email, new_password):
     """Mettre à jour le mot de passe d'un administrateur existant"""
     try:
         conn = get_db_connection()
-        
+
         # Vérifier si l'admin existe
         existing_admin = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
         if existing_admin:
@@ -2097,7 +2097,7 @@ def update_admin_password(email, new_password):
             print(f"❌ Administrateur {email} non trouvé")
             conn.close()
             return False
-            
+
     except Exception as e:
         print(f"❌ Erreur mise à jour mot de passe: {e}")
         return False
@@ -2106,7 +2106,7 @@ def create_secure_admin(email, password, first_name="Admin", last_name="System")
     """Créer un compte administrateur sécurisé"""
     try:
         conn = get_db_connection()
-        
+
         # Vérifier si l'admin existe déjà
         existing_admin = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
         if existing_admin:
@@ -2115,23 +2115,23 @@ def create_secure_admin(email, password, first_name="Admin", last_name="System")
             update_admin_password(email, password)
             conn.close()
             return False
-        
+
         # Créer le compte admin
         password_hash = generate_password_hash(password)
         referral_code = generate_referral_code()
-        
+
         cursor = conn.execute('''
             INSERT INTO users (email, password_hash, first_name, last_name, referral_code, kyc_status, balance)
             VALUES (?, ?, ?, ?, ?, 'verified', 0.0)
         ''', (email, password_hash, first_name, last_name, referral_code))
-        
+
         admin_id = cursor.lastrowid
         conn.commit()
         conn.close()
-        
+
         print(f"✅ Administrateur {email} créé avec succès (ID: {admin_id})")
         return True
-        
+
     except Exception as e:
         print(f"❌ Erreur création admin: {e}")
         return False
@@ -2140,7 +2140,7 @@ def log_security_action(user_id, action, details=""):
     """Enregistrer une action de sécurité"""
     try:
         conn = get_db_connection()
-        
+
         # Créer table de logs de sécurité si elle n'existe pas
         conn.execute('''
             CREATE TABLE IF NOT EXISTS security_logs (
@@ -2154,7 +2154,7 @@ def log_security_action(user_id, action, details=""):
                 FOREIGN KEY (user_id) REFERENCES users (id)
             )
         ''')
-        
+
         # Récupérer l'IP et User-Agent depuis Flask si disponible
         ip_address = None
         user_agent = None
@@ -2164,28 +2164,28 @@ def log_security_action(user_id, action, details=""):
             user_agent = request.headers.get('User-Agent', '')
         except:
             pass
-        
+
         conn.execute('''
             INSERT INTO security_logs (user_id, action, details, ip_address, user_agent)
             VALUES (?, ?, ?, ?, ?)
         ''', (user_id, action, details, ip_address, user_agent))
-        
+
         conn.commit()
         conn.close()
-        
+
     except Exception as e:
         print(f"❌ Erreur log sécurité: {e}")
 
 if __name__ == '__main__':
     init_db()
-    
+
     # Créer les comptes administrateur sécurisés
     print("🔐 Initialisation des comptes administrateur...")
     create_secure_admin('admin@investcryptopro.com', 'AdminSecure2024!', 'Admin', 'Principal')
     create_secure_admin('support@investcryptopro.com', 'SupportSecure2024!', 'Support', 'Team')
     create_secure_admin('security@investcryptopro.com', 'SecuritySecure2024!', 'Security', 'Team')
     create_secure_admin('a@gmail.com', 'aaaaaa', 'Admin', 'User')
-    
+
     # Mettre à jour le mot de passe du compte a@gmail.com
     update_admin_password('a@gmail.com', 'aaaaaa')
 
@@ -2208,37 +2208,37 @@ if __name__ == '__main__':
                 try:
                     import asyncio
                     import signal
-                    
+
                     # Créer un nouveau loop pour ce thread
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
-                    
+
                     async def start_user_bot():
                         try:
                             print("🚀 Initialisation du bot utilisateur...")
                             await user_bot_app.initialize()
                             await user_bot_app.start()
                             print("✅ Bot utilisateur en cours d'exécution")
-                            
+
                             # Utiliser l'updater pour le polling avec gestion d'erreur
                             await user_bot_app.updater.start_polling(
                                 allowed_updates=["message", "callback_query"],
                                 drop_pending_updates=True,
                                 error_callback=lambda exc: print(f"⚠️ Erreur bot ignorée: {exc}")
                             )
-                            
+
                             # Garder le bot en vie
                             stop_event = asyncio.Event()
-                            
+
                             def signal_handler():
                                 stop_event.set()
-                            
+
                             # Attendre indéfiniment ou jusqu'à interruption
                             try:
                                 await stop_event.wait()
                             except (KeyboardInterrupt, SystemExit):
                                 stop_event.set()
-                            
+
                         except Exception as e:
                             if "Conflict" in str(e):
                                 print(f"⚠️ Bot déjà en cours d'exécution elsewhere: {e}")
@@ -2251,10 +2251,10 @@ if __name__ == '__main__':
                                 print("🛑 Bot utilisateur arrêté")
                             except:
                                 pass
-                    
+
                     # Exécuter le bot dans son propre loop
                     loop.run_until_complete(start_user_bot())
-                    
+
                 except Exception as e:
                     if "Conflict" not in str(e):
                         print(f"❌ Erreur Telegram bot utilisateur: {e}")
