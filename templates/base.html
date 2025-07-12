@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"></meta>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{% block title %}Ttrust{% endblock %}</title>
     
     <!-- PWA Meta Tags -->
@@ -74,6 +74,11 @@
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            zoom: 1;
+            -moz-user-zoom: normal;
+            -webkit-user-zoom: normal;
         }
 
         /* Typography */
@@ -969,6 +974,22 @@
 
             /* Empêcher le zoom sur les éléments interactifs */
             button, input, select, textarea, a {
+                touch-action: manipulation;
+                -webkit-user-select: none;
+                -webkit-touch-callout: none;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            /* Désactiver complètement le zoom */
+            * {
+                -webkit-user-zoom: normal;
+                -moz-user-zoom: normal;
+                -ms-user-zoom: normal;
+                user-zoom: normal;
+            }
+            
+            /* Empêcher le double-tap pour zoomer */
+            .no-zoom {
                 touch-action: manipulation;
             }
         }
