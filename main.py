@@ -25,6 +25,19 @@ TELEGRAM_USER_BOT_ENABLED = False
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 
+# Configuration PWA
+@app.route('/static/sw.js')
+def service_worker():
+    return app.send_static_file('sw.js'), 200, {'Content-Type': 'application/javascript'}
+
+@app.route('/static/manifest.json')
+def manifest():
+    return app.send_static_file('manifest.json'), 200, {'Content-Type': 'application/json'}
+
+@app.route('/static/offline.html')
+def offline():
+    return app.send_static_file('offline.html')
+
 # Configuration avec persistance
 if REPLIT_DB_AVAILABLE:
     # Utiliser un répertoire persistant pour la base de données

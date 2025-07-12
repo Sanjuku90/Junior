@@ -4,6 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}InvestCrypto Pro{% endblock %}</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="InvestCrypto Pro">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="InvestCrypto Pro">
+    <meta name="description" content="Plateforme d'investissement crypto professionnelle avec rendements optimisés">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-config" content="/static/browserconfig.xml">
+    <meta name="msapplication-TileColor" content="#0f172a">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="theme-color" content="#3b82f6">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="152x152" href="/static/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/icons/icon-192x192.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/icons/icon-16x16.png">
+    <link rel="shortcut icon" href="/static/favicon.ico">
+    
+    <!-- Stylesheets -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -2183,5 +2210,274 @@
         });
     </script>
     {% endif %}
+    
+    <!-- PWA Installation & Service Worker -->
+    <script>
+        // Variables PWA
+        let deferredPrompt;
+        let swRegistration = null;
+        
+        // Enregistrement du Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    swRegistration = await navigator.serviceWorker.register('/static/sw.js', {
+                        scope: '/',
+                        updateViaCache: 'none'
+                    });
+                    
+                    console.log('[PWA] Service Worker enregistré:', swRegistration.scope);
+                    
+                    // Écouter les mises à jour
+                    swRegistration.addEventListener('updatefound', () => {
+                        const newWorker = swRegistration.installing;
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateNotification();
+                            }
+                        });
+                    });
+                    
+                } catch (error) {
+                    console.error('[PWA] Erreur enregistrement Service Worker:', error);
+                }
+            });
+        }
+        
+        // Gestion de l'installation PWA
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallPrompt();
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            console.log('[PWA] App installée');
+            hideInstallPrompt();
+            deferredPrompt = null;
+            
+            if (typeof showNotification === 'function') {
+                showNotification('Application installée avec succès!', 'success');
+            }
+        });
+        
+        // Interface d'installation
+        function showInstallPrompt() {
+            // Créer le bouton d'installation s'il n'existe pas
+            if (!document.getElementById('installButton') && !window.matchMedia('(display-mode: standalone)').matches) {
+                const installButton = document.createElement('button');
+                installButton.id = 'installButton';
+                installButton.innerHTML = `
+                    <i class="fas fa-download mr-2"></i>
+                    <span class="hidden sm:inline">Installer l'app</span>
+                    <span class="sm:hidden">Installer</span>
+                `;
+                installButton.className = 'btn-secondary fixed bottom-24 left-4 z-50 shadow-xl';
+                installButton.style.fontSize = '0.85rem';
+                installButton.style.padding = '0.75rem 1rem';
+                
+                installButton.addEventListener('click', installPWA);
+                document.body.appendChild(installButton);
+                
+                // Animation d'apparition
+                setTimeout(() => {
+                    installButton.style.transform = 'translateY(0)';
+                    installButton.style.opacity = '1';
+                }, 100);
+                
+                installButton.style.transform = 'translateY(100px)';
+                installButton.style.opacity = '0';
+                installButton.style.transition = 'all 0.3s ease';
+            }
+        }
+        
+        function hideInstallPrompt() {
+            const installButton = document.getElementById('installButton');
+            if (installButton) {
+                installButton.remove();
+            }
+        }
+        
+        async function installPWA() {
+            if (!deferredPrompt) return;
+            
+            try {
+                const result = await deferredPrompt.prompt();
+                console.log('[PWA] Résultat installation:', result.outcome);
+                
+                if (result.outcome === 'accepted') {
+                    hideInstallPrompt();
+                }
+                
+                deferredPrompt = null;
+            } catch (error) {
+                console.error('[PWA] Erreur installation:', error);
+            }
+        }
+        
+        // Notification de mise à jour
+        function showUpdateNotification() {
+            const updateNotification = document.createElement('div');
+            updateNotification.id = 'updateNotification';
+            updateNotification.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50 max-w-sm w-full mx-4';
+            updateNotification.innerHTML = `
+                <div class="bg-white rounded-lg shadow-xl border p-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-sync-alt text-blue-500 text-lg"></i>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <h3 class="text-sm font-medium text-gray-900">
+                                Mise à jour disponible
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-600">
+                                Une nouvelle version est disponible
+                            </p>
+                            <div class="mt-3 flex gap-2">
+                                <button onclick="updatePWA()" class="btn-primary text-xs px-3 py-1">
+                                    Mettre à jour
+                                </button>
+                                <button onclick="dismissUpdate()" class="btn-secondary text-xs px-3 py-1">
+                                    Plus tard
+                                </button>
+                            </div>
+                        </div>
+                        <button onclick="dismissUpdate()" class="ml-2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(updateNotification);
+            
+            // Auto-hide après 10 secondes
+            setTimeout(dismissUpdate, 10000);
+        }
+        
+        function updatePWA() {
+            if (swRegistration && swRegistration.waiting) {
+                swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+            }
+        }
+        
+        function dismissUpdate() {
+            const notification = document.getElementById('updateNotification');
+            if (notification) {
+                notification.remove();
+            }
+        }
+        
+        // Détection du mode standalone
+        function isStandalone() {
+            return window.matchMedia('(display-mode: standalone)').matches ||
+                   window.navigator.standalone ||
+                   document.referrer.includes('android-app://');
+        }
+        
+        // Gestion de la connectivité
+        function handleOnlineStatus() {
+            const statusIndicator = document.createElement('div');
+            statusIndicator.id = 'connectionStatus';
+            statusIndicator.className = 'fixed top-4 right-4 z-50 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300';
+            
+            function updateStatus() {
+                if (navigator.onLine) {
+                    statusIndicator.className = statusIndicator.className.replace(/bg-\w+-\d+/g, '') + ' bg-green-500 text-white';
+                    statusIndicator.innerHTML = '<i class="fas fa-wifi mr-1"></i>En ligne';
+                    setTimeout(() => {
+                        if (statusIndicator.parentNode) {
+                            statusIndicator.style.opacity = '0';
+                            setTimeout(() => statusIndicator.remove(), 300);
+                        }
+                    }, 2000);
+                } else {
+                    statusIndicator.className = statusIndicator.className.replace(/bg-\w+-\d+/g, '') + ' bg-red-500 text-white';
+                    statusIndicator.innerHTML = '<i class="fas fa-wifi-slash mr-1"></i>Hors ligne';
+                    statusIndicator.style.opacity = '1';
+                }
+            }
+            
+            window.addEventListener('online', () => {
+                if (!document.getElementById('connectionStatus')) {
+                    document.body.appendChild(statusIndicator);
+                }
+                updateStatus();
+            });
+            
+            window.addEventListener('offline', () => {
+                if (!document.getElementById('connectionStatus')) {
+                    document.body.appendChild(statusIndicator);
+                }
+                updateStatus();
+            });
+            
+            // Vérification initiale
+            if (!navigator.onLine) {
+                document.body.appendChild(statusIndicator);
+                updateStatus();
+            }
+        }
+        
+        // Initialisation PWA
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialiser la gestion de connectivité
+            handleOnlineStatus();
+            
+            // Masquer le bouton d'installation si déjà en mode standalone
+            if (isStandalone()) {
+                hideInstallPrompt();
+            }
+            
+            // Ajouter des classes CSS pour le mode PWA
+            if (isStandalone()) {
+                document.body.classList.add('pwa-standalone');
+            }
+            
+            console.log('[PWA] Initialisation terminée');
+        });
+        
+        // Styles PWA dynamiques
+        const pwaStyles = document.createElement('style');
+        pwaStyles.textContent = `
+            .pwa-standalone {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .pwa-standalone .professional-nav {
+                padding-top: env(safe-area-inset-top);
+            }
+            
+            @media (display-mode: standalone) {
+                body {
+                    user-select: none;
+                    -webkit-user-select: none;
+                }
+                
+                .professional-nav {
+                    background: rgba(255, 255, 255, 0.98);
+                    backdrop-filter: blur(20px);
+                }
+                
+                .btn-primary, .btn-secondary {
+                    -webkit-tap-highlight-color: transparent;
+                }
+            }
+            
+            #installButton {
+                backdrop-filter: blur(12px);
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            
+            #connectionStatus {
+                backdrop-filter: blur(8px);
+            }
+        `;
+        document.head.appendChild(pwaStyles);
+    </script>
 </body>
 </html>
