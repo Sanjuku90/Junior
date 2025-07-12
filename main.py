@@ -525,68 +525,83 @@ def add_notification(user_id, title, message, type='info'):
 # Scheduled tasks
 def calculate_daily_profits():
     conn = get_db_connection()
+    
+    # Récupérer tous les investissements actifs
     active_investments = conn.execute('''
         SELECT ui.*, u.email, rp.name as plan_name
         FROM user_investments ui
         JOIN users u ON ui.user_id = u.id
         JOIN roi_plans rp ON ui.plan_id = rp.id
-        WHERE ui.is_active = 1 AND ui.end_date > datetime('now')
+        WHERE ui.is_active = 1
     ''').fetchall()
+
+    print(f"🔄 Calcul des profits pour {len(active_investments)} investissements actifs")
 
     for investment in active_investments:
-        # Calculate daily profit
-        daily_profit = investment['daily_profit']
+        try:
+            # Vérifier si l'investissement est vraiment actif (pas expiré)
+            from datetime import datetime
+            if investment['end_date']:
+                end_date = datetime.fromisoformat(investment['end_date'].replace('Z', ''))
+                if datetime.now() > end_date:
+                    # Marquer comme terminé
+                    conn.execute('''
+                        UPDATE user_investments 
+                        SET is_active = 0 
+                        WHERE id = ?
+                    ''', (investment['id'],))
+                    
+                    add_notification(
+                        investment['user_id'],
+                        'Plan d\'investissement terminé',
+                        f'Votre plan {investment["plan_name"]} est arrivé à terme. Total gagné: {investment["total_earned"]:.2f} USDT',
+                        'info'
+                    )
+                    continue
 
-        # Update user balance
-        conn.execute('''
-            UPDATE users 
-            SET balance = balance + ? 
-            WHERE id = ?
-        ''', (daily_profit, investment['user_id']))
+            # Calculate daily profit
+            daily_profit = investment['daily_profit']
+            
+            if daily_profit > 0:
+                print(f"💰 Ajout de {daily_profit:.2f} USDT pour l'utilisateur {investment['user_id']} - Plan: {investment['plan_name']}")
 
-        # Update total earned
-        conn.execute('''
-            UPDATE user_investments 
-            SET total_earned = total_earned + ? 
-            WHERE id = ?
-        ''', (daily_profit, investment['id']))
+                # Update user balance
+                conn.execute('''
+                    UPDATE users 
+                    SET balance = balance + ? 
+                    WHERE id = ?
+                ''', (daily_profit, investment['user_id']))
 
-        # Add transaction record
-        conn.execute('''
-            INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
-            VALUES (?, 'daily_profit', ?, 'completed', ?)
-        ''', (investment['user_id'], daily_profit, generate_transaction_hash()))
+                # Update total earned
+                current_earned = investment.get('total_earned', 0) or 0
+                new_total_earned = current_earned + daily_profit
+                conn.execute('''
+                    UPDATE user_investments 
+                    SET total_earned = ? 
+                    WHERE id = ?
+                ''', (new_total_earned, investment['id']))
 
-        # Add notification
-        add_notification(
-            investment['user_id'],
-            'Profit journalier reçu',
-            f'Vous avez reçu {daily_profit:.2f} USDT de votre plan {investment["plan_name"]}',
-            'success'
-        )
+                # Add transaction record
+                conn.execute('''
+                    INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+                    VALUES (?, 'daily_profit', ?, 'completed', ?)
+                ''', (investment['user_id'], daily_profit, generate_transaction_hash()))
 
-    # Check for completed investments
-    completed_investments = conn.execute('''
-        SELECT * FROM user_investments 
-        WHERE is_active = 1 AND end_date <= datetime('now')
-    ''').fetchall()
+                # Add notification
+                add_notification(
+                    investment['user_id'],
+                    'Profit journalier reçu',
+                    f'Vous avez reçu {daily_profit:.2f} USDT de votre plan {investment["plan_name"]}',
+                    'success'
+                )
 
-    for investment in completed_investments:
-        conn.execute('''
-            UPDATE user_investments 
-            SET is_active = 0 
-            WHERE id = ?
-        ''', (investment['id'],))
-
-        add_notification(
-            investment['user_id'],
-            'Plan d\'investissement terminé',
-            f'Votre plan d\'investissement est arrivé à terme. Total gagné: {investment["total_earned"]:.2f} USDT',
-            'info'
-        )
+        except Exception as e:
+            print(f"❌ Erreur calcul profit pour investissement {investment['id']}: {e}")
+            continue
 
     conn.commit()
     conn.close()
+    print("✅ Calcul des profits quotidiens terminé")
 
 # Routes
 @app.route('/')
@@ -1932,6 +1947,21 @@ def admin_calculate_profits():
         return jsonify({
             'success': True, 
             'message': 'Profits quotidiens calculés avec succès!'
+        })
+    except Exception as e:
+        return jsonify({
+            'error': f'Erreur lors du calcul des profits: {str(e)}'
+        }), 500
+
+@app.route('/calculate-profits-now', methods=['POST'])
+@login_required  
+def user_calculate_profits():
+    """Permettre aux utilisateurs de déclencher le calcul des profits"""
+    try:
+        calculate_daily_profits()
+        return jsonify({
+            'success': True, 
+            'message': 'Vos profits ont été recalculés!'
         })
     except Exception as e:
         return jsonify({
