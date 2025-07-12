@@ -1,0 +1,213 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="messenger-card">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">🎫 Gestion du Support</h1>
+            <div class="flex space-x-3">
+                <a href="{{ url_for('admin_dashboard') }}" class="messenger-btn-outline">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour Admin
+                </a>
+                <button onclick="refreshTickets()" class="messenger-btn">
+                    <i class="fas fa-refresh mr-2"></i>Actualiser
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-red-500 to-red-600">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Tickets Ouverts</h3>
+            <div class="text-2xl font-bold text-red-600">
+                {{ tickets|selectattr('status', 'in', ['open', 'user_reply'])|list|length }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-blue-500 to-blue-600">
+                <i class="fas fa-reply"></i>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">En Attente</h3>
+            <div class="text-2xl font-bold text-blue-600">
+                {{ tickets|selectattr('status', 'equalto', 'user_reply')|list|length }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-green-500 to-green-600">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Fermés</h3>
+            <div class="text-2xl font-bold text-green-600">
+                {{ tickets|selectattr('status', 'equalto', 'closed')|list|length }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-purple-500 to-purple-600">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Total</h3>
+            <div class="text-2xl font-bold text-purple-600">{{ tickets|length }}</div>
+        </div>
+    </div>
+
+    <!-- Tickets List -->
+    <div class="messenger-card">
+        <h2 class="text-xl font-semibold mb-6">📋 Liste des Tickets</h2>
+        
+        <!-- Filters -->
+        <div class="flex space-x-4 mb-6">
+            <select id="statusFilter" onchange="filterTickets()" class="messenger-input">
+                <option value="">Tous les statuts</option>
+                <option value="open">Ouverts</option>
+                <option value="user_reply">Réponse utilisateur</option>
+                <option value="admin_reply">Réponse admin</option>
+                <option value="closed">Fermés</option>
+            </select>
+            
+            <select id="categoryFilter" onchange="filterTickets()" class="messenger-input">
+                <option value="">Toutes les catégories</option>
+                <option value="general">Général</option>
+                <option value="wallet">Portefeuille</option>
+                <option value="investment">Investissement</option>
+                <option value="security">Sécurité</option>
+                <option value="technical">Technique</option>
+            </select>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="messenger-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Utilisateur</th>
+                        <th>Sujet</th>
+                        <th>Catégorie</th>
+                        <th>Statut</th>
+                        <th>Messages</th>
+                        <th>Créé</th>
+                        <th>Dernière MAJ</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ticketsTableBody">
+                    {% for ticket in tickets %}
+                        <tr class="ticket-row" 
+                            data-status="{{ ticket.status }}" 
+                            data-category="{{ ticket.category }}">
+                            <td>
+                                <span class="font-mono text-sm">#{{ ticket.id }}</span>
+                            </td>
+                            <td>
+                                <div>
+                                    <div class="font-medium">{{ ticket.first_name }} {{ ticket.last_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ ticket.email }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="max-w-xs truncate" title="{{ ticket.subject }}">
+                                    {{ ticket.subject }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-indicator bg-gray-100 text-gray-800">
+                                    {{ ticket.category.title() }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="status-indicator 
+                                    {% if ticket.status == 'open' %}status-pending{% endif %}
+                                    {% if ticket.status == 'admin_reply' %}status-active{% endif %}
+                                    {% if ticket.status == 'user_reply' %}bg-red-100 text-red-800{% endif %}
+                                    {% if ticket.status == 'closed' %}status-completed{% endif %}">
+                                    {{ ticket.status.replace('_', ' ').title() }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                    {{ ticket.message_count }}
+                                </span>
+                            </td>
+                            <td class="text-sm text-gray-600">
+                                {{ ticket.created_at[:10] }}
+                            </td>
+                            <td class="text-sm text-gray-600">
+                                {{ ticket.updated_at[:10] }}
+                            </td>
+                            <td>
+                                <div class="flex space-x-1">
+                                    <a href="{{ url_for('admin_support_ticket', ticket_id=ticket.id) }}" 
+                                       class="messenger-btn text-xs px-2 py-1">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if ticket.status != 'closed' %}
+                                        <button onclick="closeTicket({{ ticket.id }})" 
+                                                class="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterTickets() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const rows = document.querySelectorAll('.ticket-row');
+    
+    rows.forEach(row => {
+        const status = row.dataset.status;
+        const category = row.dataset.category;
+        
+        const statusMatch = !statusFilter || status === statusFilter;
+        const categoryMatch = !categoryFilter || category === categoryFilter;
+        
+        if (statusMatch && categoryMatch) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+async function closeTicket(ticketId) {
+    if (!confirm('Êtes-vous sûr de vouloir fermer ce ticket ?')) return;
+    
+    try {
+        const response = await fetch(`/admin/support/close/${ticketId}`, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('Ticket fermé avec succès', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification('Erreur lors de la fermeture', 'error');
+        }
+    } catch (error) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+
+function refreshTickets() {
+    location.reload();
+}
+</script>
+{% endblock %}

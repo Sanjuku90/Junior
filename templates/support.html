@@ -1,0 +1,327 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="text-center">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">💬 Support Client</h1>
+        <p class="text-lg text-gray-600">Notre équipe est là pour vous aider 24/7</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="messenger-card text-center">
+            <div class="stat-icon bg-gradient-to-r from-blue-500 to-blue-600">
+                <i class="fas fa-plus"></i>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Nouveau Ticket</h3>
+            <p class="text-gray-600 mb-4">Créer une nouvelle demande de support</p>
+            <button onclick="openNewTicketModal()" class="messenger-btn w-full">
+                <i class="fas fa-ticket-alt mr-2"></i>Créer un ticket
+            </button>
+        </div>
+
+        <div class="messenger-card text-center">
+            <div class="stat-icon bg-gradient-to-r from-green-500 to-green-600">
+                <i class="fas fa-comments"></i>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">Chat Rapide</h3>
+            <p class="text-gray-600 mb-4">Assistance instantanée via chat</p>
+            <button onclick="openLiveChat()" class="messenger-btn-success w-full">
+                <i class="fas fa-comment mr-2"></i>Chat en direct
+            </button>
+        </div>
+
+        <div class="messenger-card text-center">
+            <div class="stat-icon bg-gradient-to-r from-purple-500 to-purple-600">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <h3 class="text-lg font-semibold mb-2">FAQ</h3>
+            <p class="text-gray-600 mb-4">Réponses aux questions fréquentes</p>
+            <button onclick="showFAQ()" class="messenger-btn-outline w-full">
+                <i class="fas fa-book mr-2"></i>Consulter la FAQ
+            </button>
+        </div>
+    </div>
+
+    <!-- My Tickets -->
+    <div class="messenger-card">
+        <h2 class="text-xl font-semibold mb-6">🎫 Mes Tickets de Support</h2>
+        
+        {% if tickets %}
+            <div class="space-y-4">
+                {% for ticket in tickets %}
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <h3 class="font-semibold text-gray-900">#{{{ ticket.id }}} - {{ ticket.subject }}</h3>
+                                    <span class="status-indicator 
+                                        {% if ticket.status == 'open' %}status-pending{% endif %}
+                                        {% if ticket.status == 'admin_reply' %}status-active{% endif %}
+                                        {% if ticket.status == 'user_reply' %}bg-blue-100 text-blue-800{% endif %}
+                                        {% if ticket.status == 'closed' %}status-completed{% endif %}">
+                                        {{ ticket.status.replace('_', ' ').title() }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                                    <span><i class="fas fa-tag mr-1"></i>{{ ticket.category.title() }}</span>
+                                    <span><i class="fas fa-calendar mr-1"></i>{{ ticket.created_at[:10] }}</span>
+                                    <span><i class="fas fa-message mr-1"></i>{{ ticket.message_count }} messages</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('support_ticket', ticket_id=ticket.id) }}" 
+                                   class="messenger-btn-outline text-sm px-4 py-2">
+                                    <i class="fas fa-eye mr-1"></i>Voir
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-ticket-alt text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Aucun ticket</h3>
+                <p class="text-gray-600">Vous n'avez pas encore créé de ticket de support.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- FAQ Section -->
+    <div id="faq-section" class="messenger-card" style="display: none;">
+        <h2 class="text-xl font-semibold mb-6">❓ Questions Fréquentes</h2>
+        
+        <div class="space-y-4">
+            {% for faq in faq_items %}
+                <div class="border border-gray-200 rounded-lg">
+                    <button onclick="toggleFAQ({{ faq.id }})" 
+                            class="w-full text-left p-4 hover:bg-gray-50 flex items-center justify-between">
+                        <span class="font-medium">{{ faq.question }}</span>
+                        <i id="faq-icon-{{ faq.id }}" class="fas fa-chevron-down transition-transform"></i>
+                    </button>
+                    <div id="faq-answer-{{ faq.id }}" class="hidden p-4 pt-0 text-gray-600">
+                        {{ faq.answer }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- New Ticket Modal -->
+<div id="newTicketModal" class="messenger-modal fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold">Nouveau Ticket de Support</h3>
+            <button onclick="closeNewTicketModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="newTicketForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Sujet *</label>
+                <input type="text" id="ticketSubject" class="messenger-input" placeholder="Décrivez brièvement votre problème" required>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
+                    <select id="ticketCategory" class="messenger-input">
+                        <option value="general">Général</option>
+                        <option value="wallet">Portefeuille</option>
+                        <option value="investment">Investissement</option>
+                        <option value="security">Sécurité</option>
+                        <option value="technical">Technique</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
+                    <select id="ticketPriority" class="messenger-input">
+                        <option value="low">Faible</option>
+                        <option value="normal">Normale</option>
+                        <option value="high">Élevée</option>
+                        <option value="urgent">Urgente</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+                <textarea id="ticketMessage" class="messenger-input h-24" placeholder="Décrivez votre problème en détail..." required></textarea>
+            </div>
+            
+            <div class="flex space-x-3">
+                <button type="submit" class="messenger-btn flex-1">
+                    <i class="fas fa-paper-plane mr-2"></i>Créer le ticket
+                </button>
+                <button type="button" onclick="closeNewTicketModal()" class="messenger-btn-outline">
+                    Annuler
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Live Chat Widget -->
+<div id="chatWidget" class="fixed bottom-4 right-4 z-50">
+    <button id="chatToggle" onclick="toggleChat()" 
+            class="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all">
+        <i class="fas fa-comments text-xl"></i>
+    </button>
+    
+    <div id="chatWindow" class="hidden absolute bottom-16 right-0 w-80 h-96 bg-white rounded-lg shadow-2xl border border-gray-200 flex flex-col">
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-t-lg">
+            <div class="flex justify-between items-center">
+                <h3 class="font-semibold">💬 Support en Direct</h3>
+                <button onclick="toggleChat()" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3">
+            <div class="bg-gray-100 rounded-lg p-3 max-w-xs">
+                <div class="text-sm text-gray-600 mb-1">Support</div>
+                <div>Bonjour ! Comment puis-je vous aider aujourd'hui ? 😊</div>
+            </div>
+        </div>
+        
+        <div class="p-4 border-t border-gray-200">
+            <div class="flex space-x-2">
+                <input type="text" id="chatInput" placeholder="Tapez votre message..." 
+                       class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                       onkeypress="if(event.key==='Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()" class="bg-blue-500 text-white rounded-lg px-3 py-2 hover:bg-blue-600">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// FAQ Functions
+function showFAQ() {
+    const faqSection = document.getElementById('faq-section');
+    faqSection.style.display = faqSection.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleFAQ(id) {
+    const answer = document.getElementById(`faq-answer-${id}`);
+    const icon = document.getElementById(`faq-icon-${id}`);
+    
+    if (answer.classList.contains('hidden')) {
+        answer.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        answer.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+// New Ticket Modal
+function openNewTicketModal() {
+    document.getElementById('newTicketModal').classList.remove('hidden');
+}
+
+function closeNewTicketModal() {
+    document.getElementById('newTicketModal').classList.add('hidden');
+    document.getElementById('newTicketForm').reset();
+}
+
+// Handle new ticket form
+document.getElementById('newTicketForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        subject: document.getElementById('ticketSubject').value,
+        category: document.getElementById('ticketCategory').value,
+        priority: document.getElementById('ticketPriority').value,
+        message: document.getElementById('ticketMessage').value
+    };
+    
+    try {
+        const response = await fetch('/support/create-ticket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('Ticket créé avec succès!', 'success');
+            closeNewTicketModal();
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(result.error || 'Erreur lors de la création du ticket', 'error');
+        }
+    } catch (error) {
+        showNotification('Erreur de connexion', 'error');
+    }
+});
+
+// Live Chat Functions
+function toggleChat() {
+    const chatWindow = document.getElementById('chatWindow');
+    chatWindow.classList.toggle('hidden');
+}
+
+function openLiveChat() {
+    document.getElementById('chatWindow').classList.remove('hidden');
+}
+
+function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Add user message to chat
+    const chatMessages = document.getElementById('chatMessages');
+    const userMessage = document.createElement('div');
+    userMessage.className = 'flex justify-end';
+    userMessage.innerHTML = `
+        <div class="bg-blue-500 text-white rounded-lg p-3 max-w-xs">
+            <div class="text-sm opacity-75 mb-1">Vous</div>
+            <div>${message}</div>
+        </div>
+    `;
+    chatMessages.appendChild(userMessage);
+    
+    // Clear input
+    input.value = '';
+    
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    // Simulate bot response (in real implementation, this would be real-time)
+    setTimeout(() => {
+        const botMessage = document.createElement('div');
+        botMessage.innerHTML = `
+            <div class="bg-gray-100 rounded-lg p-3 max-w-xs">
+                <div class="text-sm text-gray-600 mb-1">Support</div>
+                <div>Merci pour votre message. Un agent va vous répondre dans quelques instants...</div>
+            </div>
+        `;
+        chatMessages.appendChild(botMessage);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, 1000);
+}
+
+// Close modal when clicking outside
+document.getElementById('newTicketModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeNewTicketModal();
+    }
+});
+</script>
+{% endblock %}

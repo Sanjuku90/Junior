@@ -228,6 +228,58 @@ def init_db():
         )
     ''')
 
+    # Support Tickets table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS support_tickets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            subject TEXT NOT NULL,
+            status TEXT DEFAULT 'open',
+            priority TEXT DEFAULT 'normal',
+            category TEXT DEFAULT 'general',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            assigned_to TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
+    # Support Messages table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS support_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ticket_id INTEGER NOT NULL,
+            user_id INTEGER,
+            message TEXT NOT NULL,
+            is_admin BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (ticket_id) REFERENCES support_tickets (id),
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
+    # FAQ table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS faq (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            question TEXT NOT NULL,
+            answer TEXT NOT NULL,
+            category TEXT DEFAULT 'general',
+            is_active BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Insert default FAQ entries
+    cursor.execute('''
+        INSERT OR IGNORE INTO faq (question, answer, category) VALUES 
+        ('Comment déposer des fonds ?', 'Rendez-vous dans votre portefeuille et cliquez sur "Déposer". Suivez les instructions pour transférer vos USDT.', 'wallet'),
+        ('Quand puis-je retirer mes gains ?', 'Vos gains quotidiens sont disponibles immédiatement pour retrait. Le capital initial est libéré à la fin du plan.', 'investment'),
+        ('Les investissements sont-ils sécurisés ?', 'Oui, nous utilisons des smart contracts et un système de sécurité multicouche pour protéger vos investissements.', 'security'),
+        ('Comment fonctionne le parrainage ?', 'Partagez votre code de parrainage unique et recevez 5% sur tous les investissements de vos filleuls.', 'referral'),
+        ('Quel est le montant minimum d investissement ?', 'Le montant minimum est de 20 USDT pour tous nos plans d investissement.', 'investment')
+    ''')
+
     # Insert top 10 ROI plans - Starting from 20 USDT
     cursor.execute('''
         INSERT OR IGNORE INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
@@ -964,6 +1016,178 @@ def submit_withdrawal():
 
     return jsonify({'success': True, 'message': 'Demande de retrait soumise pour traitement'})
 
+# Support routes
+@app.route('/support')
+@login_required
+def support():
+    conn = get_db_connection()
+    
+    # Get user's tickets
+    tickets = conn.execute('''
+        SELECT st.*, 
+               (SELECT COUNT(*) FROM support_messages sm WHERE sm.ticket_id = st.id) as message_count,
+               (SELECT sm.created_at FROM support_messages sm WHERE sm.ticket_id = st.id ORDER BY sm.created_at DESC LIMIT 1) as last_message_at
+        FROM support_tickets st
+        WHERE st.user_id = ?
+        ORDER BY st.created_at DESC
+    ''', (session['user_id'],)).fetchall()
+    
+    # Get FAQ
+    faq_items = conn.execute('''
+        SELECT * FROM faq WHERE is_active = 1 ORDER BY category, id
+    ''').fetchall()
+    
+    conn.close()
+    
+    return render_template('support.html', tickets=tickets, faq_items=faq_items)
+
+@app.route('/support/ticket/<int:ticket_id>')
+@login_required
+def support_ticket(ticket_id):
+    conn = get_db_connection()
+    
+    # Get ticket details
+    ticket = conn.execute('''
+        SELECT st.*, u.first_name, u.last_name, u.email
+        FROM support_tickets st
+        JOIN users u ON st.user_id = u.id
+        WHERE st.id = ? AND st.user_id = ?
+    ''', (ticket_id, session['user_id'])).fetchone()
+    
+    if not ticket:
+        flash('Ticket non trouvé', 'error')
+        return redirect(url_for('support'))
+    
+    # Get messages
+    messages = conn.execute('''
+        SELECT sm.*, u.first_name, u.last_name
+        FROM support_messages sm
+        LEFT JOIN users u ON sm.user_id = u.id
+        WHERE sm.ticket_id = ?
+        ORDER BY sm.created_at ASC
+    ''', (ticket_id,)).fetchall()
+    
+    conn.close()
+    
+    return render_template('support_ticket.html', ticket=ticket, messages=messages)
+
+@app.route('/support/create-ticket', methods=['POST'])
+@login_required
+def create_support_ticket():
+    data = request.get_json()
+    subject = data.get('subject', '').strip()
+    message = data.get('message', '').strip()
+    category = data.get('category', 'general')
+    priority = data.get('priority', 'normal')
+    
+    if not subject or not message:
+        return jsonify({'error': 'Sujet et message requis'}), 400
+    
+    conn = get_db_connection()
+    
+    # Create ticket
+    cursor = conn.execute('''
+        INSERT INTO support_tickets (user_id, subject, category, priority)
+        VALUES (?, ?, ?, ?)
+    ''', (session['user_id'], subject, category, priority))
+    
+    ticket_id = cursor.lastrowid
+    
+    # Add first message
+    conn.execute('''
+        INSERT INTO support_messages (ticket_id, user_id, message, is_admin)
+        VALUES (?, ?, ?, 0)
+    ''', (ticket_id, session['user_id'], message))
+    
+    conn.commit()
+    conn.close()
+    
+    # Notification admin
+    add_notification(
+        1,  # Admin user ID
+        'Nouveau ticket de support',
+        f'Nouveau ticket #{ticket_id}: {subject}',
+        'info'
+    )
+    
+    return jsonify({'success': True, 'ticket_id': ticket_id})
+
+@app.route('/support/send-message', methods=['POST'])
+@login_required
+def send_support_message():
+    data = request.get_json()
+    ticket_id = data.get('ticket_id')
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({'error': 'Message requis'}), 400
+    
+    conn = get_db_connection()
+    
+    # Verify ticket belongs to user
+    ticket = conn.execute('''
+        SELECT id FROM support_tickets 
+        WHERE id = ? AND user_id = ?
+    ''', (ticket_id, session['user_id'])).fetchone()
+    
+    if not ticket:
+        return jsonify({'error': 'Ticket non trouvé'}), 404
+    
+    # Add message
+    conn.execute('''
+        INSERT INTO support_messages (ticket_id, user_id, message, is_admin)
+        VALUES (?, ?, ?, 0)
+    ''', (ticket_id, session['user_id'], message))
+    
+    # Update ticket timestamp
+    conn.execute('''
+        UPDATE support_tickets 
+        SET updated_at = CURRENT_TIMESTAMP, status = 'user_reply'
+        WHERE id = ?
+    ''', (ticket_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
+
+@app.route('/support/get-messages/<int:ticket_id>')
+@login_required
+def get_support_messages(ticket_id):
+    conn = get_db_connection()
+    
+    # Verify ticket belongs to user
+    ticket = conn.execute('''
+        SELECT id FROM support_tickets 
+        WHERE id = ? AND user_id = ?
+    ''', (ticket_id, session['user_id'])).fetchone()
+    
+    if not ticket:
+        return jsonify({'error': 'Ticket non trouvé'}), 404
+    
+    # Get messages
+    messages = conn.execute('''
+        SELECT sm.*, u.first_name, u.last_name
+        FROM support_messages sm
+        LEFT JOIN users u ON sm.user_id = u.id
+        WHERE sm.ticket_id = ?
+        ORDER BY sm.created_at ASC
+    ''', (ticket_id,)).fetchall()
+    
+    conn.close()
+    
+    messages_list = []
+    for msg in messages:
+        messages_list.append({
+            'id': msg['id'],
+            'message': msg['message'],
+            'is_admin': bool(msg['is_admin']),
+            'created_at': msg['created_at'],
+            'sender_name': 'Support' if msg['is_admin'] else f"{msg['first_name']} {msg['last_name']}" if msg['first_name'] else 'Utilisateur'
+        })
+    
+    return jsonify({'messages': messages_list})
+
 @app.route('/admin')
 @admin_required
 def admin_dashboard():
@@ -974,7 +1198,8 @@ def admin_dashboard():
         'total_users': conn.execute('SELECT COUNT(*) as count FROM users').fetchone()['count'],
         'total_investments': conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM user_investments').fetchone()['total'],
         'total_projects': conn.execute('SELECT COUNT(*) as count FROM projects').fetchone()['count'],
-        'pending_kyc': conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "pending"').fetchone()['count']
+        'pending_kyc': conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "pending"').fetchone()['count'],
+        'open_tickets': conn.execute('SELECT COUNT(*) as count FROM support_tickets WHERE status IN ("open", "user_reply")').fetchone()['count']
     }
 
     # Get recent transactions
@@ -989,6 +1214,106 @@ def admin_dashboard():
     conn.close()
 
     return render_template('admin_dashboard.html', stats=stats, transactions=transactions)
+
+@app.route('/admin/support')
+@admin_required
+def admin_support():
+    conn = get_db_connection()
+    
+    # Get all tickets
+    tickets = conn.execute('''
+        SELECT st.*, u.first_name, u.last_name, u.email,
+               (SELECT COUNT(*) FROM support_messages sm WHERE sm.ticket_id = st.id) as message_count
+        FROM support_tickets st
+        JOIN users u ON st.user_id = u.id
+        ORDER BY 
+            CASE st.status 
+                WHEN 'user_reply' THEN 1 
+                WHEN 'open' THEN 2 
+                ELSE 3 
+            END,
+            st.updated_at DESC
+    ''').fetchall()
+    
+    conn.close()
+    
+    return render_template('admin_support.html', tickets=tickets)
+
+@app.route('/admin/support/ticket/<int:ticket_id>')
+@admin_required
+def admin_support_ticket(ticket_id):
+    conn = get_db_connection()
+    
+    # Get ticket details
+    ticket = conn.execute('''
+        SELECT st.*, u.first_name, u.last_name, u.email
+        FROM support_tickets st
+        JOIN users u ON st.user_id = u.id
+        WHERE st.id = ?
+    ''', (ticket_id,)).fetchone()
+    
+    if not ticket:
+        flash('Ticket non trouvé', 'error')
+        return redirect(url_for('admin_support'))
+    
+    # Get messages
+    messages = conn.execute('''
+        SELECT sm.*, u.first_name, u.last_name
+        FROM support_messages sm
+        LEFT JOIN users u ON sm.user_id = u.id
+        WHERE sm.ticket_id = ?
+        ORDER BY sm.created_at ASC
+    ''', (ticket_id,)).fetchall()
+    
+    conn.close()
+    
+    return render_template('admin_support_ticket.html', ticket=ticket, messages=messages)
+
+@app.route('/admin/support/reply', methods=['POST'])
+@admin_required
+def admin_support_reply():
+    data = request.get_json()
+    ticket_id = data.get('ticket_id')
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({'error': 'Message requis'}), 400
+    
+    conn = get_db_connection()
+    
+    # Add admin message
+    conn.execute('''
+        INSERT INTO support_messages (ticket_id, message, is_admin)
+        VALUES (?, ?, 1)
+    ''', (ticket_id, message))
+    
+    # Update ticket status
+    conn.execute('''
+        UPDATE support_tickets 
+        SET status = 'admin_reply', updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (ticket_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
+
+@app.route('/admin/support/close/<int:ticket_id>', methods=['POST'])
+@admin_required
+def admin_close_ticket(ticket_id):
+    conn = get_db_connection()
+    
+    conn.execute('''
+        UPDATE support_tickets 
+        SET status = 'closed', updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    ''', (ticket_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
     init_db()

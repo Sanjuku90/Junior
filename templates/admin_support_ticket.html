@@ -1,0 +1,232 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="messenger-card">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">
+                    🎫 Ticket #{{ ticket.id }} - {{ ticket.subject }}
+                </h1>
+                <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                    <span><i class="fas fa-user mr-1"></i>{{ ticket.first_name }} {{ ticket.last_name }}</span>
+                    <span><i class="fas fa-envelope mr-1"></i>{{ ticket.email }}</span>
+                    <span><i class="fas fa-tag mr-1"></i>{{ ticket.category.title() }}</span>
+                    <span><i class="fas fa-calendar mr-1"></i>{{ ticket.created_at[:10] }}</span>
+                    <span class="status-indicator 
+                        {% if ticket.status == 'open' %}status-pending{% endif %}
+                        {% if ticket.status == 'admin_reply' %}status-active{% endif %}
+                        {% if ticket.status == 'user_reply' %}bg-red-100 text-red-800{% endif %}
+                        {% if ticket.status == 'closed' %}status-completed{% endif %}">
+                        {{ ticket.status.replace('_', ' ').title() }}
+                    </span>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <a href="{{ url_for('admin_support') }}" class="messenger-btn-outline">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour
+                </a>
+                {% if ticket.status != 'closed' %}
+                    <button onclick="closeTicket()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                        <i class="fas fa-times mr-2"></i>Fermer le ticket
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Messages -->
+        <div class="lg:col-span-2 messenger-card">
+            <h2 class="text-lg font-semibold mb-4">💬 Conversation</h2>
+            
+            <div id="messagesContainer" class="space-y-4 max-h-96 overflow-y-auto mb-6">
+                {% for message in messages %}
+                    <div class="{% if message.is_admin %}flex{% else %}flex justify-end{% endif %}">
+                        <div class="max-w-md {% if message.is_admin %}bg-blue-100 border-l-4 border-blue-500{% else %}bg-gray-100{% endif %} rounded-lg p-4">
+                            <div class="text-xs text-gray-600 mb-1">
+                                {% if message.is_admin %}
+                                    💼 Support Admin
+                                {% else %}
+                                    👤 {{ message.first_name }} {{ message.last_name }}
+                                {% endif %}
+                                • {{ message.created_at[:16] }}
+                            </div>
+                            <div class="text-sm">{{ message.message }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            {% if ticket.status != 'closed' %}
+                <!-- Admin Reply Form -->
+                <div class="pt-4 border-t border-gray-200">
+                    <form id="adminReplyForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Réponse de l'équipe support</label>
+                            <textarea id="adminReplyMessage" class="messenger-input h-24" placeholder="Tapez votre réponse..." required></textarea>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button type="submit" class="messenger-btn">
+                                <i class="fas fa-paper-plane mr-2"></i>Envoyer la réponse
+                            </button>
+                            <button type="button" onclick="sendQuickReply('Merci pour votre message. Nous examinons votre demande et vous répondrons dans les plus brefs délais.')" 
+                                    class="messenger-btn-outline">
+                                <i class="fas fa-bolt mr-2"></i>Réponse rapide
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- User Info -->
+            <div class="messenger-card">
+                <h3 class="text-lg font-semibold mb-4">👤 Informations Utilisateur</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Nom complet</label>
+                        <div class="text-sm">{{ ticket.first_name }} {{ ticket.last_name }}</div>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Email</label>
+                        <div class="text-sm">{{ ticket.email }}</div>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-gray-500">Statut KYC</label>
+                        <div class="text-sm">
+                            <span class="status-indicator status-pending">En attente</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="messenger-card">
+                <h3 class="text-lg font-semibold mb-4">⚡ Actions Rapides</h3>
+                <div class="space-y-2">
+                    <button onclick="sendQuickReply('Votre demande a bien été prise en compte. Un membre de notre équipe technique va examiner votre problème.')" 
+                            class="w-full text-left text-sm p-2 bg-gray-50 rounded hover:bg-gray-100">
+                        📝 Demande prise en compte
+                    </button>
+                    <button onclick="sendQuickReply('Nous avons besoin de plus d\'informations pour traiter votre demande. Pouvez-vous nous fournir plus de détails ?')" 
+                            class="w-full text-left text-sm p-2 bg-gray-50 rounded hover:bg-gray-100">
+                        ❓ Demander plus d'infos
+                    </button>
+                    <button onclick="sendQuickReply('Votre problème a été résolu. Si vous avez d\'autres questions, n\'hésitez pas à nous contacter.')" 
+                            class="w-full text-left text-sm p-2 bg-gray-50 rounded hover:bg-gray-100">
+                        ✅ Problème résolu
+                    </button>
+                    <button onclick="sendQuickReply('Nous vous remercions pour votre patience. Notre équipe technique travaille activement sur votre demande.')" 
+                            class="w-full text-left text-sm p-2 bg-gray-50 rounded hover:bg-gray-100">
+                        ⏳ En cours de traitement
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ticket History -->
+            <div class="messenger-card">
+                <h3 class="text-lg font-semibold mb-4">📊 Historique</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Créé le:</span>
+                        <span>{{ ticket.created_at[:10] }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Dernière MAJ:</span>
+                        <span>{{ ticket.updated_at[:10] }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Messages:</span>
+                        <span>{{ messages|length }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Handle admin reply form
+document.getElementById('adminReplyForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const message = document.getElementById('adminReplyMessage').value.trim();
+    if (!message) return;
+    
+    await sendReply(message);
+});
+
+async function sendReply(message) {
+    try {
+        const response = await fetch('/admin/support/reply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                ticket_id: {{ ticket.id }},
+                message: message
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Add message to UI
+            const messagesContainer = document.getElementById('messagesContainer');
+            const newMessage = document.createElement('div');
+            newMessage.className = 'flex';
+            newMessage.innerHTML = `
+                <div class="max-w-md bg-blue-100 border-l-4 border-blue-500 rounded-lg p-4">
+                    <div class="text-xs text-gray-600 mb-1">
+                        💼 Support Admin • À l'instant
+                    </div>
+                    <div class="text-sm">${message}</div>
+                </div>
+            `;
+            messagesContainer.appendChild(newMessage);
+            
+            // Clear form and scroll
+            document.getElementById('adminReplyMessage').value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            showNotification('Réponse envoyée!', 'success');
+        } else {
+            showNotification(result.error || 'Erreur lors de l\'envoi', 'error');
+        }
+    } catch (error) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+
+function sendQuickReply(message) {
+    document.getElementById('adminReplyMessage').value = message;
+}
+
+async function closeTicket() {
+    if (!confirm('Êtes-vous sûr de vouloir fermer ce ticket ?')) return;
+    
+    try {
+        const response = await fetch('/admin/support/close/{{ ticket.id }}', {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('Ticket fermé avec succès', 'success');
+            setTimeout(() => window.location.href = '{{ url_for("admin_support") }}', 1000);
+        } else {
+            showNotification('Erreur lors de la fermeture', 'error');
+        }
+    } catch (error) {
+        showNotification('Erreur de connexion', 'error');
+    }
+}
+</script>
+{% endblock %}
