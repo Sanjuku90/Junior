@@ -147,40 +147,91 @@ def backup_critical_data():
     try:
         conn = get_db_connection()
         
-        # Sauvegarder les investissements actifs
-        investments = conn.execute('''
-            SELECT * FROM user_investments WHERE is_active = 1
+        # Sauvegarder TOUS les investissements ROI (actifs et terminés)
+        all_investments = conn.execute('''
+            SELECT * FROM user_investments ORDER BY start_date DESC
         ''').fetchall()
         
         investments_data = []
-        for inv in investments:
+        for inv in all_investments:
             investments_data.append(dict(inv))
         
-        replit_db['active_investments'] = json.dumps(investments_data, default=str)
+        replit_db['all_investments_history'] = json.dumps(investments_data, default=str)
+        
+        # Sauvegarder TOUS les investissements staking (actifs et terminés)
+        all_staking = conn.execute('''
+            SELECT * FROM user_staking ORDER BY start_date DESC
+        ''').fetchall()
+        
+        staking_data = []
+        for stake in all_staking:
+            staking_data.append(dict(stake))
+        
+        replit_db['all_staking_history'] = json.dumps(staking_data, default=str)
+        
+        # Sauvegarder TOUS les bots de trading (actifs et terminés)
+        all_bots = conn.execute('''
+            SELECT * FROM user_trading_bots ORDER BY start_date DESC
+        ''').fetchall()
+        
+        bots_data = []
+        for bot in all_bots:
+            bots_data.append(dict(bot))
+        
+        replit_db['all_bots_history'] = json.dumps(bots_data, default=str)
+        
+        # Sauvegarder TOUS les copy trades (actifs et terminés)
+        all_copy_trades = conn.execute('''
+            SELECT * FROM user_copy_trading ORDER BY start_date DESC
+        ''').fetchall()
+        
+        copy_trades_data = []
+        for trade in all_copy_trades:
+            copy_trades_data.append(dict(trade))
+        
+        replit_db['all_copy_trading_history'] = json.dumps(copy_trades_data, default=str)
+        
+        # Sauvegarder TOUS les investissements projets
+        all_projects = conn.execute('''
+            SELECT * FROM project_investments ORDER BY investment_date DESC
+        ''').fetchall()
+        
+        projects_data = []
+        for proj in all_projects:
+            projects_data.append(dict(proj))
+        
+        replit_db['all_projects_history'] = json.dumps(projects_data, default=str)
+        
+        # Sauvegarder TOUTES les transactions
+        all_transactions = conn.execute('''
+            SELECT * FROM transactions ORDER BY created_at DESC
+        ''').fetchall()
+        
+        transactions_data = []
+        for trans in all_transactions:
+            transactions_data.append(dict(trans))
+        
+        replit_db['all_transactions_history'] = json.dumps(transactions_data, default=str)
         
         # Sauvegarder les soldes utilisateurs
-        users = conn.execute('SELECT id, email, balance FROM users').fetchall()
+        users = conn.execute('SELECT id, email, balance, first_name, last_name FROM users').fetchall()
         users_data = []
         for user in users:
             users_data.append(dict(user))
         
         replit_db['user_balances'] = json.dumps(users_data, default=str)
         
-        # Sauvegarder les bots de trading actifs
-        bots = conn.execute('''
-            SELECT * FROM user_trading_bots WHERE is_active = 1
-        ''').fetchall()
-        
-        bots_data = []
-        for bot in bots:
-            bots_data.append(dict(bot))
-        
-        replit_db['active_bots'] = json.dumps(bots_data, default=str)
+        # Sauvegarder les plans pour restauration
+        roi_plans = conn.execute('SELECT * FROM roi_plans').fetchall()
+        roi_plans_data = []
+        for plan in roi_plans:
+            roi_plans_data.append(dict(plan))
+        replit_db['roi_plans_backup'] = json.dumps(roi_plans_data, default=str)
         
         replit_db['last_backup'] = datetime.now().isoformat()
         conn.close()
         
-        print("✅ Sauvegarde des données critiques effectuée")
+        print("✅ Sauvegarde complète de l'historique effectuée")
         
     except Exception as e:
         print(f"❌ Erreur sauvegarde: {e}")
@@ -197,21 +248,11 @@ def restore_critical_data():
         
         conn = get_db_connection()
         
-        # Vérifier si les données sont déjà présentes
-        existing_investments = conn.execute('''
-            SELECT COUNT(*) as count FROM user_investments WHERE is_active = 1
-        ''').fetchone()['count']
+        print("🔄 Restauration de l'historique complet depuis la sauvegarde...")
         
-        if existing_investments > 0:
-            print("✅ Données déjà présentes, restauration non nécessaire")
-            conn.close()
-            return True
-        
-        print("🔄 Restauration des données depuis la sauvegarde...")
-        
-        # Restaurer les investissements
-        if 'active_investments' in replit_db:
-            investments_data = json.loads(replit_db['active_investments'])
+        # Restaurer TOUS les investissements ROI
+        if 'all_investments_history' in replit_db:
+            investments_data = json.loads(replit_db['all_investments_history'])
             for inv in investments_data:
                 try:
                     conn.execute('''
@@ -227,20 +268,27 @@ def restore_critical_data():
                 except Exception as e:
                     print(f"⚠️ Erreur restauration investissement {inv.get('id')}: {e}")
         
-        # Restaurer les soldes (mise à jour seulement)
-        if 'user_balances' in replit_db:
-            users_data = json.loads(replit_db['user_balances'])
-            for user in users_data:
+        # Restaurer TOUS les investissements staking
+        if 'all_staking_history' in replit_db:
+            staking_data = json.loads(replit_db['all_staking_history'])
+            for stake in staking_data:
                 try:
                     conn.execute('''
-                        UPDATE users SET balance = ? WHERE id = ?
-                    ''', (user.get('balance', 0), user.get('id')))
+                        INSERT OR REPLACE INTO user_staking 
+                        (id, user_id, plan_id, amount, start_date, end_date, is_active, is_withdrawn, total_earned, transaction_hash)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        stake.get('id'), stake.get('user_id'), stake.get('plan_id'),
+                        stake.get('amount'), stake.get('start_date'), stake.get('end_date'),
+                        stake.get('is_active', 1), stake.get('is_withdrawn', 0),
+                        stake.get('total_earned', 0), stake.get('transaction_hash')
+                    ))
                 except Exception as e:
-                    print(f"⚠️ Erreur restauration solde utilisateur {user.get('id')}: {e}")
+                    print(f"⚠️ Erreur restauration staking {stake.get('id')}: {e}")
         
-        # Restaurer les bots de trading
-        if 'active_bots' in replit_db:
-            bots_data = json.loads(replit_db['active_bots'])
+        # Restaurer TOUS les bots de trading
+        if 'all_bots_history' in replit_db:
+            bots_data = json.loads(replit_db['all_bots_history'])
             for bot in bots_data:
                 try:
                     conn.execute('''
@@ -256,11 +304,73 @@ def restore_critical_data():
                 except Exception as e:
                     print(f"⚠️ Erreur restauration bot {bot.get('id')}: {e}")
         
+        # Restaurer TOUS les copy trades
+        if 'all_copy_trading_history' in replit_db:
+            copy_trades_data = json.loads(replit_db['all_copy_trading_history'])
+            for trade in copy_trades_data:
+                try:
+                    conn.execute('''
+                        INSERT OR REPLACE INTO user_copy_trading 
+                        (id, user_id, trader_id, amount, start_date, end_date, is_active, total_profit, copy_ratio, transaction_hash)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        trade.get('id'), trade.get('user_id'), trade.get('trader_id'),
+                        trade.get('amount'), trade.get('start_date'), trade.get('end_date'),
+                        trade.get('is_active', 1), trade.get('total_profit', 0),
+                        trade.get('copy_ratio', 1.0), trade.get('transaction_hash')
+                    ))
+                except Exception as e:
+                    print(f"⚠️ Erreur restauration copy trade {trade.get('id')}: {e}")
+        
+        # Restaurer TOUS les investissements projets
+        if 'all_projects_history' in replit_db:
+            projects_data = json.loads(replit_db['all_projects_history'])
+            for proj in projects_data:
+                try:
+                    conn.execute('''
+                        INSERT OR REPLACE INTO project_investments 
+                        (id, user_id, project_id, amount, investment_date, transaction_hash)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (
+                        proj.get('id'), proj.get('user_id'), proj.get('project_id'),
+                        proj.get('amount'), proj.get('investment_date'), proj.get('transaction_hash')
+                    ))
+                except Exception as e:
+                    print(f"⚠️ Erreur restauration projet {proj.get('id')}: {e}")
+        
+        # Restaurer TOUTES les transactions
+        if 'all_transactions_history' in replit_db:
+            transactions_data = json.loads(replit_db['all_transactions_history'])
+            for trans in transactions_data:
+                try:
+                    conn.execute('''
+                        INSERT OR REPLACE INTO transactions 
+                        (id, user_id, type, amount, status, transaction_hash, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (
+                        trans.get('id'), trans.get('user_id'), trans.get('type'),
+                        trans.get('amount'), trans.get('status'), trans.get('transaction_hash'),
+                        trans.get('created_at'), trans.get('updated_at')
+                    ))
+                except Exception as e:
+                    print(f"⚠️ Erreur restauration transaction {trans.get('id')}: {e}")
+        
+        # Restaurer les soldes utilisateurs
+        if 'user_balances' in replit_db:
+            users_data = json.loads(replit_db['user_balances'])
+            for user in users_data:
+                try:
+                    conn.execute('''
+                        UPDATE users SET balance = ? WHERE id = ?
+                    ''', (user.get('balance', 0), user.get('id')))
+                except Exception as e:
+                    print(f"⚠️ Erreur restauration solde utilisateur {user.get('id')}: {e}")
+        
         conn.commit()
         conn.close()
         
         last_backup = replit_db.get('last_backup', 'Inconnue')
-        print(f"✅ Données restaurées depuis la sauvegarde du {last_backup}")
+        print(f"✅ Historique complet restauré depuis la sauvegarde du {last_backup}")
         return True
         
     except Exception as e:
