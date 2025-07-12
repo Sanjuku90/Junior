@@ -12,10 +12,10 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
-# Import du bot Telegram simplifié
+# Import du bot Telegram utilisateur uniquement
 TELEGRAM_ENABLED = False
 try:
-    from simple_telegram_bot import create_bot_application
+    from telegram_investment_bot import setup_user_telegram_bot
     TELEGRAM_USER_BOT_ENABLED = True
 except ImportError:
     TELEGRAM_USER_BOT_ENABLED = False
@@ -49,16 +49,9 @@ def init_db():
             referral_code TEXT UNIQUE,
             referred_by TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            two_fa_enabled BOOLEAN DEFAULT 0,
-            telegram_id INTEGER UNIQUE
+            two_fa_enabled BOOLEAN DEFAULT 0
         )
     ''')
-    
-    # Add telegram_id column if it doesn't exist
-    try:
-        cursor.execute('ALTER TABLE users ADD COLUMN telegram_id INTEGER UNIQUE')
-    except sqlite3.OperationalError:
-        pass  # Column already exists
 
     # ROI Plans table
     cursor.execute('''
@@ -1397,13 +1390,14 @@ if __name__ == '__main__':
     )
     scheduler.start()
 
-    # Setup du bot Telegram simplifié
+    # Setup du bot utilisateur uniquement
     if TELEGRAM_USER_BOT_ENABLED:
-        user_bot_app = create_bot_application()
+        user_bot_app = setup_user_telegram_bot()
         if user_bot_app:
             def run_user_bot():
                 try:
                     import asyncio
+                    import signal
                     
                     # Créer un nouveau loop pour ce thread
                     loop = asyncio.new_event_loop()
@@ -1416,14 +1410,20 @@ if __name__ == '__main__':
                             await user_bot_app.start()
                             print("✅ Bot utilisateur en cours d'exécution")
                             
-                            # Démarrer le polling
+                            # Utiliser l'updater pour le polling avec gestion d'erreur
                             await user_bot_app.updater.start_polling(
-                                drop_pending_updates=True
+                                allowed_updates=["message", "callback_query"],
+                                drop_pending_updates=True,
+                                error_callback=lambda exc: print(f"⚠️ Erreur bot ignorée: {exc}")
                             )
                             
                             # Garder le bot en vie
                             stop_event = asyncio.Event()
                             
+                            def signal_handler():
+                                stop_event.set()
+                            
+                            # Attendre indéfiniment ou jusqu'à interruption
                             try:
                                 await stop_event.wait()
                             except (KeyboardInterrupt, SystemExit):
@@ -1431,7 +1431,7 @@ if __name__ == '__main__':
                             
                         except Exception as e:
                             if "Conflict" in str(e):
-                                print(f"⚠️ Bot déjà en cours d'exécution: {e}")
+                                print(f"⚠️ Bot déjà en cours d'exécution elsewhere: {e}")
                             else:
                                 print(f"❌ Erreur bot utilisateur: {e}")
                         finally:
@@ -1442,19 +1442,20 @@ if __name__ == '__main__':
                             except:
                                 pass
                     
-                    # Exécuter le bot
+                    # Exécuter le bot dans son propre loop
                     loop.run_until_complete(start_user_bot())
                     
                 except Exception as e:
-                    print(f"❌ Erreur Telegram bot: {e}")
+                    if "Conflict" not in str(e):
+                        print(f"❌ Erreur Telegram bot utilisateur: {e}")
 
             user_thread = threading.Thread(target=run_user_bot, daemon=True)
             user_thread.start()
-            print("✅ Thread bot Telegram démarré")
+            print("✅ Thread bot Telegram utilisateur démarré")
         else:
-            print("❌ Échec de la configuration du bot")
+            print("❌ Échec de la configuration du bot utilisateur")
     else:
-        print("❌ Bot Telegram non disponible")
+        print("❌ Bot Telegram utilisateur non disponible")
 
     # Shutdown scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
