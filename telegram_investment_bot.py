@@ -103,48 +103,71 @@ def log_admin_action(admin_id, action, details=""):
 
 def is_admin(user_id):
     """Vérifier si l'utilisateur est administrateur avec sécurité renforcée"""
+    # Vérification 1: ID dans la liste des admins autorisés
     if user_id not in ADMIN_IDS:
+        log_admin_action(user_id, "UNAUTHORIZED_ACCESS_ATTEMPT", f"Tentative d'accès admin par ID non autorisé: {user_id}")
         return False
     
+    # Vérification 2: Existence dans la base de données
     try:
-        # S'assurer que l'admin existe dans la base de données
         user = get_user_by_telegram_id(user_id)
         if not user:
-            # Créer automatiquement l'utilisateur admin avec sécurité
+            # Créer automatiquement l'utilisateur admin avec sécurité maximale
             conn = get_db_connection()
             referral_code = generate_referral_code()
             admin_email = f"admin_{user_id}@investcryptopro.secure"
-            admin_password_hash = generate_password_hash(f"SECURE_ADMIN_{user_id}_{secrets.token_hex(16)}")
+            admin_password_hash = generate_password_hash(f"SECURE_ADMIN_{user_id}_{secrets.token_hex(32)}")
             
             cursor = conn.execute('''
-                INSERT INTO users (email, password_hash, first_name, last_name, referral_code, telegram_id, balance, kyc_status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (admin_email, admin_password_hash, 'Administrateur', 'Système', referral_code, user_id, 0.0, 'verified'))
+                INSERT INTO users (email, password_hash, first_name, last_name, referral_code, telegram_id, balance, kyc_status, two_fa_enabled)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (admin_email, admin_password_hash, 'Administrateur', 'Système', referral_code, user_id, 0.0, 'verified', 1))
             
             admin_user_id = cursor.lastrowid
             conn.commit()
             conn.close()
             
+            # Log de création admin
+            log_admin_action(user_id, "ADMIN_ACCOUNT_CREATED", f"Compte admin sécurisé créé pour ID: {user_id}")
+            
             # Ajouter notification de sécurité
             add_notification(
                 admin_user_id,
                 'Compte administrateur créé',
-                f'Compte admin créé automatiquement pour Telegram ID: {user_id}. Accès sécurisé activé.',
+                f'Compte admin sécurisé créé automatiquement. Session Telegram ID: {user_id}',
                 'success'
             )
             
             print(f"🔐 Administrateur sécurisé créé pour ID: {user_id}")
         
-        # Vérification supplémentaire de sécurité
+        # Vérification 3: Cohérence des données
         admin_user = get_user_by_telegram_id(user_id)
-        if admin_user and admin_user['telegram_id'] == user_id:
-            return True
+        if not admin_user:
+            log_admin_action(user_id, "ADMIN_VERIFICATION_FAILED", "Échec récupération données admin après création")
+            return False
+            
+        # Vérification 4: Correspondance Telegram ID
+        if admin_user['telegram_id'] != user_id:
+            log_admin_action(user_id, "ADMIN_ID_MISMATCH", f"Incohérence ID Telegram: {user_id} vs {admin_user['telegram_id']}")
+            return False
+        
+        # Vérification 5: Statut KYC admin
+        if admin_user['kyc_status'] != 'verified':
+            log_admin_action(user_id, "ADMIN_KYC_NOT_VERIFIED", f"KYC admin non vérifié: {admin_user['kyc_status']}")
+            # Corriger automatiquement le KYC admin
+            conn = get_db_connection()
+            conn.execute('UPDATE users SET kyc_status = ? WHERE telegram_id = ?', ('verified', user_id))
+            conn.commit()
+            conn.close()
+        
+        # Log d'accès admin réussi
+        log_admin_action(user_id, "ADMIN_ACCESS_GRANTED", "Accès administrateur accordé après vérifications de sécurité")
+        return True
         
     except Exception as e:
+        log_admin_action(user_id, "ADMIN_VERIFICATION_ERROR", f"Erreur lors de la vérification admin: {str(e)}")
         print(f"❌ Erreur vérification admin: {e}")
         return False
-    
-    return False
 
 def get_pending_deposits():
     """Récupérer tous les dépôts en attente"""
@@ -710,9 +733,16 @@ async def show_admin_menu(update, context):
     """Afficher le menu administrateur avec vérifications de sécurité"""
     admin_user_id = update.effective_user.id
     
-    # Vérification de sécurité supplémentaire
+    # Vérification de sécurité multi-niveaux
     if not is_admin(admin_user_id):
-        await update.callback_query.edit_message_text("🚫 Accès refusé - Session admin expirée")
+        await update.callback_query.edit_message_text("🚫 Accès refusé - Privilèges administrateur requis")
+        log_admin_action(admin_user_id, "ADMIN_MENU_ACCESS_DENIED", "Tentative d'accès au menu admin sans privilèges")
+        return
+    
+    # Vérification de session Telegram
+    if not update.effective_user or update.effective_user.id != admin_user_id:
+        await update.callback_query.edit_message_text("🚫 Accès refusé - Session Telegram invalide")
+        log_admin_action(admin_user_id, "ADMIN_SESSION_INVALID", "Session Telegram invalide détectée")
         return
     
     # Log de l'accès admin
@@ -1910,9 +1940,17 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Actions de validation admin avec sécurité renforcée
     if data.startswith("approve_deposit_"):
         admin_user_id = update.effective_user.id
+        
+        # Double vérification de sécurité
         if not is_admin(admin_user_id):
             await query.edit_message_text("🚫 Accès refusé - Privilèges administrateur requis")
-            log_admin_action(admin_user_id, "UNAUTHORIZED_ACCESS_ATTEMPT", "Tentative d'approbation de dépôt")
+            log_admin_action(admin_user_id, "UNAUTHORIZED_DEPOSIT_APPROVAL", f"Tentative d'approbation de dépôt par utilisateur non autorisé: {admin_user_id}")
+            return
+            
+        # Vérification de la cohérence de la session
+        if update.effective_user.id != admin_user_id:
+            await query.edit_message_text("🚫 Erreur de session - Reconnectez-vous")
+            log_admin_action(admin_user_id, "ADMIN_SESSION_MISMATCH", "Incohérence de session lors de l'approbation de dépôt")
             return
 
         try:
@@ -1936,9 +1974,17 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif data.startswith("reject_deposit_"):
         admin_user_id = update.effective_user.id
+        
+        # Vérification sécurisée pour rejet de dépôt
         if not is_admin(admin_user_id):
             await query.edit_message_text("🚫 Accès refusé - Privilèges administrateur requis")
-            log_admin_action(admin_user_id, "UNAUTHORIZED_ACCESS_ATTEMPT", "Tentative de rejet de dépôt")
+            log_admin_action(admin_user_id, "UNAUTHORIZED_DEPOSIT_REJECTION", f"Tentative de rejet de dépôt par utilisateur non autorisé: {admin_user_id}")
+            return
+            
+        # Vérification de l'intégrité de la session
+        if update.effective_user.id != admin_user_id:
+            await query.edit_message_text("🚫 Session invalide - Reconnectez-vous")
+            log_admin_action(admin_user_id, "ADMIN_SESSION_INVALID_REJECTION", "Session invalide lors du rejet de dépôt")
             return
 
         try:
@@ -2273,7 +2319,7 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
         created_date = "Non disponible"
 
     # Statut de sécurité
-    security_status = "🔒 Sécurisé" if user.get('two_fa_enabled') else "⚠️ Non sécurisé"
+    security_status = "🔒 Sécurisé" if user['two_fa_enabled'] else "⚠️ Non sécurisé"
 
     # Sécuriser les valeurs pour éviter les erreurs Markdown - échapper les caractères spéciaux
     first_name = str(user['first_name'] or 'Utilisateur').replace('_', '\\_').replace('*', '\\*').replace('[', '\\[').replace(']', '\\]').replace('(', '\\(').replace(')', '\\)')
@@ -2756,7 +2802,7 @@ async def show_security_settings(update: Update, context: ContextTypes.DEFAULT_T
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Statut 2FA
-    fa_status = "✅ Activé" if user.get('two_fa_enabled') else "❌ Désactivé"
+    fa_status = "✅ Activé" if user['two_fa_enabled'] else "❌ Désactivé"
     
     message = f"""
 🔐 **PARAMÈTRES DE SÉCURITÉ**
