@@ -15,6 +15,7 @@ TELEGRAM_BOT_TOKEN = "7703189686:AAGArcOUnZImdOUTkwBggcyI9QSk5GSAB10"
 if not TELEGRAM_BOT_TOKEN:
     print("❌ ERREUR: Token de bot Telegram non défini")
     print("💡 Veuillez ajouter votre token de bot Telegram")
+    TELEGRAM_BOT_TOKEN = None
 
 DATABASE = 'investment_platform.db'
 
@@ -2820,7 +2821,6 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def setup_user_telegram_bot():
     """Configure le bot utilisateur"""
     if not TELEGRAM_BOT_TOKEN:
-        logger.error("❌ TELEGRAM_BOT_TOKEN_USER non configuré")
         print("❌ Bot utilisateur non disponible - Token manquant")
         return None
 
@@ -2832,7 +2832,6 @@ def setup_user_telegram_bot():
         print(f"✅ Bot utilisateur configuré avec succès")
 
     except Exception as e:
-        logger.error(f"❌ Erreur configuration bot utilisateur: {e}")
         print(f"❌ Erreur configuration bot utilisateur: {e}")
         return None
 
