@@ -1,260 +1,871 @@
+
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}Admin Dashboard - InvestCrypto Pro{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">Tableau de bord administrateur</h1>
-        <p class="text-gray-600">Gérez votre plateforme d'investissement</p>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-2xl font-semibold text-gray-800">{{ stats.total_users }}</p>
-                    <p class="text-gray-600">Utilisateurs</p>
-                </div>
+<div class="admin-container">
+    <!-- Header Mobile Optimisé -->
+    <div class="admin-header">
+        <div class="admin-header-content">
+            <div class="admin-title-section">
+                <h1 class="admin-title">
+                    <i class="fas fa-shield-alt"></i>
+                    Administration
+                </h1>
+                <p class="admin-subtitle">Gestion de la plateforme</p>
             </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-2xl font-semibold text-gray-800">${{ "%.2f"|format(stats.total_investments) }}</p>
-                    <p class="text-gray-600">Investissements</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-2xl font-semibold text-gray-800">{{ stats.total_projects }}</p>
-                    <p class="text-gray-600">Projets</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-2xl font-semibold text-gray-800">{{ stats.pending_kyc }}</p>
-                    <p class="text-gray-600">KYC en attente</p>
-                </div>
+            <div class="admin-header-actions">
+                <button onclick="refreshData()" class="admin-btn-refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button onclick="showQuickActions()" class="admin-btn-menu">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Recent Transactions -->
-    <div class="bg-white rounded-lg shadow-md">
-        <div class="p-6 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-800">Transactions récentes</h2>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for transaction in transactions %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">{{ transaction.first_name }} {{ transaction.last_name }}</div>
-                            <div class="text-sm text-gray-500">{{ transaction.email }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                {{ transaction.type }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${{ "%.2f"|format(transaction.amount) }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            {% if transaction.status == 'completed' %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    Terminé
-                                </span>
-                            {% elif transaction.status == 'pending' %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                    En attente
-                                </span>
-                            {% else %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                    Échoué
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ transaction.created_at }}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+    <!-- Stats Cards Grid Mobile -->
+    <div class="admin-stats-grid">
+        <div class="admin-stat-card users">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ stats.total_users }}</div>
+                <div class="stat-label">Utilisateurs</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +12%
                 </div>
-                <div>
-                    <p class="text-2xl font-semibold text-gray-800">{{ stats.pending_kyc }}</p>
-                    <p class="text-gray-600">KYC en attente</p>
+            </div>
+        </div>
+
+        <div class="admin-stat-card investments">
+            <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">${{ "%.0f"|format(stats.total_investments) }}</div>
+                <div class="stat-label">Investissements</div>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +8%
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-stat-card projects">
+            <div class="stat-icon">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ stats.total_projects }}</div>
+                <div class="stat-label">Projets</div>
+                <div class="stat-change neutral">
+                    <i class="fas fa-minus"></i>
+                    0%
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-stat-card kyc">
+            <div class="stat-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-number">{{ stats.pending_kyc }}</div>
+                <div class="stat-label">KYC Pending</div>
+                <div class="stat-change warning">
+                    <i class="fas fa-clock"></i>
+                    {{ stats.pending_kyc }}
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Navigation Admin -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <a href="{{ url_for('admin_support') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
-                    <i class="fas fa-headset text-xl"></i>
+    <!-- Actions Rapides Mobile -->
+    <div class="admin-quick-actions">
+        <h2 class="section-title">
+            <i class="fas fa-bolt"></i>
+            Actions Rapides
+        </h2>
+        <div class="quick-actions-grid">
+            <a href="{{ url_for('admin_support') }}" class="quick-action-card support">
+                <div class="action-icon">
+                    <i class="fas fa-headset"></i>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Support</h3>
-                    <p class="text-gray-600">{{ stats.open_tickets }} tickets ouverts</p>
+                <div class="action-content">
+                    <div class="action-title">Support</div>
+                    <div class="action-subtitle">{{ stats.open_tickets }} tickets ouverts</div>
                 </div>
-            </div>
-        </a>
+                <div class="action-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </a>
 
-        <a href="{{ url_for('admin_transactions') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                    <i class="fas fa-credit-card text-xl"></i>
+            <a href="{{ url_for('admin_transactions') }}" class="quick-action-card transactions">
+                <div class="action-icon">
+                    <i class="fas fa-credit-card"></i>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Transactions</h3>
-                    <p class="text-gray-600">Gérer dépôts/retraits</p>
+                <div class="action-content">
+                    <div class="action-title">Transactions</div>
+                    <div class="action-subtitle">Gérer dépôts/retraits</div>
                 </div>
-            </div>
-        </a>
+                <div class="action-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </a>
 
-        <a href="#" onclick="calculateProfits(); return false;" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                    <i class="fas fa-calculator text-xl"></i>
+            <button onclick="calculateProfits()" class="quick-action-card profits">
+                <div class="action-icon">
+                    <i class="fas fa-calculator"></i>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Calculer Profits</h3>
-                    <p class="text-gray-600">Distribuer gains quotidiens</p>
+                <div class="action-content">
+                    <div class="action-title">Calculer Profits</div>
+                    <div class="action-subtitle">Distribution quotidienne</div>
                 </div>
-            </div>
-        </a>
-    </div>
+                <div class="action-arrow">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </button>
 
-    <!-- Actions administrateur supplémentaires -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <a href="#" onclick="deactivateAdmin(); return false;" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
-                    <i class="fas fa-sign-out-alt text-xl"></i>
+            <button onclick="sendNotification()" class="quick-action-card notifications">
+                <div class="action-icon">
+                    <i class="fas fa-bell"></i>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-800">Sécurité</h3>
-                    <p class="text-gray-600">Désactiver admin</p>
+                <div class="action-content">
+                    <div class="action-title">Notifications</div>
+                    <div class="action-subtitle">Envoyer message global</div>
                 </div>
-            </div>
-        </a>
-
-        <div class="bg-gradient-to-r from-green-500 to-blue-500 p-6 rounded-lg shadow-md text-white">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-white bg-opacity-20 mr-4">
-                    <i class="fas fa-chart-line text-xl"></i>
+                <div class="action-arrow">
+                    <i class="fas fa-chevron-right"></i>
                 </div>
-                <div>
-                    <h3 class="text-lg font-semibold">Nouveaux Plans</h3>
-                    <p class="text-sm opacity-90">5 plans ultra-rentables ajoutés</p>
-                </div>
-            </div>
+            </button>
         </div>
     </div>
-{% endblock %}
 
-{% block scripts %}
-<script>
-function deactivateAdmin() {
-    if (confirm('Êtes-vous sûr de vouloir désactiver l\'accès administrateur ?')) {
-        fetch('/admin/deactivate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Accès administrateur désactivé');
-                window.location.href = '/dashboard';
-            } else {
-                alert('Erreur: ' + (data.error || 'Erreur inconnue'));
-            }
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            alert('Erreur de communication');
-        });
+    <!-- Transactions Récentes Mobile -->
+    <div class="admin-recent-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                Activité Récente
+            </h2>
+            <button onclick="viewAllTransactions()" class="view-all-btn">
+                Tout voir
+                <i class="fas fa-external-link-alt"></i>
+            </button>
+        </div>
+
+        {% if transactions %}
+        <div class="transactions-mobile-list">
+            {% for transaction in transactions[:5] %}
+            <div class="transaction-item">
+                <div class="transaction-user">
+                    <div class="user-avatar">
+                        {{ transaction.first_name[0] }}{{ transaction.last_name[0] }}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">{{ transaction.first_name }} {{ transaction.last_name }}</div>
+                        <div class="user-email">{{ transaction.email }}</div>
+                    </div>
+                </div>
+                <div class="transaction-details">
+                    <div class="transaction-type {{ transaction.type }}">
+                        {% if transaction.type == 'deposit' %}
+                            <i class="fas fa-arrow-down"></i>
+                            Dépôt
+                        {% else %}
+                            <i class="fas fa-arrow-up"></i>
+                            Retrait
+                        {% endif %}
+                    </div>
+                    <div class="transaction-amount">
+                        ${{ "%.2f"|format(transaction.amount) }}
+                    </div>
+                    <div class="transaction-status {{ transaction.status }}">
+                        {{ transaction.status.title() }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-chart-line"></i>
+            <p>Aucune transaction récente</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Gestion Système Mobile -->
+    <div class="admin-system-section">
+        <h2 class="section-title">
+            <i class="fas fa-cogs"></i>
+            Gestion Système
+        </h2>
+        <div class="system-actions">
+            <button onclick="exportData()" class="system-btn export">
+                <i class="fas fa-download"></i>
+                <span>Export Données</span>
+            </button>
+            <button onclick="backupDatabase()" class="system-btn backup">
+                <i class="fas fa-database"></i>
+                <span>Sauvegarde</span>
+            </button>
+            <button onclick="viewLogs()" class="system-btn logs">
+                <i class="fas fa-file-alt"></i>
+                <span>Logs Système</span>
+            </button>
+            <button onclick="deactivateAdmin()" class="system-btn security">
+                <i class="fas fa-shield-alt"></i>
+                <span>Sécurité</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Actions Rapides -->
+<div id="quickActionsModal" class="admin-modal">
+    <div class="modal-overlay" onclick="hideQuickActions()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Actions Rapides</h3>
+            <button onclick="hideQuickActions()" class="modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-actions">
+            <button onclick="calculateProfits()" class="modal-action">
+                <i class="fas fa-calculator"></i>
+                Calculer Profits
+            </button>
+            <button onclick="sendGlobalNotification()" class="modal-action">
+                <i class="fas fa-bullhorn"></i>
+                Notification Globale
+            </button>
+            <button onclick="exportAllData()" class="modal-action">
+                <i class="fas fa-download"></i>
+                Export Complet
+            </button>
+            <button onclick="deactivateAdmin()" class="modal-action danger">
+                <i class="fas fa-power-off"></i>
+                Désactiver Admin
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Admin Container */
+.admin-container {
+    max-width: 100vw;
+    padding: 1rem;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+/* Header Mobile */
+.admin-header {
+    background: linear-gradient(135deg, #1e293b, #334155);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: white;
+    box-shadow: 0 10px 30px rgba(30, 41, 59, 0.3);
+}
+
+.admin-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-subtitle {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin: 0.25rem 0 0 0;
+}
+
+.admin-header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.admin-btn-refresh,
+.admin-btn-menu {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.admin-btn-refresh:hover,
+.admin-btn-menu:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* Stats Grid Mobile */
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+}
+
+.admin-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: white;
+    margin-bottom: 0.75rem;
+}
+
+.admin-stat-card.users .stat-icon {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.admin-stat-card.investments .stat-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.admin-stat-card.projects .stat-icon {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.admin-stat-card.kyc .stat-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+}
+
+.stat-change {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stat-change.positive {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.stat-change.warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.stat-change.neutral {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Actions Rapides */
+.admin-quick-actions {
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quick-actions-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.quick-action-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    width: 100%;
+    text-align: left;
+}
+
+.quick-action-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.action-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.quick-action-card.support .action-icon {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.quick-action-card.transactions .action-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.quick-action-card.profits .action-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.quick-action-card.notifications .action-icon {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.action-content {
+    flex: 1;
+}
+
+.action-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.action-subtitle {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.action-arrow {
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+/* Section Récente */
+.admin-recent-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.view-all-btn {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.transactions-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.transaction-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.user-email {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.transaction-details {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.transaction-type {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.transaction-type.deposit {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.transaction-type.withdrawal {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.transaction-amount {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.transaction-status {
+    font-size: 0.7rem;
+    text-transform: capitalize;
+    color: #6b7280;
+}
+
+/* Système */
+.admin-system-section {
+    background: white;
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f1f5f9;
+}
+
+.system-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+}
+
+.system-btn {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.system-btn:hover {
+    background: #f1f5f9;
+    transform: translateY(-1px);
+}
+
+.system-btn.security {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+.system-btn i {
+    font-size: 1.25rem;
+}
+
+.system-btn span {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Modal */
+.admin-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+}
+
+.admin-modal.active {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: white;
+    border-radius: 20px 20px 0 0;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #6b7280;
+    cursor: pointer;
+}
+
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.modal-action {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+}
+
+.modal-action:hover {
+    background: #f1f5f9;
+}
+
+.modal-action.danger {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+    .admin-container {
+        padding: 2rem;
     }
+    
+    .admin-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .system-actions {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .modal-content {
+        border-radius: 20px;
+        max-height: 70vh;
+        margin: 2rem;
+    }
+    
+    .admin-modal.active {
+        align-items: center;
+    }
+}
+</style>
+
+<script>
+function refreshData() {
+    location.reload();
+}
+
+function showQuickActions() {
+    document.getElementById('quickActionsModal').classList.add('active');
+}
+
+function hideQuickActions() {
+    document.getElementById('quickActionsModal').classList.remove('active');
 }
 
 function calculateProfits() {
-    if (confirm('Êtes-vous sûr de vouloir lancer le calcul des profits quotidiens ?')) {
+    if (confirm('Lancer le calcul des profits quotidiens ?')) {
         fetch('/admin/calculate-profits', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            headers: { 'Content-Type': 'application/json' }
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Calcul des profits lancé avec succès!');
-                // Optionally refresh the page or update a specific element
-                window.location.reload();
+                showNotification('Calcul des profits lancé!', 'success');
+                setTimeout(() => location.reload(), 2000);
             } else {
-                alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+                showNotification(data.error || 'Erreur', 'error');
             }
         })
-        .catch(error => {
-            console.error('Erreur:', error);
-            alert('Erreur de communication');
-        });
+        .catch(error => showNotification('Erreur de connexion', 'error'));
     }
 }
+
+function deactivateAdmin() {
+    if (confirm('Désactiver l\'accès administrateur ?')) {
+        fetch('/admin/deactivate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Admin désactivé', 'success');
+                setTimeout(() => window.location.href = '/dashboard', 1500);
+            } else {
+                showNotification(data.error || 'Erreur', 'error');
+            }
+        })
+        .catch(error => showNotification('Erreur de connexion', 'error'));
+    }
+}
+
+function sendNotification() {
+    const message = prompt('Message à envoyer à tous les utilisateurs:');
+    if (message && message.trim()) {
+        // Implementation for global notification
+        showNotification('Fonctionnalité bientôt disponible', 'info');
+    }
+}
+
+function exportData() {
+    showNotification('Export en cours...', 'info');
+    // Implementation for data export
+}
+
+function backupDatabase() {
+    showNotification('Sauvegarde en cours...', 'info');
+    // Implementation for database backup
+}
+
+function viewLogs() {
+    showNotification('Ouverture des logs...', 'info');
+    // Implementation for viewing logs
+}
+
+function viewAllTransactions() {
+    window.location.href = '{{ url_for("admin_transactions") }}';
+}
+
+// Auto-refresh every 5 minutes
+setInterval(refreshData, 300000);
 </script>
 {% endblock %}
