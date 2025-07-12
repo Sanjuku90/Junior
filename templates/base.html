@@ -1162,46 +1162,89 @@
         }
     </script>
 
-    <!-- Professional Support Widget -->
+    <!-- Widget de Support Professionnel -->
     {% if session.user_id %}
-    <div class="support-widget" id="supportWidget">
-        <button class="support-button" onclick="toggleSupportChat()" title="Support Client">
-            <i class="fas fa-comment-alt"></i>
-        </button>
-        
-        <div class="support-chat" id="supportChat">
-            <div class="chat-header">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-headset text-white"></i>
-                    </div>
-                    <div class="chat-title">Support Expert</div>
-                </div>
-                <button class="close-chat" onclick="closeSupportChat()">&times;</button>
+    <div class="support-widget-container">
+        <!-- Bouton principal -->
+        <button id="supportToggle" class="support-toggle-button" onclick="toggleSupportWidget()">
+            <div class="support-icon">
+                <i class="fas fa-headset"></i>
             </div>
-            
-            <div class="chat-body">
-                <div id="messageArea" class="message-area">
-                    <div class="welcome-message">
-                        <div class="bot-message">
-                            <i class="fas fa-robot"></i>
-                            <div>
-                                <strong>Support InvestCrypto Pro</strong>
-                                <p>Bonjour ! Comment puis-je vous aider aujourd'hui ? 😊</p>
-                            </div>
-                        </div>
+            <div class="support-pulse"></div>
+        </button>
+
+        <!-- Widget principal -->
+        <div id="supportWidget" class="support-widget">
+            <!-- En-tête -->
+            <div class="support-header">
+                <div class="support-header-content">
+                    <div class="support-avatar">
+                        <i class="fas fa-user-headset"></i>
+                    </div>
+                    <div class="support-info">
+                        <h4>Support Expert</h4>
+                        <span class="status-online">En ligne</span>
                     </div>
                 </div>
-                
-                <form class="support-form" onsubmit="sendSupportMessage(event)">
-                    <textarea class="form-input" rows="3" placeholder="Tapez votre message..." required></textarea>
-                    <div class="form-actions">
-                        <button type="submit" class="send-btn">
-                            <i class="fas fa-paper-plane"></i> Envoyer
+                <button onclick="closeSupportWidget()" class="support-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Zone des messages -->
+            <div id="supportMessages" class="support-messages">
+                <div class="welcome-message">
+                    <div class="bot-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="bot-bubble">
+                        <strong>Assistant InvestCrypto Pro</strong>
+                        <p>👋 Bonjour ! Je suis là pour vous aider. Comment puis-je vous assister aujourd'hui ?</p>
+                        <span class="message-time">À l'instant</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="quick-actions">
+                <button onclick="addQuickMessage('Problème de dépôt')" class="quick-btn">
+                    <i class="fas fa-plus-circle"></i> Dépôt
+                </button>
+                <button onclick="addQuickMessage('Question sur les profits')" class="quick-btn">
+                    <i class="fas fa-chart-line"></i> Profits
+                </button>
+                <button onclick="addQuickMessage('Problème de retrait')" class="quick-btn">
+                    <i class="fas fa-minus-circle"></i> Retrait
+                </button>
+                <a href="{{ url_for('support') }}" class="quick-btn ticket-btn">
+                    <i class="fas fa-ticket-alt"></i> Ticket
+                </a>
+            </div>
+
+            <!-- Zone de saisie -->
+            <div class="support-input-area">
+                <form id="supportForm" onsubmit="sendMessage(event)">
+                    <div class="input-group">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Tapez votre message..."
+                            rows="2"
+                            maxlength="500"
+                        ></textarea>
+                        <button type="submit" class="send-button">
+                            <i class="fas fa-paper-plane"></i>
                         </button>
-                        <a href="{{ url_for('support') }}" class="support-link">
-                            <i class="fas fa-ticket-alt"></i> Créer un ticket
-                        </a>
+                    </div>
+                    <div class="input-footer">
+                        <span class="char-count">0/500</span>
+                        <div class="input-actions">
+                            <button type="button" onclick="attachFile()" class="attach-btn" title="Joindre un fichier">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button type="button" onclick="addEmoji()" class="emoji-btn" title="Ajouter un emoji">
+                                <i class="fas fa-smile"></i>
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -1209,301 +1252,623 @@
     </div>
 
     <style>
-        .support-widget {
+        .support-widget-container {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 24px;
+            right: 24px;
             z-index: 9999;
             font-family: 'Inter', sans-serif;
         }
 
-        .support-button {
-            width: 56px;
-            height: 56px;
+        .support-toggle-button {
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            position: relative;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-size: 20px;
-            transition: all 0.3s ease;
-            position: relative;
         }
 
-        .support-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        .support-toggle-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
         }
 
-        .support-button:active {
-            transform: translateY(0);
+        .support-icon {
+            font-size: 24px;
+            z-index: 1;
         }
 
-        .support-chat {
+        .support-pulse {
             position: absolute;
-            bottom: 70px;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            animation: pulse 2s infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+        }
+
+        .support-widget {
+            position: absolute;
+            bottom: 75px;
             right: 0;
-            width: 350px;
-            height: 450px;
+            width: 380px;
+            height: 500px;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e5e7eb;
             display: none;
             flex-direction: column;
             overflow: hidden;
-            border: 1px solid #e5e7eb;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.3s ease;
         }
 
-        .support-chat.active {
+        .support-widget.active {
             display: flex;
-            animation: slideUp 0.3s ease-out;
+            transform: translateY(0);
+            opacity: 1;
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .support-header {
+            background: linear-gradient(135deg, #1e293b, #334155);
             color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .support-header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .support-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .support-info h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .status-online {
+            font-size: 12px;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-online::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .support-close {
+            background: none;
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .support-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .support-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        .welcome-message {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .bot-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .bot-bubble {
+            background: white;
+            padding: 16px;
+            border-radius: 18px 18px 18px 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 280px;
+        }
+
+        .bot-bubble strong {
+            color: #1e293b;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .bot-bubble p {
+            color: #475569;
+            font-size: 14px;
+            margin: 0 0 8px 0;
+            line-height: 1.4;
+        }
+
+        .message-time {
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
+        .user-message {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .user-bubble {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 18px 18px 6px 18px;
+            max-width: 280px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .quick-actions {
             padding: 16px 20px;
+            border-top: 1px solid #e5e7eb;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+            background: white;
+        }
+
+        .quick-btn {
+            padding: 8px 4px;
+            border: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: #475569;
+        }
+
+        .quick-btn:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+
+        .quick-btn i {
+            font-size: 14px;
+        }
+
+        .ticket-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border-color: transparent;
+        }
+
+        .ticket-btn:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            color: white;
+        }
+
+        .support-input-area {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .input-group textarea {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #f8fafc;
+        }
+
+        .input-group textarea:focus {
+            border-color: #3b82f6;
+            background: white;
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border: none;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .chat-title {
-            font-weight: 600;
-            font-size: 16px;
+        .char-count {
+            font-size: 11px;
+            color: #94a3b8;
         }
 
-        .close-chat {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .close-chat:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .chat-body {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message-area {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-            max-height: 300px;
-        }
-
-        .welcome-message {
-            margin-bottom: 16px;
-        }
-
-        .bot-message {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
-
-        .bot-message i {
-            color: #667eea;
-            font-size: 16px;
-            margin-top: 2px;
-        }
-
-        .bot-message strong {
-            color: #374151;
-            font-size: 14px;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .bot-message p {
-            color: #6b7280;
-            font-size: 14px;
-            margin: 0;
-        }
-
-        .support-form {
-            padding: 16px;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 14px;
-            resize: none;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .form-input:focus {
-            border-color: #667eea;
-        }
-
-        .form-actions {
+        .input-actions {
             display: flex;
             gap: 8px;
-            margin-top: 12px;
         }
 
-        .send-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .attach-btn, .emoji-btn {
+            width: 28px;
+            height: 28px;
             border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
+            background: none;
+            color: #94a3b8;
+            border-radius: 50%;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.2s;
         }
 
-        .send-btn:hover {
-            transform: translateY(-1px);
+        .attach-btn:hover, .emoji-btn:hover {
+            background: #f1f5f9;
+            color: #475569;
         }
 
-        .support-link {
-            background: #f3f4f6;
-            color: #374151;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-
-        .support-link:hover {
-            background: #e5e7eb;
-        }
-
-        /* Responsivité mobile */
+        /* Responsive */
         @media (max-width: 768px) {
-            .support-widget {
+            .support-widget-container {
                 bottom: 16px;
                 right: 16px;
             }
 
-            .support-button {
-                width: 50px;
-                height: 50px;
-                font-size: 18px;
+            .support-toggle-button {
+                width: 56px;
+                height: 56px;
             }
 
-            .support-chat {
+            .support-icon {
+                font-size: 22px;
+            }
+
+            .support-widget {
                 width: calc(100vw - 32px);
-                height: 400px;
+                height: 450px;
                 right: -16px;
-                bottom: 60px;
+                bottom: 70px;
             }
 
-            .message-area {
-                max-height: 250px;
+            .quick-actions {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+
+            .quick-btn {
+                padding: 10px 6px;
+                font-size: 10px;
             }
         }
 
-        /* Cache le widget sur les très petits écrans si nécessaire */
         @media (max-width: 480px) {
-            .support-chat {
-                width: calc(100vw - 20px);
-                right: -10px;
-                height: 350px;
+            .support-widget {
+                width: calc(100vw - 16px);
+                height: 400px;
+                right: -8px;
             }
+
+            .support-header {
+                padding: 16px;
+            }
+
+            .support-messages {
+                padding: 16px;
+            }
+
+            .support-input-area {
+                padding: 16px;
+            }
+        }
+
+        /* Animation d'apparition */
+        @keyframes slideInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .support-widget.active {
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        /* Scrollbar personnalisée */
+        .support-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .support-messages::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 2px;
+        }
+
+        .support-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+
+        .support-messages::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
     </style>
 
     <script>
-        function toggleSupportChat() {
-            const chat = document.getElementById('supportChat');
-            chat.classList.toggle('active');
+        let supportWidgetOpen = false;
+
+        function toggleSupportWidget() {
+            const widget = document.getElementById('supportWidget');
+            const button = document.getElementById('supportToggle');
+            
+            if (supportWidgetOpen) {
+                closeSupportWidget();
+            } else {
+                widget.classList.add('active');
+                supportWidgetOpen = true;
+                
+                // Focus sur le textarea
+                setTimeout(() => {
+                    document.getElementById('messageInput').focus();
+                }, 300);
+            }
         }
 
-        function closeSupportChat() {
-            const chat = document.getElementById('supportChat');
-            chat.classList.remove('active');
+        function closeSupportWidget() {
+            const widget = document.getElementById('supportWidget');
+            widget.classList.remove('active');
+            supportWidgetOpen = false;
         }
 
-        function sendSupportMessage(event) {
+        function sendMessage(event) {
             event.preventDefault();
             
-            const messageInput = event.target.querySelector('textarea');
-            const message = messageInput.value.trim();
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
             
             if (!message) return;
 
-            // Ajouter le message de l'utilisateur
-            const messageArea = document.getElementById('messageArea');
-            const userMessage = document.createElement('div');
-            userMessage.innerHTML = `
-                <div style="text-align: right; margin-bottom: 12px;">
-                    <div style="display: inline-block; background: #667eea; color: white; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px;">
-                        ${message}
-                    </div>
-                </div>
-            `;
-            messageArea.appendChild(userMessage);
-
+            // Ajouter le message utilisateur
+            addUserMessage(message);
+            
             // Vider le champ
-            messageInput.value = '';
-
-            // Scroll vers le bas
-            messageArea.scrollTop = messageArea.scrollHeight;
-
-            // Simuler une réponse automatique
+            input.value = '';
+            updateCharCount();
+            
+            // Simuler une réponse du bot
             setTimeout(() => {
-                const botResponse = document.createElement('div');
-                botResponse.innerHTML = `
-                    <div class="bot-message">
-                        <i class="fas fa-robot"></i>
-                        <div>
-                            <strong>Support</strong>
-                            <p>Merci pour votre message ! Un agent va vous répondre dans les plus brefs délais. Pour une assistance immédiate, vous pouvez créer un ticket de support.</p>
-                        </div>
-                    </div>
-                `;
-                messageArea.appendChild(botResponse);
-                messageArea.scrollTop = messageArea.scrollHeight;
+                addBotResponse(message);
             }, 1000);
         }
 
-        // Fermer le chat en cliquant à l'extérieur
-        document.addEventListener('click', function(event) {
-            const widget = document.getElementById('supportWidget');
-            const chat = document.getElementById('supportChat');
+        function addUserMessage(message) {
+            const messagesContainer = document.getElementById('supportMessages');
+            const userMessage = document.createElement('div');
+            userMessage.className = 'user-message';
+            userMessage.innerHTML = `
+                <div class="user-bubble">
+                    ${escapeHtml(message)}
+                    <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">
+                        ${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(userMessage);
+            scrollToBottom();
+        }
+
+        function addBotResponse(userMessage) {
+            const messagesContainer = document.getElementById('supportMessages');
+            const botMessage = document.createElement('div');
+            botMessage.className = 'welcome-message';
             
-            if (widget && !widget.contains(event.target)) {
-                chat.classList.remove('active');
+            // Réponses contextuelles basées sur le message
+            let response = "Merci pour votre message ! Notre équipe va vous répondre dans les plus brefs délais.";
+            
+            if (userMessage.toLowerCase().includes('dépôt')) {
+                response = "Pour effectuer un dépôt, rendez-vous dans votre portefeuille et suivez les instructions. Vos fonds seront crédités automatiquement après confirmation blockchain.";
+            } else if (userMessage.toLowerCase().includes('retrait')) {
+                response = "Les retraits sont traités automatiquement. Assurez-vous que votre adresse USDT TRC20 est correcte et que vous respectez le montant minimum.";
+            } else if (userMessage.toLowerCase().includes('profit')) {
+                response = "Les profits sont calculés quotidiennement et crédités automatiquement à minuit UTC. Vous pouvez voir l'historique dans votre dashboard.";
+            }
+            
+            botMessage.innerHTML = `
+                <div class="bot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="bot-bubble">
+                    <strong>Assistant Support</strong>
+                    <p>${response}</p>
+                    <span class="message-time">${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}</span>
+                </div>
+            `;
+            messagesContainer.appendChild(botMessage);
+            scrollToBottom();
+        }
+
+        function addQuickMessage(message) {
+            document.getElementById('messageInput').value = message;
+            updateCharCount();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('supportMessages');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateCharCount() {
+            const input = document.getElementById('messageInput');
+            const counter = document.querySelector('.char-count');
+            const length = input.value.length;
+            counter.textContent = `${length}/500`;
+            
+            if (length > 450) {
+                counter.style.color = '#ef4444';
+            } else if (length > 400) {
+                counter.style.color = '#f59e0b';
+            } else {
+                counter.style.color = '#94a3b8';
+            }
+        }
+
+        function attachFile() {
+            showNotification('Fonctionnalité bientôt disponible', 'info');
+        }
+
+        function addEmoji() {
+            const input = document.getElementById('messageInput');
+            const emojis = ['😊', '👍', '🤝', '💡', '❓', '✅', '📈', '💰'];
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            input.value += randomEmoji;
+            updateCharCount();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Événements
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('messageInput');
+            if (input) {
+                input.addEventListener('input', updateCharCount);
+                
+                // Envoi avec Ctrl+Enter
+                input.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        sendMessage(e);
+                    }
+                });
             }
         });
 
-        // Empêcher la fermeture quand on clique dans le chat
-        document.getElementById('supportChat')?.addEventListener('click', function(event) {
+        // Fermer en cliquant à l'extérieur
+        document.addEventListener('click', function(event) {
+            const container = document.querySelector('.support-widget-container');
+            const widget = document.getElementById('supportWidget');
+            
+            if (supportWidgetOpen && container && !container.contains(event.target)) {
+                closeSupportWidget();
+            }
+        });
+
+        // Empêcher la fermeture lors du clic dans le widget
+        document.getElementById('supportWidget')?.addEventListener('click', function(event) {
             event.stopPropagation();
         });
     </script>
