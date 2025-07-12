@@ -563,6 +563,35 @@ def restore_critical_data():
 
     
 
+    # ROI Plans table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS roi_plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            daily_rate REAL NOT NULL,
+            duration_days INTEGER NOT NULL,
+            min_amount REAL NOT NULL,
+            max_amount REAL NOT NULL,
+            is_active BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Insert ultra-premium ROI plans (only if not exist)
+    roi_count = cursor.execute('SELECT COUNT(*) as count FROM roi_plans').fetchone()['count']
+    
+    if roi_count == 0:
+        cursor.execute('''
+            INSERT INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
+        VALUES 
+        ('Rocket Launch', '🚀 Plan meteore ultra-rentable ! 35% quotidien pendant 3 jours.', 0.35, 3, 20, 2000),
+        ('Mega Booster', '💥 Plan mega booster ! 30% quotidien pendant 5 jours.', 0.30, 5, 20, 3000),
+        ('Super Express', '⚡ Plan super express ! 25% quotidien pendant 7 jours.', 0.25, 7, 20, 4000),
+        ('Lightning Pro', '⚡ Plan lightning pro ! 22% quotidien pendant 10 jours.', 0.22, 10, 20, 5000),
+        ('Turbo Flash', '🔥 Plan turbo flash ! 20% quotidien pendant 14 jours.', 0.20, 14, 20, 8000)
+    ''')
+
     # Insert top 10 staking plans - Starting from 20 USDT (only if not exist)
     staking_count = cursor.execute('SELECT COUNT(*) as count FROM staking_plans').fetchone()['count']
     
@@ -1146,6 +1175,66 @@ def ultra_plans():
     conn.close()
 
     return render_template('ultra_plans.html', ultra_plans=ultra_plans)
+
+@app.route('/invest-roi', methods=['POST'])
+@login_required
+def invest_roi():
+    """Investir dans un plan ROI ultra-rentable"""
+    data = request.get_json()
+    plan_id = data.get('plan_id')
+    amount = float(data.get('amount', 0))
+
+    conn = get_db_connection()
+
+    # Récupérer les détails du plan
+    plan = conn.execute('SELECT * FROM roi_plans WHERE id = ?', (plan_id,)).fetchone()
+    if not plan:
+        conn.close()
+        return jsonify({'error': 'Plan non trouvé'}), 404
+
+    # Vérifier les limites de montant
+    if amount < plan['min_amount'] or amount > plan['max_amount']:
+        conn.close()
+        return jsonify({'error': f'Montant doit être entre {plan["min_amount"]} et {plan["max_amount"]} USDT'}), 400
+
+    # Vérifier le solde utilisateur
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user['balance'] < amount:
+        conn.close()
+        return jsonify({'error': 'Solde insuffisant'}), 400
+
+    # Calculer les dates et profits
+    start_date = datetime.now()
+    end_date = start_date + timedelta(days=plan['duration_days'])
+    daily_profit = amount * plan['daily_rate']
+
+    # Créer l'investissement
+    cursor = conn.execute('''
+        INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, daily_profit, transaction_hash)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (session['user_id'], plan_id, amount, start_date, end_date, daily_profit, generate_transaction_hash()))
+
+    # Mettre à jour le solde utilisateur
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, session['user_id']))
+
+    # Ajouter transaction
+    conn.execute('''
+        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+        VALUES (?, 'roi_investment', ?, 'completed', ?)
+    ''', (session['user_id'], amount, generate_transaction_hash()))
+
+    conn.commit()
+    conn.close()
+
+    # Ajouter notification
+    add_notification(
+        session['user_id'],
+        'Investissement premium activé',
+        f'Votre investissement de {amount} USDT dans {plan["name"]} a été activé avec succès!',
+        'success'
+    )
+
+    return jsonify({'success': True, 'message': f'Investissement dans {plan["name"]} réalisé avec succès!'})
 
 
 
