@@ -69,20 +69,7 @@ def init_db():
         )
     ''')
 
-    # ROI Plans table
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS roi_plans (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT,
-            daily_rate REAL NOT NULL,
-            duration_days INTEGER NOT NULL,
-            min_amount REAL NOT NULL,
-            max_amount REAL NOT NULL,
-            is_active BOOLEAN DEFAULT 1,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+    
 
     # User Investments table
     cursor.execute('''
@@ -574,27 +561,7 @@ def restore_critical_data():
         ('Quel est le montant minimum d investissement ?', 'Le montant minimum est de 20 USDT pour tous nos plans d investissement.', 'investment')
     ''')
 
-    # Insert ROI plans only if they don't exist (avoid clearing existing plans)
-    plans_count = cursor.execute('SELECT COUNT(*) as count FROM roi_plans').fetchone()['count']
     
-    if plans_count == 0:
-        # Insert clean ROI plans - ALL starting from 20 USDT minimum
-        cursor.execute('''
-            INSERT INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
-        VALUES 
-        ('Starter Pro', '🚀 Parfait pour débuter ! 3% quotidien sur 30 jours. Idéal pour tester nos services avec un petit budget.', 0.03, 30, 20, 500),
-        ('Rapid Growth', '⚡ Croissance rapide ! 4% par jour pendant 25 jours. Parfait équilibre temps/profit.', 0.04, 25, 20, 800),
-        ('Silver Plan', '🥈 Plan argent ! 5% quotidien sur 30 jours. Notre bestseller pour débutants.', 0.05, 30, 20, 1000),
-        ('Golden Boost', '🥇 Plan or ! 8% par jour pendant 35 jours. Excellent retour sur investissement.', 0.08, 35, 20, 2000),
-        ('Platinum Elite', '💎 Elite platinum ! 12% quotidien sur 40 jours. Pour investisseurs sérieux.', 0.12, 40, 20, 5000),
-        ('Diamond Pro', '💍 Diamant professionnel ! 15% par jour pendant 50 jours. Rendement exceptionnel.', 0.15, 50, 20, 10000),
-        ('VIP Supreme', '👑 VIP suprême ! 18% quotidien sur 60 jours. Pour les grands investisseurs.', 0.18, 60, 20, 25000),
-        ('Turbo Flash', '⚡ EXCLUSIF ! 20% par jour sur 14 jours ! Trading haute fréquence + arbitrage premium. Réservé aux VIP.', 0.20, 14, 20, 25000),
-        ('Lightning Pro', '⚡ FLASH ! 22% par jour sur 10 jours ! Technologie quantum trading + IA prédictive avancée.', 0.22, 10, 20, 30000),
-        ('Super Express', '🔥 NOUVEAU ! 25% quotidien pendant 7 jours ! Profits explosifs garantis ! IA révolutionnaire + algorithmes secrets.', 0.25, 7, 20, 10000),
-        ('Mega Booster', '💥 LIMITE ! 30% quotidien pendant 5 jours ! Stratégie secrète révolutionnaire ! Places limitées !', 0.30, 5, 20, 15000),
-        ('Rocket Launch', '🚀 METEORE ! 35% quotidien pendant 3 jours ! Stratégie ultra-secrète ! Rendement historique jamais vu !', 0.35, 3, 20, 20000)
-    ''')
 
     # Insert top 10 staking plans - Starting from 20 USDT (only if not exist)
     staking_count = cursor.execute('SELECT COUNT(*) as count FROM staking_plans').fetchone()['count']
@@ -822,14 +789,8 @@ def calculate_daily_profits():
     
     conn = get_db_connection()
     
-    # Récupérer tous les investissements actifs
-    active_investments = conn.execute('''
-        SELECT ui.*, u.email, rp.name as plan_name
-        FROM user_investments ui
-        JOIN users u ON ui.user_id = u.id
-        JOIN roi_plans rp ON ui.plan_id = rp.id
-        WHERE ui.is_active = 1
-    ''').fetchall()
+    # Plus d'investissements ROI actifs
+    active_investments = []
 
     # Récupérer tous les bots de trading actifs
     active_bots = conn.execute('''
@@ -1110,14 +1071,8 @@ def dashboard():
     # Get user info
     user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
 
-    # Get active investments
-    investments = conn.execute('''
-        SELECT ui.*, rp.name as plan_name, rp.daily_rate
-        FROM user_investments ui
-        JOIN roi_plans rp ON ui.plan_id = rp.id
-        WHERE ui.user_id = ? AND ui.is_active = 1 AND (ui.end_date > datetime('now') OR ui.end_date IS NULL)
-        ORDER BY ui.start_date DESC
-    ''', (session['user_id'],)).fetchall()
+    # Get active investments (sans les plans ROI)
+    investments = []
 
     # Get project investments
     project_investments = conn.execute('''
@@ -1237,62 +1192,7 @@ def project_detail(project_id):
 
     return render_template('project_detail.html', project=project, investments=investments)
 
-@app.route('/invest-roi', methods=['POST'])
-@login_required
-def invest_roi():
-    """Investir dans un plan ROI"""
-    data = request.get_json()
-    plan_id = data.get('plan_id')
-    amount = float(data.get('amount', 0))
 
-    conn = get_db_connection()
-
-    # Get plan details
-    plan = conn.execute('SELECT * FROM roi_plans WHERE id = ?', (plan_id,)).fetchone()
-    if not plan:
-        return jsonify({'error': 'Plan ROI non trouvé'}), 404
-
-    # Check amount limits
-    if amount < plan['min_amount'] or amount > plan['max_amount']:
-        return jsonify({'error': f'Montant doit être entre {plan["min_amount"]} et {plan["max_amount"]} USDT'}), 400
-
-    # Check user balance
-    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
-    if user['balance'] < amount:
-        return jsonify({'error': 'Solde insuffisant'}), 400
-
-    # Calculate dates and daily profit
-    start_date = datetime.now()
-    end_date = start_date + timedelta(days=plan['duration_days'])
-    daily_profit = amount * plan['daily_rate']
-
-    # Create investment
-    conn.execute('''
-        INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, daily_profit, transaction_hash)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (session['user_id'], plan_id, amount, start_date, end_date, daily_profit, generate_transaction_hash()))
-
-    # Update user balance
-    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, session['user_id']))
-
-    # Add transaction record
-    conn.execute('''
-        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
-        VALUES (?, 'roi_investment', ?, 'completed', ?)
-    ''', (session['user_id'], amount, generate_transaction_hash()))
-
-    conn.commit()
-    conn.close()
-
-    # Add notification
-    add_notification(
-        session['user_id'],
-        'Investissement ROI créé',
-        f'Votre investissement de {amount} USDT dans le plan {plan["name"]} a été créé avec succès!',
-        'success'
-    )
-
-    return jsonify({'success': True, 'message': f'Investissement de {amount} USDT créé avec succès!'})
 
 @app.route('/invest-project', methods=['POST'])
 @login_required

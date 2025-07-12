@@ -168,7 +168,7 @@
 
     <!-- Active Investments -->
     <div class="chat-bubble">
-        <h2 class="text-xl font-bold text-gray-900 mb-6">📈 Tes investissements ROI</h2>
+        <h2 class="text-xl font-bold text-gray-900 mb-6">📈 Tes investissements</h2>
         {% if investments %}
             <!-- Mobile View -->
             <div class="block md:hidden space-y-4">
@@ -283,8 +283,8 @@
                 <h3 class="text-lg font-semibold text-gray-900 mb-2">Aucun investissement actif</h3>
                 <p class="text-gray-600 mb-4">Commence ton aventure crypto dès maintenant ! 🚀</p>
                 <div class="space-y-2">
-                    <a href="{{ url_for('roi_plans') }}" class="messenger-btn inline-flex items-center w-full justify-center">
-                        <i class="fas fa-plus mr-2"></i>Découvrir nos plans
+                    <a href="{{ url_for('staking_plans') }}" class="messenger-btn inline-flex items-center w-full justify-center">
+                        <i class="fas fa-plus mr-2"></i>Découvrir nos plans de staking
                     </a>
                     <button onclick="recalculateProfits()" class="messenger-btn-outline inline-flex items-center w-full justify-center">
                         <i class="fas fa-sync mr-2"></i>Actualiser mes gains
