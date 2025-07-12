@@ -553,7 +553,20 @@ def login():
             session['user_id'] = user['id']
             session['email'] = user['email']
             session['first_name'] = user['first_name']
-            session['is_admin'] = (user['email'] == 'admin@example.com')  # Simple admin check
+            
+            # Liste blanche des administrateurs autorisés
+            ADMIN_EMAILS = [
+                'admin@investcryptopro.com',
+                'support@investcryptopro.com',
+                'security@investcryptopro.com'
+            ]
+            
+            # Vérification admin sécurisée
+            session['is_admin'] = (user['email'] in ADMIN_EMAILS and user['kyc_status'] == 'verified')
+            
+            # Log de connexion admin
+            if session['is_admin']:
+                log_security_action(user['id'], 'admin_login', f'Connexion administrateur depuis {request.remote_addr}')
 
             return jsonify({'success': True, 'redirect': url_for('dashboard')})
 
@@ -1559,6 +1572,38 @@ def disable_2fa():
     
     return jsonify({'success': True, 'message': 'Authentification 2FA désactivée'})
 
+def create_secure_admin(email, password, first_name="Admin", last_name="System"):
+    """Créer un compte administrateur sécurisé"""
+    try:
+        conn = get_db_connection()
+        
+        # Vérifier si l'admin existe déjà
+        existing_admin = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
+        if existing_admin:
+            print(f"⚠️ Administrateur {email} existe déjà")
+            conn.close()
+            return False
+        
+        # Créer le compte admin
+        password_hash = generate_password_hash(password)
+        referral_code = generate_referral_code()
+        
+        cursor = conn.execute('''
+            INSERT INTO users (email, password_hash, first_name, last_name, referral_code, kyc_status, balance)
+            VALUES (?, ?, ?, ?, ?, 'verified', 0.0)
+        ''', (email, password_hash, first_name, last_name, referral_code))
+        
+        admin_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Administrateur {email} créé avec succès (ID: {admin_id})")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erreur création admin: {e}")
+        return False
+
 def log_security_action(user_id, action, details=""):
     """Enregistrer une action de sécurité"""
     try:
@@ -1601,6 +1646,12 @@ def log_security_action(user_id, action, details=""):
 
 if __name__ == '__main__':
     init_db()
+    
+    # Créer les comptes administrateur sécurisés
+    print("🔐 Initialisation des comptes administrateur...")
+    create_secure_admin('admin@investcryptopro.com', 'AdminSecure2024!', 'Admin', 'Principal')
+    create_secure_admin('support@investcryptopro.com', 'SupportSecure2024!', 'Support', 'Team')
+    create_secure_admin('security@investcryptopro.com', 'SecuritySecure2024!', 'Security', 'Team')
 
     # Setup scheduler for daily profit calculation
     scheduler = BackgroundScheduler()
