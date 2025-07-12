@@ -16,22 +16,7 @@ import atexit
 # Import du bot Telegram utilisateur uniquement
 TELEGRAM_ENABLED = False
 TELEGRAM_USER_BOT_ENABLED = False
-try:
-    from telegram_investment_bot import setup_user_telegram_bot
-    # Tester si le bot peut être configuré
-    test_bot = setup_user_telegram_bot()
-    if test_bot:
-        TELEGRAM_USER_BOT_ENABLED = True
-        print("✅ Bot Telegram disponible et configuré")
-    else:
-        print("⚠️ Bot Telegram non disponible - Configuration échouée")
-except ImportError as e:
-    print(f"⚠️ Bot Telegram non disponible: {e}")
-    print("💡 Installez python-telegram-bot pour activer le bot")
-    setup_user_telegram_bot = None
-except Exception as e:
-    print(f"❌ Erreur configuration bot: {e}")
-    setup_user_telegram_bot = None
+
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -715,6 +700,8 @@ def dashboard():
                     date_str = notif_dict['created_at'].replace('Z', '').replace('+00:00', '')
                     notif_dict['created_at'] = datetime.fromisoformat(date_str)
                 elif hasattr(notif_dict['created_at'], 'strftime'):
+                    ```python
+# Removing Telegram bot functionalities from the investment platform.
                     # Already a datetime object
                     pass
                 else:
@@ -1280,15 +1267,7 @@ def create_support_ticket():
         )
 
         # Notifier l'admin via Telegram si disponible
-        try:
-            from telegram_investment_bot import notify_admin_new_support_ticket
-            import asyncio
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(notify_admin_new_support_ticket(ticket_id, subject, enriched_message, category, priority))
-            loop.close()
-        except Exception as e:
-            print(f"Erreur notification Telegram: {e}")
+
 
         return jsonify({
             'success': True, 
@@ -1580,11 +1559,11 @@ def approve_transaction(transaction_id):
     """Approuver une transaction"""
     conn = None
     max_retries = 5
-    
+
     for attempt in range(max_retries):
         try:
             conn = get_db_connection()
-            
+
             # Commencer une transaction
             conn.execute('BEGIN IMMEDIATE;')
 
@@ -1666,7 +1645,7 @@ def approve_transaction(transaction_id):
                 except:
                     pass
                 conn = None
-                
+
             if "database is locked" in str(e) and attempt < max_retries - 1:
                 import time
                 time.sleep(1.0 * (attempt + 1))  # Délai plus long
@@ -1675,7 +1654,7 @@ def approve_transaction(transaction_id):
                 return jsonify({
                     'error': f'Erreur base de données: {str(e)}'
                 }), 500
-                
+
         except Exception as e:
             print(f"❌ Erreur générale: {e}")
             if conn:
@@ -2115,7 +2094,7 @@ def disable_2fa():
         UPDATE users 
         SET two_fa_enabled = 0, two_fa_secret = NULL, updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
-    ''', (session['user_id']))
+    ''', (session['user_id'],))
 
     # Enregistrer dans les logs
     log_security_action(session['user_id'], '2fa_disabled', 'Authentification 2FA désactivée')
@@ -2271,32 +2250,6 @@ if __name__ == '__main__':
         id='daily_profits'
     )
     scheduler.start()
-
-    # Setup du bot utilisateur - Réactivé
-    if TELEGRAM_USER_BOT_ENABLED and setup_user_telegram_bot:
-        try:
-            print("🚀 Démarrage du bot Telegram utilisateur...")
-            
-            # Démarrer le bot dans un thread séparé pour éviter de bloquer Flask
-            import threading
-            import asyncio
-            
-            def run_telegram_bot():
-                try:
-                    from telegram_investment_bot import start_user_bot
-                    asyncio.run(start_user_bot())
-                except Exception as e:
-                    print(f"❌ Erreur bot Telegram: {e}")
-            
-            bot_thread = threading.Thread(target=run_telegram_bot, daemon=True)
-            bot_thread.start()
-            print("✅ Bot Telegram démarré en arrière-plan")
-            
-        except Exception as e:
-            print(f"❌ Erreur démarrage bot: {e}")
-            TELEGRAM_USER_BOT_ENABLED = False
-    else:
-        print("⚠️ Bot Telegram non disponible - Vérifiez la configuration")
 
     # Shutdown scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
