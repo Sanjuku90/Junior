@@ -100,6 +100,137 @@ def get_pending_withdrawals():
     conn.close()
     return withdrawals
 
+def get_pending_support_tickets():
+    """Récupérer tous les tickets de support en attente"""
+    conn = get_db_connection()
+    try:
+        tickets = conn.execute('''
+            SELECT st.*, u.first_name, u.last_name, u.telegram_id,
+                   (SELECT sm.message FROM support_messages sm WHERE sm.ticket_id = st.id ORDER BY sm.created_at ASC LIMIT 1) as first_message
+            FROM support_tickets st
+            JOIN users u ON st.user_id = u.id
+            WHERE st.status IN ('open', 'user_reply')
+            ORDER BY st.updated_at DESC
+        ''').fetchall()
+    except sqlite3.OperationalError:
+        # Tables de support n'existent pas encore
+        tickets = []
+    conn.close()
+    return tickets
+
+def reply_to_support_ticket(ticket_id, admin_message):
+    """Répondre à un ticket de support"""
+    conn = get_db_connection()
+    try:
+        # Ajouter la réponse admin
+        conn.execute('''
+            INSERT INTO support_messages (ticket_id, message, is_admin)
+            VALUES (?, ?, 1)
+        ''', (ticket_id, admin_message))
+        
+        # Mettre à jour le statut du ticket
+        conn.execute('''
+            UPDATE support_tickets 
+            SET status = 'admin_reply', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (ticket_id,))
+        
+        # Récupérer les infos du ticket pour notification
+        ticket = conn.execute('''
+            SELECT st.*, u.first_name, u.telegram_id
+            FROM support_tickets st
+            JOIN users u ON st.user_id = u.id
+            WHERE st.id = ?
+        ''', (ticket_id,)).fetchone()
+        
+        conn.commit()
+        
+        # Ajouter notification à l'utilisateur
+        if ticket:
+            add_notification(
+                ticket['user_id'],
+                'Réponse du support',
+                f'Vous avez reçu une réponse à votre ticket de support #{ticket_id}',
+                'info'
+            )
+        
+        return True, "Réponse envoyée avec succès"
+    except Exception as e:
+        return False, f"Erreur: {e}"
+    finally:
+        conn.close()
+
+def close_support_ticket(ticket_id):
+    """Fermer un ticket de support"""
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            UPDATE support_tickets 
+            SET status = 'closed', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (ticket_id,))
+        
+        # Récupérer les infos du ticket pour notification
+        ticket = conn.execute('''
+            SELECT st.*, u.first_name
+            FROM support_tickets st
+            JOIN users u ON st.user_id = u.id
+            WHERE st.id = ?
+        ''', (ticket_id,)).fetchone()
+        
+        conn.commit()
+        
+        # Ajouter notification à l'utilisateur
+        if ticket:
+            add_notification(
+                ticket['user_id'],
+                'Ticket de support fermé',
+                f'Votre ticket de support #{ticket_id} a été résolu et fermé.',
+                'success'
+            )
+        
+        return True, "Ticket fermé avec succès"
+    except Exception as e:
+        return False, f"Erreur: {e}"
+    finally:
+        conn.close()
+
+async def notify_admin_new_support_ticket(ticket_id, subject, message, category, priority):
+    """Notifier l'admin d'un nouveau ticket de support via Telegram"""
+    try:
+        priority_emoji = "🔴" if priority == 'urgent' else "🟡" if priority == 'high' else "🟢"
+        category_emoji = "💰" if category == 'wallet' else "📈" if category == 'investment' else "🔧" if category == 'technical' else "👤" if category == 'account' else "❓"
+        
+        notification_message = f"""
+🎫 **NOUVEAU TICKET DE SUPPORT**
+
+{priority_emoji} **Ticket #{ticket_id}**
+{category_emoji} **Catégorie :** {category}
+📝 **Sujet :** {subject}
+
+💬 **Message :**
+{message[:200]}{'...' if len(message) > 200 else ''}
+
+⏰ **Reçu :** {datetime.now().strftime('%d/%m/%Y %H:%M')}
+
+Utilisez /admin pour gérer les tickets.
+        """
+        
+        # Envoyer à tous les admins
+        for admin_id in ADMIN_IDS:
+            try:
+                from telegram import Bot
+                bot = Bot(token=TELEGRAM_BOT_TOKEN)
+                await bot.send_message(
+                    chat_id=admin_id,
+                    text=notification_message,
+                    parse_mode='Markdown'
+                )
+            except Exception as e:
+                print(f"Erreur envoi notification admin {admin_id}: {e}")
+    except Exception as e:
+        print(f"Erreur notification support: {e}")
+
 def approve_deposit(transaction_id):
     """Approuver un dépôt"""
     conn = get_db_connection()
@@ -436,9 +567,13 @@ async def show_admin_menu(update, context):
     pending_deposits = get_pending_deposits()
     pending_withdrawals = get_pending_withdrawals()
     
+    # Récupérer les tickets de support en attente
+    pending_support_tickets = get_pending_support_tickets()
+    
     keyboard = [
         [InlineKeyboardButton(f"💳 Dépôts en attente ({len(pending_deposits)})", callback_data="admin_deposits")],
         [InlineKeyboardButton(f"💸 Retraits en attente ({len(pending_withdrawals)})", callback_data="admin_withdrawals")],
+        [InlineKeyboardButton(f"🎫 Support en attente ({len(pending_support_tickets)})", callback_data="admin_support")],
         [InlineKeyboardButton("📊 Statistiques", callback_data="admin_stats")],
         [InlineKeyboardButton("👥 Utilisateurs", callback_data="admin_users")],
         [InlineKeyboardButton("🔙 Menu utilisateur", callback_data="admin_to_user")]
@@ -1599,6 +1734,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await show_admin_stats(update, context)
         elif data == "admin_users":
             await show_admin_users(update, context)
+        elif data == "admin_support":
+            await show_admin_support_tickets(update, context)
         elif data == "admin_to_user":
             # Passer en mode utilisateur
             user = get_user_by_telegram_id(update.effective_user.id)
@@ -1673,6 +1810,35 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Retourner au menu des retraits après 2 secondes
             await asyncio.sleep(2)
             await show_admin_withdrawals(update, context)
+        else:
+            await query.edit_message_text(f"❌ {message}")
+        return
+    
+    elif data.startswith("support_reply_"):
+        if not is_admin(update.effective_user.id):
+            await query.edit_message_text("❌ Accès refusé.")
+            return
+        
+        ticket_id = int(data.split("_")[-1])
+        context.user_data['support_ticket_reply'] = ticket_id
+        await query.edit_message_text(
+            f"📝 **RÉPONDRE AU TICKET #{ticket_id}**\n\n"
+            "Tapez votre réponse :"
+        )
+        return
+    
+    elif data.startswith("support_close_"):
+        if not is_admin(update.effective_user.id):
+            await query.edit_message_text("❌ Accès refusé.")
+            return
+        
+        ticket_id = int(data.split("_")[-1])
+        success, message = close_support_ticket(ticket_id)
+        
+        if success:
+            await query.edit_message_text(f"✅ {message}")
+            await asyncio.sleep(2)
+            await show_admin_support_tickets(update, context)
         else:
             await query.edit_message_text(f"❌ {message}")
         return
@@ -2577,6 +2743,57 @@ async def show_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
+async def show_admin_support_tickets(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les tickets de support en attente"""
+    await update.callback_query.answer()
+    
+    tickets = get_pending_support_tickets()
+    
+    if not tickets:
+        keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await update.callback_query.edit_message_text(
+            "✅ **Aucun ticket de support en attente**",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+        return
+    
+    keyboard = []
+    message = "🎫 **TICKETS DE SUPPORT EN ATTENTE**\n\n"
+    
+    for ticket in tickets[:5]:  # Limiter à 5 pour éviter un message trop long
+        user_name = f"{ticket['first_name']} {ticket['last_name'] or ''}"
+        try:
+            date_str = datetime.fromisoformat(ticket['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
+        except:
+            date_str = "Non disponible"
+        
+        priority_emoji = "🔴" if ticket['priority'] == 'urgent' else "🟡" if ticket['priority'] == 'high' else "🟢"
+        category_emoji = "💰" if ticket['category'] == 'wallet' else "📈" if ticket['category'] == 'investment' else "🔧" if ticket['category'] == 'technical' else "👤" if ticket['category'] == 'account' else "❓"
+        
+        message += f"{priority_emoji} **Ticket #{ticket['id']}**\n"
+        message += f"👤 {user_name}\n"
+        message += f"{category_emoji} {ticket['subject']}\n"
+        message += f"📅 {date_str}\n"
+        if ticket['first_message']:
+            message += f"💬 {ticket['first_message'][:50]}...\n"
+        message += "\n"
+        
+        keyboard.append([
+            InlineKeyboardButton(f"✅ Répondre #{ticket['id']}", callback_data=f"support_reply_{ticket['id']}"),
+            InlineKeyboardButton(f"❌ Fermer #{ticket['id']}", callback_data=f"support_close_{ticket['id']}")
+        ])
+    
+    if len(tickets) > 5:
+        message += f"... et {len(tickets) - 5} autres tickets"
+    
+    keyboard.append([InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Annuler une conversation"""
     context.user_data.clear()
@@ -2642,12 +2859,35 @@ def setup_user_telegram_bot():
         per_message=False
     )
 
+    # Handler pour les réponses de support admin
+    async def handle_support_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Gérer les réponses de support admin"""
+        if not is_admin(update.effective_user.id):
+            return
+        
+        if 'support_ticket_reply' in context.user_data:
+            ticket_id = context.user_data['support_ticket_reply']
+            admin_message = update.message.text
+            
+            success, message = reply_to_support_ticket(ticket_id, admin_message)
+            
+            if success:
+                await update.message.reply_text(f"✅ {message}")
+                # Retourner au menu des tickets après la réponse
+                await asyncio.sleep(1)
+                await show_admin_support_tickets(update, context)
+            else:
+                await update.message.reply_text(f"❌ {message}")
+            
+            del context.user_data['support_ticket_reply']
+
     # Ajouter tous les handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("admin", admin_command))
     application.add_handler(deposit_handler)
     application.add_handler(withdraw_handler)
     application.add_handler(invest_roi_handler)
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_support_reply))
     application.add_handler(CallbackQueryHandler(handle_callback))
 
     # Ajouter le gestionnaire d'erreur

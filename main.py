@@ -1110,6 +1110,13 @@ def create_support_ticket():
         'info'
     )
     
+    # Notifier l'admin via Telegram si disponible
+    try:
+        from telegram_investment_bot import notify_admin_new_support_ticket
+        notify_admin_new_support_ticket(ticket_id, subject, message, category, priority)
+    except:
+        pass  # Si le bot Telegram n'est pas disponible
+    
     return jsonify({'success': True, 'ticket_id': ticket_id})
 
 @app.route('/support/send-message', methods=['POST'])
