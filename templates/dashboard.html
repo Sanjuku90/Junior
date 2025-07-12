@@ -467,12 +467,17 @@ function showDepositModal() {
     document.getElementById('depositModal').classList.remove('hidden');
 }
 
-
+function hideDepositModal() {
+    document.getElementById('depositModal').classList.add('hidden');
+}
 
 function showWithdrawModal() {
     document.getElementById('withdrawModal').classList.remove('hidden');
 }
 
+function hideWithdrawModal() {
+    document.getElementById('withdrawModal').classList.add('hidden');
+}
 
 function copyDepositAddress() {
     const address = 'TAB1oeEKDS5NATwFAaUrTioDU9djX7anyS';
@@ -584,7 +589,6 @@ async function restoreInvestments() {
 
     try {
         const response = await fetch('/restore-investments', {
-            ```python
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
