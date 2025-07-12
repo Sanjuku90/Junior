@@ -763,6 +763,23 @@ def roi_plans():
 
     return render_template('roi_plans.html', plans=plans)
 
+@app.route('/ultra-plans')
+@login_required
+def ultra_plans():
+    """Page dédiée aux plans ultra-rentables (20%+ quotidien)"""
+    conn = get_db_connection()
+    
+    # Récupérer seulement les plans ultra-rentables (20%+ quotidien)
+    ultra_plans = conn.execute('''
+        SELECT * FROM roi_plans 
+        WHERE is_active = 1 AND daily_rate >= 0.20
+        ORDER BY daily_rate DESC, duration_days ASC
+    ''').fetchall()
+    
+    conn.close()
+
+    return render_template('ultra_plans.html', ultra_plans=ultra_plans)
+
 @app.route('/invest-roi', methods=['POST'])
 @login_required
 def invest_roi():
