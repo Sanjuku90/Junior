@@ -619,7 +619,7 @@ def invest_roi():
         return jsonify({'error': f'Montant doit être entre {plan["min_amount"]} et {plan["max_amount"]} USDT'}), 400
 
     # Check user balance
-    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    user = conn.execute('SELECT balance, referred_by FROM users WHERE id = ?', (session['user_id'],)).fetchone()
     if user['balance'] < amount:
         return jsonify({'error': 'Solde insuffisant'}), 400
 
@@ -642,6 +642,29 @@ def invest_roi():
         INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
         VALUES (?, 'investment', ?, 'completed', ?)
     ''', (session['user_id'], amount, generate_transaction_hash()))
+
+    # Process referral commission (5%)
+    if user['referred_by']:
+        referrer = conn.execute('SELECT id FROM users WHERE referral_code = ?', (user['referred_by'],)).fetchone()
+        if referrer:
+            commission = amount * 0.05  # 5% commission
+            
+            # Add commission to referrer balance
+            conn.execute('UPDATE users SET balance = balance + ? WHERE id = ?', (commission, referrer['id']))
+            
+            # Add commission transaction
+            conn.execute('''
+                INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+                VALUES (?, 'referral_commission', ?, 'completed', ?)
+            ''', (referrer['id'], commission, generate_transaction_hash()))
+            
+            # Notify referrer
+            add_notification(
+                referrer['id'],
+                'Commission de parrainage reçue',
+                f'Vous avez reçu {commission:.2f} USDT de commission pour le parrainage d\'un investissement',
+                'success'
+            )
 
     conn.commit()
     conn.close()
@@ -710,7 +733,7 @@ def invest_project():
         return jsonify({'error': f'Montant doit être entre {project["min_investment"]} et {project["max_investment"]} USDT'}), 400
 
     # Check user balance
-    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    user = conn.execute('SELECT balance, referred_by FROM users WHERE id = ?', (session['user_id'],)).fetchone()
     if user['balance'] < amount:
         return jsonify({'error': 'Solde insuffisant'}), 400
 
@@ -729,6 +752,29 @@ def invest_project():
         INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
         VALUES (?, 'project_investment', ?, 'completed', ?)
     ''', (session['user_id'], amount, generate_transaction_hash()))
+
+    # Process referral commission (5%)
+    if user['referred_by']:
+        referrer = conn.execute('SELECT id FROM users WHERE referral_code = ?', (user['referred_by'],)).fetchone()
+        if referrer:
+            commission = amount * 0.05  # 5% commission
+            
+            # Add commission to referrer balance
+            conn.execute('UPDATE users SET balance = balance + ? WHERE id = ?', (commission, referrer['id']))
+            
+            # Add commission transaction
+            conn.execute('''
+                INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+                VALUES (?, 'referral_commission', ?, 'completed', ?)
+            ''', (referrer['id'], commission, generate_transaction_hash()))
+            
+            # Notify referrer
+            add_notification(
+                referrer['id'],
+                'Commission de parrainage reçue',
+                f'Vous avez reçu {commission:.2f} USDT de commission pour le parrainage d\'un investissement projet',
+                'success'
+            )
 
     conn.commit()
     conn.close()
@@ -1375,6 +1421,82 @@ def admin_close_ticket(ticket_id):
     conn.close()
     
     return jsonify({'success': True})
+
+@app.route('/admin/kyc')
+@admin_required
+def admin_kyc():
+    conn = get_db_connection()
+    
+    # Get all users with KYC info
+    users = conn.execute('''
+        SELECT id, first_name, last_name, email, kyc_status, created_at
+        FROM users 
+        ORDER BY 
+            CASE kyc_status 
+                WHEN 'pending' THEN 1 
+                WHEN 'approved' THEN 2 
+                ELSE 3 
+            END,
+            created_at DESC
+    ''').fetchall()
+    
+    # Get stats
+    stats = {
+        'pending': conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "pending"').fetchone()['count'],
+        'approved': conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "approved"').fetchone()['count'],
+        'rejected': conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "rejected"').fetchone()['count']
+    }
+    
+    conn.close()
+    
+    return render_template('admin_kyc.html', users=users, stats=stats)
+
+@app.route('/admin/update-kyc', methods=['POST'])
+@admin_required
+def admin_update_kyc():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    status = data.get('status')
+    
+    if status not in ['pending', 'approved', 'rejected']:
+        return jsonify({'error': 'Statut invalide'}), 400
+    
+    conn = get_db_connection()
+    
+    # Update user KYC status
+    conn.execute('''
+        UPDATE users 
+        SET kyc_status = ?
+        WHERE id = ?
+    ''', (status, user_id))
+    
+    # Get user info for notification
+    user = conn.execute('SELECT first_name, last_name FROM users WHERE id = ?', (user_id,)).fetchone()
+    
+    conn.commit()
+    conn.close()
+    
+    # Add notification to user
+    if status == 'approved':
+        add_notification(
+            user_id,
+            'KYC Approuvé',
+            'Félicitations ! Votre vérification d\'identité a été approuvée. Vous avez maintenant accès à toutes les fonctionnalités.',
+            'success'
+        )
+        message = f'KYC approuvé pour {user["first_name"]} {user["last_name"]}'
+    elif status == 'rejected':
+        add_notification(
+            user_id,
+            'KYC Rejeté',
+            'Votre vérification d\'identité a été rejetée. Veuillez contacter le support pour plus d\'informations.',
+            'error'
+        )
+        message = f'KYC rejeté pour {user["first_name"]} {user["last_name"]}'
+    else:
+        message = f'KYC remis en attente pour {user["first_name"]} {user["last_name"]}'
+    
+    return jsonify({'success': True, 'message': message})
 
 if __name__ == '__main__':
     init_db()
