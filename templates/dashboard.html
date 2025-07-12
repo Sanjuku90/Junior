@@ -106,26 +106,58 @@
     <!-- Quick Actions -->
     <div class="chat-bubble">
         <h2 class="text-xl font-bold text-gray-900 mb-6">💰 Actions rapides</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button onclick="showDepositModal()" class="messenger-btn-success w-full p-6 rounded-2xl flex items-center justify-center space-x-4">
-                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <i class="fas fa-plus text-2xl text-white"></i>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Bouton Déposer -->
+            <button onclick="showDepositModal()" class="group relative overflow-hidden bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 hover:from-green-400 hover:via-green-500 hover:to-emerald-600 text-white p-8 rounded-3xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl border-2 border-green-400/30">
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="relative z-10 flex items-center justify-center space-x-4">
+                    <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 group-hover:bg-white/30 transition-all duration-300">
+                        <i class="fas fa-wallet text-3xl text-white drop-shadow-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-white drop-shadow-md">Déposer</h3>
+                        <p class="text-green-100 text-sm font-medium">💵 Ajouter des fonds</p>
+                        <div class="text-xs text-green-200 mt-1 opacity-90">Minimum: 10 USDT</div>
+                    </div>
                 </div>
-                <div class="text-left">
-                    <h3 class="text-lg font-bold">Déposer</h3>
-                    <p class="text-green-100 text-sm">Ajouter des fonds</p>
+                <div class="absolute top-4 right-4 text-green-200">
+                    <i class="fas fa-arrow-trend-up text-2xl opacity-30"></i>
                 </div>
             </button>
 
-            <button onclick="showWithdrawModal()" class="messenger-btn w-full p-6 rounded-2xl flex items-center justify-center space-x-4">
-                <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <i class="fas fa-minus text-2xl text-white"></i>
+            <!-- Bouton Retirer -->
+            <button onclick="showWithdrawModal()" class="group relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-600 text-white p-8 rounded-3xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl border-2 border-blue-400/30">
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="relative z-10 flex items-center justify-center space-x-4">
+                    <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 group-hover:bg-white/30 transition-all duration-300">
+                        <i class="fas fa-hand-holding-dollar text-3xl text-white drop-shadow-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-white drop-shadow-md">Retirer</h3>
+                        <p class="text-blue-100 text-sm font-medium">💸 Récupérer vos gains</p>
+                        <div class="text-xs text-blue-200 mt-1 opacity-90">Minimum: 10 USDT</div>
+                    </div>
                 </div>
-                <div class="text-left">
-                    <h3 class="text-lg font-bold">Retirer</h3>
-                    <p class="text-blue-100 text-sm">Récupérer vos gains</p>
+                <div class="absolute top-4 right-4 text-blue-200">
+                    <i class="fas fa-coins text-2xl opacity-30"></i>
                 </div>
             </button>
+        </div>
+        
+        <!-- Indicateurs visuels supplémentaires -->
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-200">
+                <div class="flex items-center justify-center space-x-2 text-green-700">
+                    <i class="fas fa-shield-check text-sm"></i>
+                    <span class="text-sm font-medium">Dépôts sécurisés</span>
+                </div>
+            </div>
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border border-blue-200">
+                <div class="flex items-center justify-center space-x-2 text-blue-700">
+                    <i class="fas fa-bolt text-sm"></i>
+                    <span class="text-sm font-medium">Retraits rapides</span>
+                </div>
+            </div>
         </div>
     </div>
 
