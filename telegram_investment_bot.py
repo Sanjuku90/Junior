@@ -1,14 +1,31 @@
 import logging
 import sqlite3
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes, ConversationHandler
 import asyncio
 import os
 from datetime import datetime, timedelta
 import hashlib
 import secrets
 import json
-from werkzeug.security import generate_password_hash, check_password_hash
+
+try:
+    from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+    from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes, ConversationHandler
+    TELEGRAM_AVAILABLE = True
+except ImportError as e:
+    print(f"❌ Telegram library not available: {e}")
+    TELEGRAM_AVAILABLE = False
+
+try:
+    from werkzeug.security import generate_password_hash, check_password_hash
+    WERKZEUG_AVAILABLE = True
+except ImportError:
+    WERKZEUG_AVAILABLE = False
+    # Fallback simple password hashing
+    def generate_password_hash(password):
+        return hashlib.sha256(password.encode()).hexdigest()
+    
+    def check_password_hash(hash, password):
+        return hash == hashlib.sha256(password.encode()).hexdigest()
 
 # Configuration
 TELEGRAM_BOT_TOKEN = "7703189686:AAGArcOUnZImdOUTkwBggcyI9QSk5GSAB10"
@@ -3424,6 +3441,10 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def setup_user_telegram_bot():
     """Configure le bot utilisateur"""
+    if not TELEGRAM_AVAILABLE:
+        print("❌ Librairie Telegram non disponible")
+        return None
+        
     if not TELEGRAM_BOT_TOKEN:
         logger.error("❌ TELEGRAM_BOT_TOKEN_USER non configuré")
         print("❌ Bot utilisateur non disponible - Token manquant")

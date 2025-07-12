@@ -11,24 +11,38 @@ import threading
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
-import pyotp
-import qrcode
-import io
-import base64
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import re
 import ipaddress
+
+# Importations optionnelles
+try:
+    import pyotp
+    import qrcode
+    import io
+    import base64
+    PYOTP_AVAILABLE = True
+except ImportError:
+    PYOTP_AVAILABLE = False
+    print("PyOTP non disponible - 2FA désactivé")
+
+try:
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    EMAIL_AVAILABLE = True
+except ImportError:
+    EMAIL_AVAILABLE = False
+    print("Email non disponible")
 
 # Import du bot Telegram utilisateur uniquement
 TELEGRAM_ENABLED = False
 try:
     from telegram_investment_bot import setup_user_telegram_bot
     TELEGRAM_USER_BOT_ENABLED = True
-except ImportError:
+    print("✅ Bot Telegram utilisateur disponible")
+except ImportError as e:
     TELEGRAM_USER_BOT_ENABLED = False
-    print("Bot Telegram utilisateur non disponible")
+    print(f"❌ Bot Telegram utilisateur non disponible: {e}")
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -630,10 +644,15 @@ def validate_session():
 
 def generate_2fa_secret():
     """Générer un secret pour 2FA"""
+    if not PYOTP_AVAILABLE:
+        return None
     return pyotp.random_base32()
 
 def generate_2fa_qr_code(email, secret):
     """Générer un QR code pour 2FA"""
+    if not PYOTP_AVAILABLE:
+        return None
+    
     totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
         name=email,
         issuer_name="InvestCrypto Pro"
@@ -652,6 +671,8 @@ def generate_2fa_qr_code(email, secret):
 
 def verify_2fa_token(secret, token):
     """Vérifier un token 2FA"""
+    if not PYOTP_AVAILABLE:
+        return False
     totp = pyotp.TOTP(secret)
     return totp.verify(token, valid_window=1)
 
@@ -953,6 +974,9 @@ def security():
 @app.route('/enable-2fa', methods=['POST'])
 @login_required
 def enable_2fa():
+    if not PYOTP_AVAILABLE:
+        return jsonify({'error': '2FA non disponible - pyotp non installé'}), 503
+    
     conn = get_db_connection()
     
     # Vérifier si 2FA est déjà activé
@@ -964,6 +988,10 @@ def enable_2fa():
     
     # Générer un nouveau secret
     secret = generate_2fa_secret()
+    
+    if not secret:
+        conn.close()
+        return jsonify({'error': 'Erreur génération secret 2FA'}), 500
     
     # Sauvegarder le secret (désactivé par défaut)
     conn.execute('''
