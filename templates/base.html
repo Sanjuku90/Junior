@@ -1193,14 +1193,16 @@
 
             <!-- Zone des messages -->
             <div id="supportMessages" class="support-messages">
-                <div class="welcome-message">
-                    <div class="bot-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="bot-bubble">
-                        <strong>Assistant InvestCrypto Pro</strong>
-                        <p>👋 Bonjour ! Je suis là pour vous aider. Comment puis-je vous assister aujourd'hui ?</p>
-                        <span class="message-time">À l'instant</span>
+                <div class="message-container">
+                    <div class="bot-message">
+                        <div class="bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="bot-bubble">
+                            <strong>Assistant InvestCrypto Pro</strong>
+                            <p>👋 Bonjour ! Je suis là pour vous aider. Comment puis-je vous assister aujourd'hui ?</p>
+                            <span class="message-time">À l'instant</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1316,10 +1318,10 @@
             bottom: 75px;
             right: 0;
             width: 380px;
-            height: 500px;
+            height: 520px;
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             border: 1px solid #e5e7eb;
             display: none;
             flex-direction: column;
@@ -1327,6 +1329,7 @@
             transform: translateY(20px);
             opacity: 0;
             transition: all 0.3s ease;
+            z-index: 10000;
         }
 
         .support-widget.active {
@@ -1411,15 +1414,34 @@
 
         .support-messages {
             flex: 1;
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
             background: #f8fafc;
+            max-height: 280px;
         }
 
-        .welcome-message {
+        .message-container {
             display: flex;
+            flex-direction: column;
             gap: 12px;
-            margin-bottom: 20px;
+        }
+
+        .bot-message, .user-message-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .bot-avatar {
@@ -1462,10 +1484,10 @@
             font-size: 11px;
         }
 
-        .user-message {
+        .user-message-container {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .user-bubble {
@@ -1473,9 +1495,11 @@
             color: white;
             padding: 12px 16px;
             border-radius: 18px 18px 6px 18px;
-            max-width: 280px;
+            max-width: 240px;
             font-size: 14px;
             line-height: 1.4;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
         }
 
         .quick-actions {
@@ -1634,9 +1658,19 @@
 
             .support-widget {
                 width: calc(100vw - 32px);
-                height: 450px;
+                height: 480px;
                 right: -16px;
                 bottom: 70px;
+            }
+
+            .support-messages {
+                padding: 12px;
+                max-height: 240px;
+            }
+
+            .bot-bubble, .user-bubble {
+                max-width: 200px;
+                font-size: 13px;
             }
 
             .quick-actions {
@@ -1754,13 +1788,14 @@
         }
 
         function addUserMessage(message) {
-            const messagesContainer = document.getElementById('supportMessages');
+            const messagesContainer = document.querySelector('#supportMessages .message-container');
             const userMessage = document.createElement('div');
-            userMessage.className = 'user-message';
+            userMessage.className = 'user-message-container';
+            userMessage.style.justifyContent = 'flex-end';
             userMessage.innerHTML = `
                 <div class="user-bubble">
                     ${escapeHtml(message)}
-                    <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">
+                    <div style="font-size: 11px; opacity: 0.8; margin-top: 4px; text-align: right;">
                         ${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}
                     </div>
                 </div>
@@ -1770,9 +1805,9 @@
         }
 
         function addBotResponse(userMessage) {
-            const messagesContainer = document.getElementById('supportMessages');
+            const messagesContainer = document.querySelector('#supportMessages .message-container');
             const botMessage = document.createElement('div');
-            botMessage.className = 'welcome-message';
+            botMessage.className = 'bot-message';
             
             // Réponses contextuelles basées sur le message
             let response = "Merci pour votre message ! Notre équipe va vous répondre dans les plus brefs délais.";
