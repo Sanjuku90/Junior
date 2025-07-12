@@ -1579,8 +1579,8 @@ def approve_transaction(transaction_id):
             if not transaction:
                 conn.close()
                 return jsonify({'error': 'Transaction non trouvée ou déjà traitée'}), 404
-        
-        if transaction['type'] == 'deposit':
+            
+            if transaction['type'] == 'deposit':
             # Approuver le dépôt - créditer le compte
             conn.execute('''
                 UPDATE users 
