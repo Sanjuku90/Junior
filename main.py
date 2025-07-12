@@ -142,9 +142,15 @@ def init_db():
 
     # Add missing columns to existing tables
     try:
-        cursor.execute('ALTER TABLE transactions ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
-    except sqlite3.OperationalError:
-        pass  # Column already exists
+        # Vérifier si la colonne existe avant de l'ajouter
+        columns = cursor.execute("PRAGMA table_info(transactions)").fetchall()
+        column_names = [column[1] for column in columns]
+        
+        if 'updated_at' not in column_names:
+            cursor.execute('ALTER TABLE transactions ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
+            print("✅ Colonne updated_at ajoutée à la table transactions")
+    except sqlite3.OperationalError as e:
+        print(f"⚠️ Erreur ajout colonne updated_at: {e}")
 
     # Notifications table
     cursor.execute('''
@@ -1612,7 +1618,7 @@ def approve_transaction(transaction_id):
         # Marquer la transaction comme complétée
         conn.execute('''
             UPDATE transactions 
-            SET status = 'completed', updated_at = CURRENT_TIMESTAMP
+            SET status = 'completed'
             WHERE id = ?
         ''', (transaction_id,))
 
@@ -1784,7 +1790,7 @@ def admin_support_reply():
         # Mettre à jour le statut du ticket
         conn.execute('''
             UPDATE support_tickets 
-            SET status = 'admin_reply', updated_at = CURRENT_TIMESTAMP
+            SET status = 'admin_reply'
             WHERE id = ?
         ''', (ticket_id,))
 
@@ -1833,7 +1839,7 @@ def admin_close_ticket(ticket_id):
         # Fermer le ticket
         conn.execute('''
             UPDATE support_tickets 
-            SET status = 'closed', updated_at = CURRENT_TIMESTAMP
+            SET status = 'closed'
             WHERE id = ?
         ''', (ticket_id,))
 
@@ -1927,7 +1933,7 @@ def change_password():
     new_password_hash = generate_password_hash(new_password)
     conn.execute('''
         UPDATE users 
-        SET password_hash = ?, updated_at = CURRENT_TIMESTAMP 
+        SET password_hash = ? 
         WHERE id = ?
     ''', (new_password_hash, session['user_id']))
 
@@ -2033,7 +2039,7 @@ def verify_2fa():
         # Activer 2FA
         conn.execute('''
             UPDATE users 
-            SET two_fa_enabled = 1, updated_at = CURRENT_TIMESTAMP 
+            SET two_fa_enabled = 1 
             WHERE id = ?
         ''', (session['user_id'],))
 
@@ -2079,7 +2085,7 @@ def disable_2fa():
     # Désactiver 2FA
     conn.execute('''
         UPDATE users 
-        SET two_fa_enabled = 0, two_fa_secret = NULL, updated_at = CURRENT_TIMESTAMP 
+        SET two_fa_enabled = 0, two_fa_secret = NULL 
         WHERE id = ?
     ''', (session['user_id'],))
 
