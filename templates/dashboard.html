@@ -1,18 +1,65 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="space-y-8 animate-fade-in-up">
-    <!-- Header de bienvenue -->
-    <div class="modern-card">
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between">
-            <div class="flex-1">
-                <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                    👋 Bienvenue {{ user.first_name }}!
-                </h1>
-                <p class="text-gray-600 text-lg">Voici votre tableau de bord d'investissement</p>
+<style>
+    /* Dashboard Mobile Optimizations */
+    @media (max-width: 768px) {
+        .messenger-card {
+            padding: 1rem !important;
+            margin-bottom: 1rem;
+        }
+
+        .messenger-btn, .messenger-btn-success {
+            padding: 1rem !important;
+            font-size: 0.9rem;
+        }
+
+        .chat-bubble {
+            padding: 1rem !important;
+        }
+
+        .investment-grid {
+            gap: 0.75rem;
+        }
+
+        .investment-card {
+            padding: 0.875rem;
+        }
+
+        .balance-display {
+            font-size: 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .messenger-card {
+            padding: 0.875rem !important;
+        }
+
+        .investment-card {
+            padding: 0.75rem;
+        }
+
+        .balance-display {
+            font-size: 1.25rem;
+        }
+
+        .messenger-btn, .messenger-btn-success {
+            padding: 0.875rem !important;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+<div class="space-y-6">
+    <!-- Welcome Header -->
+    <div class="chat-bubble">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">👋 Salut {{ user.first_name }}!</h1>
+                <p class="text-gray-600">Voici ton tableau de bord d'investissement</p>
             </div>
-            <div class="mt-4 md:mt-0 text-right">
-                <div class="text-sm text-gray-500 font-medium mb-1">Statut KYC</div>
+            <div class="text-right">
+                <div class="text-sm text-gray-500 font-medium">Statut KYC</div>
                 <div class="status-indicator status-{{ 'active' if user.kyc_status == 'approved' else 'pending' if user.kyc_status == 'pending' else 'completed' }}">
                     {{ user.kyc_status.title() }}
                 </div>
@@ -20,66 +67,66 @@
         </div>
     </div>
 
-    <!-- Statistiques principales -->
+    <!-- Balance Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="stats-card animate-slide-in-right" style="animation-delay: 0.1s">
-            <div class="stats-icon">
+        <div class="stat-card">
+            <div class="stat-icon">
                 <i class="fas fa-wallet"></i>
             </div>
-            <div class="text-sm text-gray-500 font-medium mb-2">Solde disponible</div>
-            <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            <div class="text-sm text-gray-500 font-medium mb-1">Solde disponible</div>
+            <div class="text-2xl font-bold text-gray-900 mb-1">
                 <span id="main-balance" data-base-balance="{{ user.balance }}">{{ "%.2f"|format(user.balance) }}</span> USDT
             </div>
-            <div class="text-sm text-green-600 font-medium">
+            <div class="text-xs text-green-600 font-medium">
                 💚 Prêt à investir 
                 <span id="balance-indicator" class="ml-1"></span>
             </div>
         </div>
 
-        <div class="stats-card animate-slide-in-right" style="animation-delay: 0.2s">
-            <div class="stats-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-blue-500 to-blue-600">
                 <i class="fas fa-chart-line"></i>
             </div>
-            <div class="text-sm text-gray-500 font-medium mb-2">Investissements actifs</div>
-            <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{{ investments|length }}</div>
-            <div class="text-sm text-blue-600 font-medium">{{ investments|length }} plan{{ 's' if investments|length != 1 else '' }} en cours</div>
+            <div class="text-sm text-gray-500 font-medium mb-1">Investissements actifs</div>
+            <div class="text-2xl font-bold text-gray-900 mb-1">{{ investments|length }}</div>
+            <div class="text-xs" style="color: var(--messenger-blue)">{{ investments|length }} plan{{ 's' if investments|length != 1 else '' }} en cours</div>
         </div>
 
-        <div class="stats-card animate-slide-in-right" style="animation-delay: 0.3s">
-            <div class="stats-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-purple-500 to-purple-600">
                 <i class="fas fa-coins"></i>
             </div>
-            <div class="text-sm text-gray-500 font-medium mb-2">Profits totaux</div>
-            <div class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            <div class="text-sm text-gray-500 font-medium mb-1">Profits totaux</div>
+            <div class="text-2xl font-bold text-gray-900 mb-1">
                 {% set total_earned = 0 %}
                 {% for inv in investments %}
                     {% set total_earned = total_earned + (inv.total_earned or 0) %}
                 {% endfor %}
                 {{ "%.2f"|format(total_earned) }} USDT
             </div>
-            <div class="text-sm text-purple-600 font-medium">🚀 Gains cumulés</div>
+            <div class="text-xs text-purple-600 font-medium">🚀 Gains cumulés</div>
         </div>
     </div>
 
-    <!-- Actions rapides -->
-    <div class="modern-card">
-        <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">💰 Actions Rapides</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Quick Actions -->
+    <div class="chat-bubble">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">💰 Actions rapides</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <!-- Bouton Déposer -->
             <button onclick="showDepositModal()" class="group relative overflow-hidden bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 hover:from-green-400 hover:via-green-500 hover:to-emerald-600 text-white p-8 rounded-3xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl border-2 border-green-400/30">
                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div class="relative z-10 flex items-center justify-center space-x-4">
-                    <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center border border-white/30 group-hover:bg-white/30 transition-all duration-300">
-                        <i class="fas fa-wallet text-4xl text-white drop-shadow-lg"></i>
+                    <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 group-hover:bg-white/30 transition-all duration-300">
+                        <i class="fas fa-wallet text-3xl text-white drop-shadow-lg"></i>
                     </div>
                     <div class="text-left">
-                        <h3 class="text-2xl font-bold text-white drop-shadow-md mb-2">Déposer</h3>
-                        <p class="text-green-100 text-base font-medium">💵 Ajouter des fonds</p>
-                        <div class="text-sm text-green-200 mt-2 opacity-90">Minimum: 10 USDT</div>
+                        <h3 class="text-2xl font-bold text-white drop-shadow-md">Déposer</h3>
+                        <p class="text-green-100 text-sm font-medium">💵 Ajouter des fonds</p>
+                        <div class="text-xs text-green-200 mt-1 opacity-90">Minimum: 10 USDT</div>
                     </div>
                 </div>
-                <div class="absolute top-6 right-6 text-green-200">
-                    <i class="fas fa-arrow-trend-up text-3xl opacity-30"></i>
+                <div class="absolute top-4 right-4 text-green-200">
+                    <i class="fas fa-arrow-trend-up text-2xl opacity-30"></i>
                 </div>
             </button>
 
@@ -87,72 +134,63 @@
             <button onclick="showWithdrawModal()" class="group relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 hover:from-blue-400 hover:via-blue-500 hover:to-indigo-600 text-white p-8 rounded-3xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl border-2 border-blue-400/30">
                 <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div class="relative z-10 flex items-center justify-center space-x-4">
-                    <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center border border-white/30 group-hover:bg-white/30 transition-all duration-300">
-                        <i class="fas fa-hand-holding-dollar text-4xl text-white drop-shadow-lg"></i>
+                    <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 group-hover:bg-white/30 transition-all duration-300">
+                        <i class="fas fa-hand-holding-dollar text-3xl text-white drop-shadow-lg"></i>
                     </div>
                     <div class="text-left">
-                        <h3 class="text-2xl font-bold text-white drop-shadow-md mb-2">Retirer</h3>
-                        <p class="text-blue-100 text-base font-medium">💸 Récupérer vos gains</p>
-                        <div class="text-sm text-blue-200 mt-2 opacity-90">Minimum: 10 USDT</div>
+                        <h3 class="text-2xl font-bold text-white drop-shadow-md">Retirer</h3>
+                        <p class="text-blue-100 text-sm font-medium">💸 Récupérer vos gains</p>
+                        <div class="text-xs text-blue-200 mt-1 opacity-90">Minimum: 10 USDT</div>
                     </div>
                 </div>
-                <div class="absolute top-6 right-6 text-blue-200">
-                    <i class="fas fa-coins text-3xl opacity-30"></i>
+                <div class="absolute top-4 right-4 text-blue-200">
+                    <i class="fas fa-coins text-2xl opacity-30"></i>
                 </div>
             </button>
         </div>
 
-        <!-- Indicateurs de sécurité -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200">
-                <div class="flex items-center justify-center space-x-3 text-green-700">
-                    <i class="fas fa-shield-check text-lg"></i>
-                    <span class="font-medium">Dépôts sécurisés par blockchain</span>
+        <!-- Indicateurs visuels -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 max-w-2xl mx-auto">
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-2xl border border-green-200">
+                <div class="flex items-center justify-center space-x-2 text-green-700">
+                    <i class="fas fa-shield-check text-sm"></i>
+                    <span class="text-sm font-medium">Dépôts sécurisés</span>
                 </div>
             </div>
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-200">
-                <div class="flex items-center justify-center space-x-3 text-blue-700">
-                    <i class="fas fa-bolt text-lg"></i>
-                    <span class="font-medium">Retraits automatiques rapides</span>
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-2xl border border-blue-200">
+                <div class="flex items-center justify-center space-x-2 text-blue-700">
+                    <i class="fas fa-bolt text-sm"></i>
+                    <span class="text-sm font-medium">Retraits rapides</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Investissements actifs -->
-    <div class="modern-card">
-        <div class="flex items-center justify-between mb-8">
-            <h2 class="text-2xl font-bold text-gray-900">📈 Vos Investissements</h2>
-            {% if investments %}
-                <button onclick="recalculateProfits()" class="modern-btn-outline px-4 py-2 text-sm">
-                    <i class="fas fa-sync mr-2"></i>Actualiser
-                </button>
-            {% endif %}
-        </div>
-
+    <!-- Active Investments -->
+    <div class="chat-bubble">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">📈 Tes investissements</h2>
         {% if investments %}
-            <!-- Vue mobile -->
-            <div class="block lg:hidden space-y-6">
+            <!-- Mobile View -->
+            <div class="block md:hidden space-y-4">
                 {% for investment in investments %}
-                <div class="bg-gradient-to-r from-gray-50 to-white p-6 rounded-3xl border border-gray-200 shadow-lg" data-investment-id="{{ investment.id }}">
-                    <div class="flex justify-between items-start mb-4">
+                <div class="bg-gradient-to-r from-gray-50 to-white p-4 rounded-2xl border border-gray-200" data-investment-id="{{ investment.id }}">
+                    <div class="flex justify-between items-start mb-3">
                         <div class="flex-1">
-                            <h3 class="text-lg font-bold text-gray-900 mb-1">{{ investment.plan_name }}</h3>
+                            <h3 class="font-bold text-gray-900">{{ investment.plan_name }}</h3>
                             <div class="text-sm text-gray-600">{{ "%.2f"|format(investment.amount) }} USDT investis</div>
                         </div>
                         <span class="status-indicator status-{{ 'active' if investment.is_active else 'completed' }}">
                             {{ 'Actif' if investment.is_active else 'Terminé' }}
                         </span>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-4 mt-4">
-                        <div class="text-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                            <div class="text-xs text-gray-500 font-medium mb-1">Profit quotidien</div>
-                            <div class="text-lg font-bold text-green-600">{{ "%.2f"|format(investment.daily_profit) }} USDT</div>
+                    <div class="grid grid-cols-2 gap-4 mt-3">
+                        <div class="text-center bg-white p-3 rounded-xl border border-gray-100">
+                            <div class="text-xs text-gray-500 font-medium">Profit quotidien</div>
+                            <div class="text-sm font-bold text-green-600">{{ "%.2f"|format(investment.daily_profit) }} USDT</div>
                         </div>
-                        <div class="text-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                            <div class="text-xs text-gray-500 font-medium mb-1">Total gagné</div>
-                            <div class="text-lg font-bold realtime-earnings text-blue-600" 
+                        <div class="text-center bg-white p-3 rounded-xl border border-gray-100">
+                            <div class="text-xs text-gray-500 font-medium">Total gagné</div>
+                            <div class="text-sm font-bold realtime-earnings" style="color: var(--messenger-blue)" 
                                  data-base-earned="{{ investment.total_earned or 0 }}"
                                  data-daily-profit="{{ investment.daily_profit }}"
                                  data-start-date="{{ investment.start_date }}"
@@ -161,16 +199,14 @@
                             </div>
                         </div>
                     </div>
-
                     {% if investment.is_active %}
-                    <div class="mt-4 bg-green-50 p-4 rounded-2xl border border-green-200">
-                        <div class="text-sm text-green-700 text-center">
+                    <div class="mt-3 bg-green-50 p-2 rounded-lg border border-green-200">
+                        <div class="text-xs text-green-700 text-center">
                             💰 <span class="live-earnings font-bold" data-investment-id="{{ investment.id }}">Gains en temps réel...</span>
                         </div>
                     </div>
                     {% endif %}
-
-                    <div class="mt-4 text-xs text-gray-500 text-center">
+                    <div class="mt-3 text-xs text-gray-500 text-center">
                         ⏰ Fin: {% if investment.end_date %}
                             {% if investment.end_date is string %}
                                 {{ investment.end_date[:10] | replace('-', '/') }}
@@ -185,77 +221,75 @@
                 {% endfor %}
             </div>
 
-            <!-- Vue desktop -->
-            <div class="hidden lg:block">
-                <div class="modern-table">
-                    <table class="w-full">
-                        <thead>
-                            <tr>
-                                <th class="text-left">Plan</th>
-                                <th class="text-center">Montant</th>
-                                <th class="text-center">Profit quotidien</th>
-                                <th class="text-center">Total gagné</th>
-                                <th class="text-center">Date de fin</th>
-                                <th class="text-center">Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for investment in investments %}
-                            <tr data-investment-id="{{ investment.id }}" class="hover:bg-gray-50 transition-colors">
-                                <td class="font-semibold text-gray-900">{{ investment.plan_name }}</td>
-                                <td class="text-center font-bold">{{ "%.2f"|format(investment.amount) }} USDT</td>
-                                <td class="text-center font-bold text-green-600">{{ "%.2f"|format(investment.daily_profit) }} USDT</td>
-                                <td class="text-center">
-                                    <div class="font-bold text-blue-600 realtime-earnings" 
-                                         data-base-earned="{{ investment.total_earned or 0 }}"
-                                         data-daily-profit="{{ investment.daily_profit }}"
-                                         data-start-date="{{ investment.start_date }}"
-                                         data-is-active="{{ investment.is_active }}">
-                                        {{ "%.2f"|format(investment.total_earned) }} USDT
-                                    </div>
-                                    {% if investment.is_active %}
-                                    <div class="text-xs text-green-600 mt-1">
-                                        🟢 <span class="live-earnings" data-investment-id="{{ investment.id }}">+0.00 USDT</span>
-                                    </div>
-                                    {% endif %}
-                                </td>
-                                <td class="text-center text-gray-600">
-                                    {% if investment.end_date %}
-                                        {% if investment.end_date is string %}
-                                            {{ investment.end_date[:10] | replace('-', '/') }}
-                                        {% else %}
-                                            {{ investment.end_date.strftime('%d/%m/%Y') }}
-                                        {% endif %}
+            <!-- Desktop View -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="messenger-table">
+                    <thead>
+                        <tr>
+                            <th>Plan</th>
+                            <th>Montant</th>
+                            <th>Profit quotidien</th>
+                            <th>Total gagné (temps réel)</th>
+                            <th>Date de fin</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for investment in investments %}
+                        <tr data-investment-id="{{ investment.id }}">
+                            <td class="font-medium">{{ investment.plan_name }}</td>
+                            <td class="font-semibold">{{ "%.2f"|format(investment.amount) }} USDT</td>
+                            <td class="font-bold text-green-600">{{ "%.2f"|format(investment.daily_profit) }} USDT</td>
+                            <td class="font-bold" style="color: var(--messenger-blue)">
+                                <div class="realtime-earnings" 
+                                     data-base-earned="{{ investment.total_earned or 0 }}"
+                                     data-daily-profit="{{ investment.daily_profit }}"
+                                     data-start-date="{{ investment.start_date }}"
+                                     data-is-active="{{ investment.is_active }}">
+                                    {{ "%.2f"|format(investment.total_earned) }} USDT
+                                </div>
+                                {% if investment.is_active %}
+                                <div class="text-xs text-green-600 mt-1">
+                                    🟢 <span class="live-earnings" data-investment-id="{{ investment.id }}">+0.00 USDT</span>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="text-gray-600">
+                                {% if investment.end_date %}
+                                    {% if investment.end_date is string %}
+                                        {{ investment.end_date[:10] | replace('-', '/') }}
                                     {% else %}
-                                        N/A
+                                        {{ investment.end_date.strftime('%d/%m/%Y') }}
                                     {% endif %}
-                                </td>
-                                <td class="text-center">
-                                    <span class="status-indicator status-{{ 'active' if investment.is_active else 'completed' }}">
-                                        {{ 'Actif' if investment.is_active else 'Terminé' }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-indicator status-{{ 'active' if investment.is_active else 'completed' }}">
+                                    {{ 'Actif' if investment.is_active else 'Terminé' }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         {% else %}
-            <div class="text-center py-16 bg-gradient-to-br from-gray-50 to-white rounded-3xl border border-gray-100">
-                <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i class="fas fa-chart-line text-3xl text-white"></i>
+            <div class="text-center py-12 bg-gradient-to-br from-gray-50 to-white rounded-2xl border border-gray-100">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-chart-line text-2xl text-white"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-3">Aucun investissement actif</h3>
-                <p class="text-gray-600 mb-8 max-w-md mx-auto">Commencez votre aventure crypto dès maintenant et découvrez nos plans d'investissement rentables ! 🚀</p>
-                <div class="space-y-4 max-w-sm mx-auto">
-                    <a href="{{ url_for('staking_plans') }}" class="modern-btn w-full">
-                        <i class="fas fa-plus mr-2"></i>Découvrir nos plans
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Aucun investissement actif</h3>
+                <p class="text-gray-600 mb-4">Commence ton aventure crypto dès maintenant ! 🚀</p>
+                <div class="space-y-2">
+                    <a href="{{ url_for('staking_plans') }}" class="messenger-btn inline-flex items-center w-full justify-center">
+                        <i class="fas fa-plus mr-2"></i>Découvrir nos plans de staking
                     </a>
-                    <button onclick="recalculateProfits()" class="modern-btn-outline w-full">
+                    <button onclick="recalculateProfits()" class="messenger-btn-outline inline-flex items-center w-full justify-center">
                         <i class="fas fa-sync mr-2"></i>Actualiser mes gains
                     </button>
-                    <button onclick="restoreInvestments()" class="modern-btn-success w-full">
+                    <button onclick="restoreInvestments()" class="messenger-btn inline-flex items-center w-full justify-center bg-orange-500 hover:bg-orange-600">
                         <i class="fas fa-history mr-2"></i>Restaurer mes investissements
                     </button>
                 </div>
@@ -263,55 +297,63 @@
         {% endif %}
     </div>
 
-    <!-- Investissements dans les projets -->
-    {% if project_investments %}
-    <div class="modern-card">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">🚀 Investissements dans les Projets</h2>
-        <div class="modern-table">
-            <table class="w-full">
-                <thead>
-                    <tr>
-                        <th class="text-left">Projet</th>
-                        <th class="text-center">Montant investi</th>
-                        <th class="text-center">Rendement attendu</th>
-                        <th class="text-center">Date d'investissement</th>
-                        <th class="text-center">Statut</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for investment in project_investments %}
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="font-semibold text-gray-900">{{ investment.title }}</td>
-                        <td class="text-center font-bold">{{ "%.2f"|format(investment.amount) }} USDT</td>
-                        <td class="text-center font-bold text-green-600">{{ "%.0f"|format(investment.expected_return * 100) }}%</td>
-                        <td class="text-center text-gray-600">
-                            {% if investment.investment_date %}
-                                {% if investment.investment_date is string %}
-                                    {{ investment.investment_date[:10] | replace('-', '/') }}
+    <!-- Project Investments -->
+    <div class="chat-bubble">
+        <h2 class="text-xl font-semibold mb-4">🚀 Investissements dans les projets</h2>
+        {% if project_investments %}
+            <div class="overflow-x-auto">
+                <table class="messenger-table">
+                    <thead>
+                        <tr>
+                            <th>Projet</th>
+                            <th>Montant investi</th>
+                            <th>Rendement attendu</th>
+                            <th>Date d'investissement</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for investment in project_investments %}
+                        <tr>
+                            <td class="font-medium">{{ investment.title }}</td>
+                            <td class="font-semibold">{{ "%.2f"|format(investment.amount) }} USDT</td>
+                            <td class="font-bold text-green-600">{{ "%.0f"|format(investment.expected_return * 100) }}%</td>
+                            <td class="text-gray-600">
+                                {% if investment.investment_date %}
+                                    {% if investment.investment_date is string %}
+                                        {{ investment.investment_date[:10] | replace('-', '/') }}
+                                    {% else %}
+                                        {{ investment.investment_date.strftime('%d/%m/%Y') }}
+                                    {% endif %}
                                 {% else %}
-                                    {{ investment.investment_date.strftime('%d/%m/%Y') }}
+                                    N/A
                                 {% endif %}
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </td>
-                        <td class="text-center">
-                            <span class="status-indicator status-{{ 'pending' if investment.status == 'collecting' else 'active' if investment.status == 'active' else 'completed' }}">
-                                {{ investment.status.title() }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                            </td>
+                            <td>
+                                <span class="status-indicator status-{{ 'pending' if investment.status == 'collecting' else 'active' if investment.status == 'active' else 'completed' }}">
+                                    {{ investment.status.title() }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-rocket text-white text-xl"></i>
+                </div>
+                <p class="mb-2">Aucun investissement dans les projets</p>
+                <a href="{{ url_for('projects') }}" class="messenger-btn-outline">Découvrir les projets</a>
+            </div>
+        {% endif %}
     </div>
-    {% endif %}
 
     <!-- Notifications -->
     {% if notifications %}
-    <div class="modern-card">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">🔔 Notifications récentes</h2>
+    <div class="chat-bubble">
+        <h2 class="text-xl font-semibold mb-4">🔔 Notifications récentes</h2>
         <div class="space-y-3">
             {% for notification in notifications %}
             <div class="flex items-start p-4 bg-gray-50 rounded-2xl border border-gray-200">
@@ -330,94 +372,97 @@
     {% endif %}
 </div>
 
-<!-- Modal de dépôt -->
-<div id="depositModal" class="modern-modal hidden z-50">
-    <div class="modal-content">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-900">💰 Déposer des fonds</h3>
-            <button onclick="hideDepositModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
-        </div>
+<!-- Deposit Modal -->
+<div id="depositModal" class="fixed inset-0 messenger-modal hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">💰 Déposer des fonds</h3>
+                <button onclick="hideDepositModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
 
-        <div class="space-y-6">
-            <div class="bg-yellow-50 p-6 rounded-2xl border border-yellow-200">
-                <div class="flex items-start">
-                    <i class="fas fa-info-circle text-yellow-600 mr-3 mt-1 text-xl"></i>
-                    <div class="text-sm text-yellow-800">
-                        <strong>Adresse de dépôt USDT (TRC20):</strong><br>
-                        <code id="depositAddress" class="bg-white px-4 py-3 rounded-xl text-sm break-all cursor-pointer mt-3 block border border-yellow-200" onclick="copyDepositAddress()">TAB1oeEKDS5NATwFAaUrTioDU9djX7anyS</code>
-                        <button onclick="copyDepositAddress()" class="modern-btn-outline mt-3 py-2 px-4 text-sm">
-                            <i class="fas fa-copy mr-2"></i>Copier l'adresse
-                        </button>
+            <div class="space-y-4">
+                <div class="bg-yellow-50 p-4 rounded-2xl border border-yellow-200">
+                    <div class="flex items-start">
+                        <i class="fas fa-info-circle text-yellow-600 mr-3 mt-1"></i>
+                        <div class="text-sm text-yellow-800">
+                            <strong>Adresse de dépôt USDT (TRC20):</strong><br>
+                            <code id="depositAddress" class="bg-white px-3 py-2 rounded-lg text-xs break-all cursor-pointer mt-2 block" onclick="copyDepositAddress()">TAB1oeEKDS5NATwFAaUrTioDU9djX7anyS</code>
+                            <button onclick="copyDepositAddress()" class="messenger-btn-outline mt-2 py-2 px-4">
+                                <i class="fas fa-copy mr-2"></i>Copier
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label class="form-label">💵 Montant à déposer</label>
-                <input type="number" id="depositAmount" class="modern-input" placeholder="Montant en USDT">
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">💵 Montant à déposer</label>
+                    <input type="number" id="depositAmount" class="messenger-input" placeholder="Montant en USDT">
+                </div>
 
-            <div class="form-group">
-                <label class="form-label">🔗 Hash de transaction</label>
-                <input type="text" id="transactionHash" class="modern-input" placeholder="Hash de la transaction">
-            </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">🔗 Hash de transaction</label>
+                    <input type="text" id="transactionHash" class="messenger-input" placeholder="Hash de la transaction">
+                </div>
 
-            <button onclick="submitDeposit()" class="modern-btn w-full py-4 text-lg">
-                <i class="fas fa-check mr-2"></i>Confirmer le dépôt
-            </button>
+                <button onclick="submitDeposit()" class="messenger-btn w-full py-3">
+                    <i class="fas fa-check mr-2"></i>Confirmer le dépôt
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de retrait -->
-<div id="withdrawModal" class="modern-modal hidden z-50">
-    <div class="modal-content">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-2xl font-bold text-gray-900">💸 Retirer des fonds</h3>
-            <button onclick="hideWithdrawModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
-        </div>
+<!-- Withdraw Modal -->
+<div id="withdrawModal" class="fixed inset-0 messenger-modal hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">💸 Retirer des fonds</h3>
+                <button onclick="hideWithdrawModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
 
-        <div class="space-y-6">
-            <div class="bg-blue-50 p-6 rounded-2xl border border-blue-200">
-                <div class="flex items-center">
-                    <i class="fas fa-wallet text-blue-600 mr-3 text-xl"></i>
-                    <div class="text-sm text-blue-800">
-                        <strong>Solde disponible:</strong> {{ "%.2f"|format(user.balance) }} USDT<br>
-                        <span class="text-xs">Minimum de retrait: 10 USDT</span>
+            <div class="space-y-4">
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-wallet text-blue-600 mr-3"></i>
+                        <div class="text-sm text-blue-800">
+                            <strong>Solde disponible:</strong> {{ "%.2f"|format(user.balance) }} USDT<br>
+                            <span class="text-xs">Minimum de retrait: 10 USDT</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label class="form-label">📍 Adresse de destination (USDT TRC20)</label>
-                <input type="text" id="withdrawAddress" class="modern-input" placeholder="Votre adresse USDT TRC20">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">💰 Montant à retirer</label>
-                <input type="number" id="withdrawAmount" class="modern-input" placeholder="Montant en USDT" min="10" max="{{ user.balance }}">
-            </div>
-
-            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                <div class="text-sm text-gray-600 space-y-2">
-                    <div class="flex justify-between"><span>Frais de réseau:</span><span class="font-semibold">2 USDT</span></div>
-                    <div class="flex justify-between font-bold text-lg"><span>Montant reçu:</span><span id="netAmount" class="text-green-600">0 USDT</span></div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">📍 Adresse de destination (USDT TRC20)</label>
+                    <input type="text" id="withdrawAddress" class="messenger-input" placeholder="Votre adresse USDT TRC20">
                 </div>
-            </div>
 
-            <button onclick="submitWithdraw()" class="modern-btn w-full py-4 text-lg">
-                <i class="fas fa-paper-plane mr-2"></i>Confirmer le retrait
-            </button>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">💰 Montant à retirer</label>
+                    <input type="number" id="withdrawAmount" class="messenger-input" placeholder="Montant en USDT" min="10" max="{{ user.balance }}">
+                </div>
+
+                <div class="bg-gray-50 p-3 rounded-2xl border border-gray-200">
+                    <div class="text-xs text-gray-600">
+                        <div class="flex justify-between"><span>Frais de réseau:</span><span>2 USDT</span></div>
+                        <div class="flex justify-between mt-1 font-bold"><span>Montant reçu:</span><span id="netAmount">0 USDT</span></div>
+                    </div>
+                </div>
+
+                <button onclick="submitWithdraw()" class="messenger-btn w-full py-3">
+                    <i class="fas fa-paper-plane mr-2"></i>Confirmer le retrait
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-// Modales
 function showDepositModal() {
     document.getElementById('depositModal').classList.remove('hidden');
 }
@@ -434,7 +479,6 @@ function hideWithdrawModal() {
     document.getElementById('withdrawModal').classList.add('hidden');
 }
 
-// Copier l'adresse de dépôt
 function copyDepositAddress() {
     const address = 'TAB1oeEKDS5NATwFAaUrTioDU9djX7anyS';
     navigator.clipboard.writeText(address).then(() => {
@@ -450,7 +494,6 @@ function copyDepositAddress() {
     });
 }
 
-// Soumission des dépôts
 async function submitDeposit() {
     const amount = document.getElementById('depositAmount').value;
     const hash = document.getElementById('transactionHash').value;
@@ -488,7 +531,6 @@ async function submitDeposit() {
     }
 }
 
-// Soumission des retraits
 async function submitWithdraw() {
     const address = document.getElementById('withdrawAddress').value;
     const amount = parseFloat(document.getElementById('withdrawAmount').value);
@@ -531,7 +573,7 @@ async function submitWithdraw() {
     }
 }
 
-// Calcul du montant net
+// Update net amount calculation for withdrawal
 document.getElementById('withdrawAmount')?.addEventListener('input', function() {
     const amount = parseFloat(this.value) || 0;
     const fee = 2;
@@ -539,7 +581,7 @@ document.getElementById('withdrawAmount')?.addEventListener('input', function() 
     document.getElementById('netAmount').textContent = netAmount.toFixed(2) + ' USDT';
 });
 
-// Restauration d'investissements
+// Fonction de restauration d'investissements
 async function restoreInvestments() {
     if (!confirm('⚠️ Cette action va restaurer vos investissements perdus. Êtes-vous sûr de vouloir continuer ?')) {
         return;
@@ -568,45 +610,18 @@ async function restoreInvestments() {
     }
 }
 
-// Recalculer les profits
-async function recalculateProfits() {
-    try {
-        showNotification('🔄 Recalcul de vos profits en cours...', 'info');
-
-        const response = await fetch('/calculate-profits-now', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showNotification('✅ ' + data.message, 'success');
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        } else {
-            showNotification('❌ ' + (data.error || 'Erreur lors du recalcul'), 'error');
-        }
-    } catch (error) {
-        showNotification('❌ Erreur de connexion', 'error');
-        console.error('Erreur recalcul profits:', error);
-    }
-}
-
 // Système de gains en temps réel
 class RealTimeEarnings {
     constructor() {
         this.investments = new Map();
         this.startTimes = new Map();
         this.lastUpdate = Date.now();
-        this.updateInterval = 1000;
+        this.updateInterval = 1000; // Mise à jour chaque seconde
         this.init();
     }
 
     init() {
+        // Initialiser tous les investissements actifs
         document.querySelectorAll('.realtime-earnings[data-is-active="True"]').forEach(element => {
             const investmentId = element.closest('[data-investment-id]')?.getAttribute('data-investment-id');
             const baseEarned = parseFloat(element.getAttribute('data-base-earned')) || 0;
@@ -614,6 +629,7 @@ class RealTimeEarnings {
             const startDate = element.getAttribute('data-start-date');
 
             if (investmentId && dailyProfit > 0) {
+                // Calculer le temps écoulé depuis le début de l'investissement
                 const start = new Date(startDate);
                 const now = new Date();
                 const elapsed = Math.max(0, now.getTime() - start.getTime());
@@ -631,6 +647,7 @@ class RealTimeEarnings {
             }
         });
 
+        // Démarrer le timer de mise à jour
         if (this.investments.size > 0) {
             this.startUpdating();
         }
@@ -641,6 +658,7 @@ class RealTimeEarnings {
             this.updateEarnings();
         }, this.updateInterval);
 
+        // Mise à jour initiale
         this.updateEarnings();
     }
 
@@ -652,11 +670,14 @@ class RealTimeEarnings {
             const elapsed = now - this.startTimes.get(investmentId);
             const elapsedSeconds = elapsed / 1000;
 
+            // Calculer les gains accumulés depuis le début
             const newEarnings = elapsedSeconds * investment.profitPerSecond;
             const totalEarnings = investment.baseEarned + newEarnings;
 
+            // Mettre à jour l'affichage principal des gains
             investment.element.textContent = totalEarnings.toFixed(6) + ' USDT';
 
+            // Mettre à jour l'indicateur de gains en direct
             const liveElement = document.querySelector(`.live-earnings[data-investment-id="${investmentId}"]`);
             if (liveElement) {
                 liveElement.textContent = `+${newEarnings.toFixed(6)} USDT`;
@@ -665,7 +686,10 @@ class RealTimeEarnings {
             totalNewEarnings += newEarnings;
         });
 
+        // Mettre à jour le solde principal (simulation visuelle)
         this.updateMainBalance(totalNewEarnings);
+
+        // Effet visuel de croissance
         this.addGrowthEffect();
     }
 
@@ -678,6 +702,7 @@ class RealTimeEarnings {
             const newBalance = baseBalance + totalNewEarnings;
             balanceElement.textContent = newBalance.toFixed(6);
 
+            // Indicateur visuel de croissance
             if (indicatorElement && totalNewEarnings > 0) {
                 indicatorElement.innerHTML = `<span class="text-green-500 animate-pulse">📈 +${totalNewEarnings.toFixed(6)}</span>`;
             }
@@ -685,6 +710,7 @@ class RealTimeEarnings {
     }
 
     addGrowthEffect() {
+        // Ajouter un effet visuel de pulsation aux éléments qui gagnent de l'argent
         document.querySelectorAll('.realtime-earnings[data-is-active="True"]').forEach(element => {
             element.style.animation = 'none';
             setTimeout(() => {
@@ -700,56 +726,90 @@ class RealTimeEarnings {
     }
 }
 
-// Initialisation
+// Styles CSS pour les animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+    }
+
+    .realtime-earnings[data-is-active="True"] {
+        transition: all 0.3s ease;
+        text-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+    }
+
+    .live-earnings {
+        animation: fadeInOut 2s ease-in-out infinite;
+    }
+
+    @keyframes fadeInOut {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 1; }
+    }
+
+    #balance-indicator {
+        transition: all 0.3s ease;
+    }
+`;
+document.head.appendChild(style);
+
+// Initialiser le système de gains en temps réel une fois que la page est chargée
 document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier s'il y a des investissements actifs
     const activeInvestments = document.querySelectorAll('.realtime-earnings[data-is-active="True"]');
 
     if (activeInvestments.length > 0) {
         console.log(`🚀 Démarrage du système de gains en temps réel pour ${activeInvestments.length} investissement(s)`);
+
+        // Créer une instance du système de gains
         window.realTimeEarnings = new RealTimeEarnings();
+
+        // Afficher un message de confirmation
         showNotification(`💰 Gains en temps réel activés pour ${activeInvestments.length} plan(s) !`, 'success');
     } else {
         console.log('ℹ️ Aucun investissement actif trouvé - gains en temps réel désactivés');
     }
 });
 
-// Nettoyage
+// Nettoyer lors du changement de page
 window.addEventListener('beforeunload', function() {
     if (window.realTimeEarnings) {
         window.realTimeEarnings.stop();
     }
 });
 
-// Fermer les modales en cliquant à l'extérieur
-document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('modern-modal')) {
-        if (event.target.id === 'depositModal') hideDepositModal();
-        if (event.target.id === 'withdrawModal') hideWithdrawModal();
-    }
-});
+// Fonction pour recalculer les profits
+async function recalculateProfits() {
+    try {
+        showNotification('🔄 Recalcul de vos profits en cours...', 'info');
 
-function forceBackup() {
-    fetch('/force-backup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-    })
-    .then(response => response.json())
-    .then(data => {
+        const response = await fetch('/calculate-profits-now', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
         if (data.success) {
-            showNotification(data.message, 'success');
+            showNotification('✅ ' + data.message, 'success');
+            // Recharger la page après 2 secondes pour voir les nouveaux profits
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
         } else {
-            showNotification(data.error || 'Erreur lors de la sauvegarde', 'error');
+            showNotification('❌ ' + (data.error || 'Erreur lors du recalcul'), 'error');
         }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        showNotification('Erreur de connexion', 'error');
-    });
+    } catch (error) {
+        showNotification('❌ Erreur de connexion', 'error');
+        console.error('Erreur recalcul profits:', error);
+    }
 }
 
-function restoreFromBackup() {
-    if (confirm('Êtes-vous sûr de vouloir restaurer depuis la sauvegarde ? Cela peut remplacer vos données actuelles.')) {
-        fetch('/restore-from-backup', {
+    function forceBackup() {
+        fetch('/force-backup', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         })
@@ -757,9 +817,8 @@ function restoreFromBackup() {
         .then(data => {
             if (data.success) {
                 showNotification(data.message, 'success');
-                setTimeout(() => location.reload(), 2000);
             } else {
-                showNotification(data.error || 'Erreur lors de la restauration', 'error');
+                showNotification(data.error || 'Erreur lors de la sauvegarde', 'error');
             }
         })
         .catch(error => {
@@ -767,31 +826,27 @@ function restoreFromBackup() {
             showNotification('Erreur de connexion', 'error');
         });
     }
-}
+
+    function restoreFromBackup() {
+        if (confirm('Êtes-vous sûr de vouloir restaurer depuis la sauvegarde ? Cela peut remplacer vos données actuelles.')) {
+            fetch('/restore-from-backup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showNotification(data.error || 'Erreur lors de la restauration', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur de connexion', 'error');
+            });
+        }
+    }
 </script>
-
-<style>
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-}
-
-.realtime-earnings[data-is-active="True"] {
-    transition: all 0.3s ease;
-    text-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
-}
-
-.live-earnings {
-    animation: fadeInOut 2s ease-in-out infinite;
-}
-
-@keyframes fadeInOut {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
-}
-
-#balance-indicator {
-    transition: all 0.3s ease;
-}
-</style>
 {% endblock %}

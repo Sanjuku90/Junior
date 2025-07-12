@@ -6,27 +6,26 @@
     <title>{% block title %}InvestCrypto Pro{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #8b5cf6;
-            --accent: #06b6d4;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --error: #ef4444;
-            --dark: #0f172a;
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-            --gray-900: #0f172a;
+            --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            --accent-blue: #3b82f6;
+            --accent-gold: #f59e0b;
+            --success-green: #10b981;
+            --warning-orange: #f97316;
+            --danger-red: #ef4444;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
 
         * {
@@ -36,100 +35,145 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            color: var(--gray-900);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* Navigation moderne */
-        .modern-nav {
+        /* Typography */
+        .text-heading {
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            line-height: 1.2;
+        }
+
+        .text-subheading {
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            line-height: 1.3;
+        }
+
+        .text-body {
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .text-caption {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* Professional Navigation */
+        .professional-nav {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--gray-200);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
             position: sticky;
             top: 0;
             z-index: 1000;
+            transition: all 0.3s ease;
         }
 
         .nav-container {
-            max-width: 1200px;
+            max-width: 1440px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0 2rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            height: 70px;
+            height: 72px;
         }
 
-        .logo-container {
+        .nav-logo {
             display: flex;
             align-items: center;
             gap: 0.75rem;
         }
 
-        .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 16px;
+        .nav-logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--primary-gradient);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 24px;
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            font-size: 20px;
         }
 
-        .logo-text {
+        .nav-logo-text {
             font-size: 1.5rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            font-weight: 800;
+            background: var(--primary-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        /* Cartes modernes */
-        .modern-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .modern-card::before {
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-secondary);
+            color: var(--accent-blue);
+            transform: translateY(-1px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #dbeafe, #eff6ff);
+            color: var(--accent-blue);
+            box-shadow: inset 0 1px 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .nav-item.active::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
-            border-radius: 24px 24px 0 0;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 2px;
+            background: var(--accent-blue);
+            border-radius: 1px;
         }
 
-        .modern-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.15);
+        .nav-icon {
+            font-size: 1rem;
+            width: 18px;
+            text-align: center;
         }
 
-        /* Boutons modernes */
-        .modern-btn {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        /* Professional Buttons */
+        .btn-primary {
+            background: var(--primary-gradient);
             color: white;
             border: none;
-            border-radius: 16px;
-            padding: 1rem 2rem;
+            border-radius: 12px;
+            padding: 0.875rem 1.5rem;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
             display: inline-flex;
@@ -137,12 +181,17 @@
             justify-content: center;
             gap: 0.5rem;
             text-decoration: none;
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            box-shadow: var(--shadow-md);
             position: relative;
             overflow: hidden;
         }
 
-        .modern-btn::before {
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn-primary::before {
             content: '';
             position: absolute;
             top: 0;
@@ -153,110 +202,93 @@
             transition: left 0.5s;
         }
 
-        .modern-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4);
-        }
-
-        .modern-btn:hover::before {
+        .btn-primary:hover::before {
             left: 100%;
         }
 
-        .modern-btn-success {
-            background: linear-gradient(135deg, var(--success), #059669);
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-        }
-
-        .modern-btn-success:hover {
-            box-shadow: 0 12px 35px rgba(16, 185, 129, 0.4);
-        }
-
-        .modern-btn-outline {
-            background: transparent;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            box-shadow: none;
-        }
-
-        .modern-btn-outline:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-        }
-
-        /* Stats Cards */
-        .stats-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 1.5rem;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
             transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-green), #059669);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* Professional Cards */
+        .professional-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            transition: all 0.4s ease;
             position: relative;
             overflow: hidden;
         }
 
-        .stats-card::before {
+        .professional-card::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            height: 4px;
+            background: var(--primary-gradient);
         }
 
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-        }
-
-        .stats-icon {
-            width: 60px;
-            height: 60px;
-            margin: 0 auto 1rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 28px;
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
-        }
-
-        /* Balance Display */
-        .balance-display {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            border-radius: 20px;
-            padding: 1.5rem;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.3);
-        }
-
-        .balance-display::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
-            border-radius: 50%;
+        .professional-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
         }
 
         /* Status Indicators */
-        .status-indicator {
+        .status-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
+            gap: 0.375rem;
+            padding: 0.5rem 0.875rem;
             border-radius: 50px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.025em;
@@ -280,261 +312,148 @@
             border: 1px solid #93c5fd;
         }
 
-        /* Inputs modernes */
-        .modern-input {
+        /* Professional Table */
+        .professional-table {
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .professional-table thead {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .professional-table th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 1.25rem 1.5rem;
+            text-align: left;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .professional-table td {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .professional-table tbody tr:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        }
+
+        .professional-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Professional Inputs */
+        .professional-input {
             width: 100%;
             padding: 1rem 1.25rem;
-            border: 2px solid var(--gray-200);
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.9);
-            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-card);
+            font-size: 0.95rem;
             font-weight: 500;
             transition: all 0.3s ease;
             outline: none;
         }
 
-        .modern-input:focus {
-            border-color: var(--primary);
+        .professional-input:focus {
+            border-color: var(--accent-blue);
             background: white;
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-            transform: translateY(-1px);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        /* Tables modernes */
-        .modern-table {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .modern-table thead {
-            background: linear-gradient(135deg, var(--gray-50), var(--gray-100));
-        }
-
-        .modern-table th {
-            color: var(--gray-700);
-            font-weight: 700;
-            padding: 1.5rem;
-            text-align: left;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--gray-200);
-        }
-
-        .modern-table td {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--gray-100);
-            color: var(--gray-800);
-            font-weight: 500;
-        }
-
-        .modern-table tbody tr:hover {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.02), rgba(139, 92, 246, 0.02));
-        }
-
-        /* Mobile Navigation */
-        .mobile-menu {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            display: none;
-        }
-
-        .mobile-menu.active {
-            display: block;
-        }
-
-        .mobile-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-        }
-
-        .mobile-content {
-            position: absolute;
-            right: 0;
-            top: 0;
-            height: 100vh;
-            width: 350px;
-            max-width: 90vw;
-            background: white;
-            box-shadow: -20px 0 40px rgba(0, 0, 0, 0.3);
-            transform: translateX(100%);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow-y: auto;
-        }
-
-        .mobile-menu.active .mobile-content {
-            transform: translateX(0);
-        }
-
-        .mobile-header {
-            padding: 2rem 1.5rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        /* Balance Card */
+        .balance-card {
+            background: var(--primary-gradient);
             color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            border-radius: 20px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .mobile-menu-item {
-            display: flex;
-            align-items: center;
-            padding: 1.25rem 1.5rem;
-            text-decoration: none;
-            color: var(--gray-700);
-            gap: 1rem;
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
+        .balance-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+            border-radius: 50%;
         }
 
-        .mobile-menu-item:hover {
-            background: var(--gray-50);
-            border-left-color: var(--primary);
-            transform: translateX(4px);
+        /* Stat Cards */
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.75rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .mobile-menu-item.active {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-            border-left-color: var(--primary);
-            color: var(--primary);
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-gradient);
         }
 
-        .mobile-item-icon {
-            width: 48px;
-            height: 48px;
+        .stat-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 1.25rem;
+            background: var(--primary-gradient);
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
             color: white;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            font-size: 24px;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .nav-container {
-                padding: 0 1rem;
-                height: 65px;
-            }
-
-            .logo-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 20px;
-            }
-
-            .logo-text {
-                font-size: 1.25rem;
-            }
-
-            .modern-card {
-                padding: 1.5rem;
-                border-radius: 20px;
-            }
-
-            .modern-btn {
-                padding: 0.875rem 1.5rem;
-                font-size: 0.9rem;
-            }
-
-            .stats-card {
-                padding: 1.25rem;
-            }
-
-            .stats-icon {
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
-            }
-
-            .modern-table th,
-            .modern-table td {
-                padding: 1rem;
-                font-size: 0.9rem;
-            }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
         }
 
-        @media (max-width: 480px) {
-            .nav-container {
-                padding: 0 0.75rem;
-                height: 60px;
-            }
-
-            .logo-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 18px;
-            }
-
-            .logo-text {
-                font-size: 1.1rem;
-            }
-
-            .modern-card {
-                padding: 1.25rem;
-                border-radius: 18px;
-            }
-
-            .modern-btn {
-                padding: 0.75rem 1.25rem;
-                font-size: 0.85rem;
-            }
-
-            .stats-card {
-                padding: 1rem;
-            }
-
-            .stats-icon {
-                width: 44px;
-                height: 44px;
-                font-size: 20px;
-            }
+        .stat-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
         }
 
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .animate-fade-in-up {
-            animation: fadeInUp 0.6s ease-out;
-        }
-
-        .animate-slide-in-right {
-            animation: slideInRight 0.5s ease-out;
-        }
-
-        /* Modal moderne */
-        .modern-modal {
+        /* Professional Modal */
+        .professional-modal {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(15px);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -543,13 +462,13 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--bg-card);
             border-radius: 24px;
             padding: 2.5rem;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-color);
             position: relative;
             max-height: 90vh;
             overflow-y: auto;
@@ -557,62 +476,553 @@
 
         /* Notifications */
         .notification {
-            background: white;
+            background: var(--bg-card);
             border-radius: 16px;
             padding: 1.25rem 1.5rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            border-left: 4px solid var(--primary);
+            box-shadow: var(--shadow-lg);
+            border-left: 4px solid var(--accent-blue);
             margin-bottom: 1rem;
             animation: slideInRight 0.4s ease;
-            border: 1px solid var(--gray-200);
+            border: 1px solid var(--border-color);
         }
 
-        /* Support Widget */
-        .support-widget {
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Extra small breakpoint */
+        @media (min-width: 475px) {
+            .xs\:inline {
+                display: inline !important;
+            }
+            .xs\:hidden {
+                display: none !important;
+            }
+        }
+
+        /* Menu Mobile Optimisé */
+        .mobile-menu-container {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            inset: 0;
             z-index: 9999;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
         }
 
-        .support-toggle {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
+        .mobile-menu-container.active {
+            display: block;
+        }
+
+        .mobile-menu-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+        }
+
+        .mobile-menu-content {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 320px;
+            max-width: 85vw;
+            background: white;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mobile-menu-container.active .mobile-menu-content {
+            transform: translateX(0);
+        }
+
+        .mobile-menu-header {
+            padding: 1.5rem 1.25rem;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mobile-menu-close {
+            width: 36px;
+            height: 36px;
             border: none;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4);
-            transition: all 0.3s ease;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .support-toggle:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
+        .mobile-menu-close:hover {
+            background: rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
         }
 
-        /* Progress Bars */
-        .modern-progress {
-            width: 100%;
-            height: 8px;
-            background: var(--gray-200);
+        .mobile-menu-items {
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .mobile-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            text-decoration: none;
+            color: #374151;
+            gap: 1rem;
+            transition: all 0.2s ease;
+            position: relative;
+            border-left: 4px solid transparent;
+        }
+
+        .mobile-menu-item:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            transform: translateX(4px);
+        }
+
+        .mobile-menu-item.active {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-left-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        .mobile-menu-item-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .mobile-menu-item-icon.dashboard { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .mobile-menu-item-icon.staking { background: linear-gradient(135deg, #10b981, #059669); }
+        .mobile-menu-item-icon.frozen { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .mobile-menu-item-icon.ultra { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .mobile-menu-item-icon.history { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .mobile-menu-item-icon.projects { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .mobile-menu-item-icon.trading { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .mobile-menu-item-icon.copy { background: linear-gradient(135deg, #ec4899, #db2777); }
+        .mobile-menu-item-icon.profile { background: linear-gradient(135deg, #64748b, #475569); }
+        .mobile-menu-item-icon.support { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+        .mobile-menu-item-icon.logout { background: linear-gradient(135deg, #f87171, #ef4444); }
+
+        .mobile-menu-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mobile-menu-item-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.125rem;
+        }
+
+        .mobile-menu-item-subtitle {
+            font-size: 0.8rem;
+            color: #6b7280;
+            line-height: 1.2;
+        }
+
+        .mobile-menu-item.active .mobile-menu-item-title {
+            color: #1e40af;
+        }
+
+        .mobile-menu-item.active .mobile-menu-item-subtitle {
+            color: #3b82f6;
+        }
+
+        .mobile-menu-footer {
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-top: 1px solid #fecaca;
+        }
+
+        .mobile-menu-logout {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #dc2626;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-menu-logout:hover {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 0.75rem;
+                height: 64px;
+                gap: 0.5rem;
+            }
+
+            .nav-logo {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .nav-logo-text {
+                font-size: 1.1rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .nav-item {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                gap: 0.5rem;
+                border-radius: 12px;
+            }
+
+            .nav-icon {
+                font-size: 1.1rem;
+                width: 20px;
+            }
+
+            .professional-card {
+                padding: 1.25rem;
+                border-radius: 16px;
+                margin-bottom: 1rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                border-radius: 20px;
+                margin: 1rem;
+                max-height: 85vh;
+            }
+
+            .stat-card {
+                padding: 1.25rem;
+            }
+
+            .stat-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+                margin-bottom: 1rem;
+            }
+
+            .stat-value {
+                font-size: 1.75rem;
+            }
+
+            .btn-label {
+                display: none;
+            }
+
+            .stat-label {
+                font-size: 0.9rem;
+                white-space: nowrap; /* Added for better responsiveness */
+                overflow: hidden;      /* Added for better responsiveness */
+                text-overflow: ellipsis; /* Added for better responsiveness */
+            }
+
+            /* Buttons mobile */
+            .btn-primary, .btn-secondary, .btn-success {
+                padding: 0.75rem 1.25rem;
+                font-size: 0.9rem;
+            }
+
+            /* Form inputs mobile */
+            .professional-input, .professional-select {
+                padding: 0.875rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            /* Table responsive */
+            .professional-table {
+                font-size: 0.85rem;
+            }
+
+            .professional-table th,
+            .professional-table td {
+                padding: 0.875rem 1rem;
+            }
+
+            /* Typography mobile */
+            .text-heading {
+                font-size: 1.5rem;
+                line-height: 1.3;
+            }
+
+            .text-subheading {
+                font-size: 1.25rem;
+                line-height: 1.4;
+            }
+
+            /* Footer mobile */
+            .footer-content {
+                padding: 2rem 1rem 1.5rem;
+            }
+
+            .footer-section h4 {
+                font-size: 1rem;
+                margin-bottom: 0.75rem;
+            }
+
+            /* Status badges mobile */
+            .status-badge {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            /* Balance card mobile */
+            .balance-card {
+                padding: 1rem;
+                border-radius: 16px;
+            }
+
+            /* Notification mobile */
+            .notification {
+                padding: 1rem;
+                margin: 0.5rem;
+                border-radius: 12px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 0.5rem;
+                height: 60px;
+                gap: 0.25rem;
+            }
+
+            .nav-logo-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+                border-radius: 8px;
+            }
+
+            .nav-logo-text {
+                font-size: 1rem;
+            }
+
+            /* Boutons compacts pour très petits écrans */
+            .btn-primary, .btn-secondary {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+                border-radius: 8px;
+                min-width: auto;
+            }
+
+            .btn-primary i, .btn-secondary i {
+                font-size: 0.75rem;
+            }
+
+            /* Cache le texte sur très petits écrans, garde uniquement les icônes */
+            @media (max-width: 400px) {
+                .xs\:hidden {
+                    display: none !important;
+                }
+
+                .btn-primary, .btn-secondary {
+                    padding: 0.5rem;
+                    min-width: 40px;
+                }
+            }
+
+            .professional-card {
+                padding: 1rem;
+                border-radius: 14px;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+
+            .btn-primary, .btn-secondary, .btn-success {
+                padding: 0.625rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .professional-input, .professional-select {
+                padding: 0.75rem 0.875rem;
+                font-size: 0.85rem;
+            }
+
+            .modal-content {
+                padding: 1.25rem;
+                margin: 0.75rem;
+                border-radius: 18px;
+            }
+
+            .balance-card {
+                padding: 0.875rem;
+            }
+
+            .footer-content {
+                padding: 1.5rem 0.75rem 1rem;
+            }
+        }
+
+        /* Touch improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-item, .btn-primary, .btn-secondary, .btn-success {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .professional-input, .professional-select {
+                min-height: 44px;
+            }
+
+            .quick-action-card {
+                min-height: 120px;
+            }
+        }
+
+        /* Professional Footer */
+        .professional-footer {
+            background: var(--primary-gradient);
+            color: white;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 3rem 2rem 2rem;
+        }
+
+        .footer-section h4 {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem 0;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Loading States */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: inherit;
+        }
+
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
             border-radius: 4px;
-            overflow: hidden;
         }
 
-        .modern-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
             border-radius: 4px;
-            transition: width 0.3s ease;
         }
 
-        /* Form Groups */
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Professional Form Groups */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -620,203 +1030,281 @@
         .form-label {
             display: block;
             font-weight: 600;
-            color: var(--gray-800);
+            color: var(--text-primary);
             margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-help {
+            font-size: 0.8rem;
+
+
+
+
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Professional Select */
+        .professional-select {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-card);
             font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            outline: none;
+            cursor: pointer;
         }
 
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .professional-select:focus {
+            border-color: var(--accent-blue);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        ::-webkit-scrollbar-track {
-            background: var(--gray-100);
-            border-radius: 4px;
+        /* Quick Action Cards */
+        .quick-action-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 4px;
+        .quick-action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+        .quick-action-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .quick-action-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .quick-action-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.25rem;
+            background: var(--primary-gradient);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
         }
     </style>
 </head>
 <body>
-    <!-- Navigation moderne -->
-    <nav class="modern-nav">
+    <!-- Professional Navigation -->
+    <nav class="professional-nav">
         <div class="nav-container">
-            <div class="logo-container">
-                <div class="logo-icon">
+            <!-- Logo -->
+            <div class="nav-logo">
+                <div class="nav-logo-icon">
                     <i class="fas fa-chart-line"></i>
                 </div>
-                <div class="logo-text">InvestCrypto Pro</div>
+                <div class="nav-logo-text">
+                    InvestCrypto Pro
+                </div>
             </div>
 
             {% if session.user_id %}
+            <!-- Navigation Button -->
             <div class="flex items-center gap-4">
-                <!-- Balance moderne -->
-                <div class="balance-display">
-                    <div class="flex items-center gap-3 relative z-10">
-                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-wallet text-white"></i>
+                <!-- Balance Display -->
+                <div class="balance-card">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-wallet text-white text-sm"></i>
                         </div>
                         <div>
-                            <div class="text-xs font-medium opacity-90">Solde</div>
+                            <div class="text-xs font-medium opacity-80">Solde</div>
                             <div class="text-sm font-bold">0.00 USDT</div>
                         </div>
                     </div>
                 </div>
 
-                <button id="mobile-menu-button" class="modern-btn p-3">
+                <button id="mobile-menu-button" class="btn-primary p-3">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
             {% else %}
-            <div class="flex items-center gap-3">
-                <a href="{{ url_for('login') }}" class="modern-btn-outline px-4 py-2">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span class="hidden sm:inline ml-2">Connexion</span>
+            <!-- Guest Navigation -->
+            <div class="flex items-center gap-2">
+                <a href="{{ url_for('login') }}" class="btn-secondary text-sm px-3 py-2">
+                    <i class="fas fa-sign-in-alt text-xs"></i>
+                    <span class="hidden xs:inline ml-1">Connexion</span>
+                    <span class="xs:hidden ml-1">Login</span>
                 </a>
-                <a href="{{ url_for('register') }}" class="modern-btn px-4 py-2">
-                    <i class="fas fa-user-plus"></i>
-                    <span class="hidden sm:inline ml-2">Inscription</span>
+                <a href="{{ url_for('register') }}" class="btn-primary text-sm px-3 py-2">
+                    <i class="fas fa-user-plus text-xs"></i>
+                    <span class="hidden xs:inline ml-1">Inscription</span>
+                    <span class="xs:hidden ml-1">Sign up</span>
                 </a>
             </div>
             {% endif %}
         </div>
 
         {% if session.user_id %}
-        <!-- Menu mobile moderne -->
-        <div id="mobile-menu" class="mobile-menu">
-            <div class="mobile-overlay" onclick="closeMobileMenu()"></div>
-            <div class="mobile-content">
-                <div class="mobile-header">
+        <!-- Navigation Menu Mobile Optimisé -->
+        <div id="mobile-menu" class="mobile-menu-container">
+            <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
+            <div class="mobile-menu-content">
+                <!-- Header du menu -->
+                <div class="mobile-menu-header">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                            <i class="fas fa-user text-white"></i>
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-sm"></i>
                         </div>
                         <div>
-                            <div class="font-semibold">{{ session.first_name or 'Utilisateur' }}</div>
-                            <div class="text-xs opacity-90">{{ session.email or 'Email' }}</div>
+                            <div class="text-sm font-semibold text-gray-900">{{ session.first_name or 'Utilisateur' }}</div>
+                            <div class="text-xs text-gray-500">{{ session.email or 'Email' }}</div>
                         </div>
                     </div>
-                    <button onclick="closeMobileMenu()" class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <button onclick="closeMobileMenu()" class="mobile-menu-close">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
 
-                <div class="py-4">
+                <!-- Menu items -->
+                <div class="mobile-menu-items">
                     <a href="{{ url_for('dashboard') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'dashboard' }}">
-                        <div class="mobile-item-icon">
+                        <div class="mobile-menu-item-icon dashboard">
                             <i class="fas fa-home"></i>
                         </div>
-                        <div>
-                            <div class="font-semibold">Dashboard</div>
-                            <div class="text-xs text-gray-500">Vue d'ensemble</div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Dashboard</div>
+                            <div class="mobile-menu-item-subtitle">Vue d'ensemble</div>
                         </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
 
                     <a href="{{ url_for('staking_plans') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'staking_plans' }}">
-                        <div class="mobile-item-icon">
+                        <div class="mobile-menu-item-icon staking">
                             <i class="fas fa-lock"></i>
                         </div>
-                        <div>
-                            <div class="font-semibold">Staking</div>
-                            <div class="text-xs text-gray-500">Rendements garantis</div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Staking</div>
+                            <div class="mobile-menu-item-subtitle">Rendements garantis</div>
                         </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
 
                     <a href="{{ url_for('frozen_plans') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'frozen_plans' }}">
-                        <div class="mobile-item-icon">
+                        <div class="mobile-menu-item-icon frozen">
                             <i class="fas fa-snowflake"></i>
                         </div>
-                        <div>
-                            <div class="font-semibold">Plans Gelés</div>
-                            <div class="text-xs text-gray-500">Investissement sécurisé</div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Plans Gelés</div>
+                            <div class="mobile-menu-item-subtitle">Investissement sécurisé</div>
                         </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
 
                     <a href="{{ url_for('ultra_plans') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'ultra_plans' }}">
-                        <div class="mobile-item-icon">
+                        <div class="mobile-menu-item-icon ultra">
                             <i class="fas fa-rocket"></i>
                         </div>
-                        <div>
-                            <div class="font-semibold">Plans Ultra-Rentables</div>
-                            <div class="text-xs text-gray-500">Rendements élevés</div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Plans Ultra-Rentables</div>
+                            <div class="mobile-menu-item-subtitle">Rendements élevés</div>
                         </div>
-                    </a>
-
-                    <a href="{{ url_for('projects') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'projects' }}">
-                        <div class="mobile-item-icon">
-                            <i class="fas fa-lightbulb"></i>
-                        </div>
-                        <div>
-                            <div class="font-semibold">Projets</div>
-                            <div class="text-xs text-gray-500">Opportunités DeFi</div>
-                        </div>
-                    </a>
-
-                    <a href="{{ url_for('auto_trading') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'auto_trading' }}">
-                        <div class="mobile-item-icon">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <div>
-                            <div class="font-semibold">Auto-Trading IA</div>
-                            <div class="text-xs text-gray-500">Bot intelligent</div>
-                        </div>
-                    </a>
-
-                    <a href="{{ url_for('copy_trading') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'copy_trading' }}">
-                        <div class="mobile-item-icon">
-                            <i class="fas fa-copy"></i>
-                        </div>
-                        <div>
-                            <div class="font-semibold">Copy Trading</div>
-                            <div class="text-xs text-gray-500">Suivre les experts</div>
-                        </div>
-                    </a>
-
-                    <a href="{{ url_for('support') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'support' }}">
-                        <div class="mobile-item-icon">
-                            <i class="fas fa-headset"></i>
-                        </div>
-                        <div>
-                            <div class="font-semibold">Support</div>
-                            <div class="text-xs text-gray-500">Centre d'aide</div>
-                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
 
                     <a href="{{ url_for('investment_history') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'investment_history' }}">
-                        <div class="mobile-item-icon">
+                        <div class="mobile-menu-item-icon history">
                             <i class="fas fa-history"></i>
                         </div>
-                        <div>
-                            <div class="font-semibold">Historique</div>
-                            <div class="text-xs text-gray-500">Mes investissements</div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Historique</div>
+                            <div class="mobile-menu-item-subtitle">Mes investissements</div>
                         </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('projects') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'projects' }}">
+                        <div class="mobile-menu-item-icon projects">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Projets</div>
+                            <div class="mobile-menu-item-subtitle">Opportunités DeFi</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('auto_trading') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'auto_trading' }}">
+                        <div class="mobile-menu-item-icon trading">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Auto-Trading IA</div>
+                            <div class="mobile-menu-item-subtitle">Bot intelligent</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('copy_trading') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'copy_trading' }}">
+                        <div class="mobile-menu-item-icon copy">
+                            <i class="fas fa-copy"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Copy Trading</div>
+                            <div class="mobile-menu-item-subtitle">Suivre les experts</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
 
                     <a href="{{ url_for('profile') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'profile' }}">
-                        <div class="mobile-item-icon">
+                        <div class="mobile-menu-item-icon profile">
                             <i class="fas fa-user-circle"></i>
                         </div>
-                        <div>
-                            <div class="font-semibold">Mon Profil</div>
-                            <div class="text-xs text-gray-500">Paramètres</div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Mon Profil</div>
+                            <div class="mobile-menu-item-subtitle">Paramètres compte</div>
                         </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('support') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'support' }}">
+                        <div class="mobile-menu-item-icon support">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Support</div>
+                            <div class="mobile-menu-item-subtitle">Centre d'aide</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
                 </div>
 
-                <div class="p-4 mt-auto">
-                    <a href="{{ url_for('logout') }}" class="flex items-center gap-3 p-3 bg-red-50 text-red-600 rounded-16 hover:bg-red-100 transition-colors">
-                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <!-- Footer du menu -->
+                <div class="mobile-menu-footer">
+                    <a href="{{ url_for('logout') }}" class="mobile-menu-logout">
+                        <div class="mobile-menu-item-icon logout">
                             <i class="fas fa-sign-out-alt"></i>
                         </div>
-                        <span class="font-semibold">Déconnexion</span>
+                        <span>Déconnexion</span>
                     </a>
                 </div>
             </div>
@@ -824,16 +1312,16 @@
         {% endif %}
     </nav>
 
-    <!-- Messages Flash -->
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="fixed top-24 right-4 z-50 space-y-3 max-w-md">
+            <div class="fixed top-20 right-4 z-50 space-y-3 max-w-md">
                 {% for category, message in messages %}
                     <div class="notification">
                         <div class="flex items-center">
                             <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' if category == 'success' else 'info-circle' }} mr-3 text-{{ 'red' if category == 'error' else 'green' if category == 'success' else 'blue' }}-500"></i>
-                            <span class="font-medium flex-1">{{ message }}</span>
-                            <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-gray-400 hover:text-gray-600">
+                            <span class="font-medium">{{ message }}</span>
+                            <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-gray-400 hover:text-gray-600">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -843,24 +1331,61 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Contenu principal -->
-    <main class="pt-8 min-h-screen">
-        <div class="max-width-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Main Content -->
+    <main class="pt-6 min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {% block content %}{% endblock %}
         </div>
     </main>
 
-    <!-- Support Widget -->
-    {% if session.user_id %}
-    <div class="support-widget">
-        <button class="support-toggle" onclick="toggleSupport()">
-            <i class="fas fa-headset"></i>
-        </button>
-    </div>
-    {% endif %}
+    <!-- Professional Footer -->
+    <footer class="professional-footer">
+        <div class="footer-content">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="col-span-2 lg:col-span-1">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-chart-line text-white text-lg"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">InvestCrypto Pro</h3>
+                    </div>
+                    <p class="text-white/80 text-sm leading-relaxed">
+                        Plateforme d'investissement crypto de nouvelle génération avec sécurité institutionnelle et rendements optimisés.
+                    </p>
+                </div>
+                <div>
+                    <h4>Investissements</h4>
+                    <ul class="space-y-3">
+
+                        <li><a href="{{ url_for('staking_plans') }}" class="flex items-center"><i class="fas fa-lock mr-2 text-xs"></i>Staking</a></li>
+                        <li><a href="{{ url_for('projects') }}" class="flex items-center"><i class="fas fa-rocket mr-2 text-xs"></i>Projets</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Support</h4>
+                    <ul class="space-y-3">
+                        <li><a href="{{ url_for('support') }}" class="flex items-center"><i class="fas fa-headset mr-2 text-xs"></i>Centre d'aide</a></li>
+                        <li><a href="#" class="flex items-center"><i class="fas fa-question-circle mr-2 text-xs"></i>FAQ</a></li>
+                        <li><a href="#" class="flex items-center"><i class="fas fa-envelope mr-2 text-xs"></i>Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Sécurité</h4>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="flex items-center"><i class="fas fa-shield-alt mr-2 text-xs"></i>Vérification KYC</a></li>
+                        <li><a href="#" class="flex items-center"><i class="fas fa-file-contract mr-2 text-xs"></i>Conditions</a></li>
+                        <li><a href="#" class="flex items-center"><i class="fas fa-lock mr-2 text-xs"></i>Confidentialité</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 InvestCrypto Pro. Tous droits réservés. <span class="font-semibold">Powered by Professional Technology</span></p>
+            </div>
+        </div>
+    </footer>
 
     <script>
-        // Menu mobile
+        // Mobile menu toggle optimisé
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
@@ -888,14 +1413,21 @@
             }
         }
 
-        // Fermer avec Échap
+        // Fermer le menu lors du clic sur un lien
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('mobile-menu-item')) {
+                setTimeout(closeMobileMenu, 200);
+            }
+        });
+
+        // Fermer avec la touche Échap
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closeMobileMenu();
             }
         });
 
-        // Notifications
+        // Professional notification system
         function showNotification(message, type = 'info', duration = 5000) {
             const notification = document.createElement('div');
             notification.className = 'notification fixed top-24 right-4 z-50 max-w-md';
@@ -906,8 +1438,8 @@
             notification.innerHTML = `
                 <div class="flex items-center">
                     <i class="fas fa-${iconClass} mr-3 text-${iconColor}-500"></i>
-                    <span class="font-medium flex-1">${message}</span>
-                    <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-gray-400 hover:text-gray-600">
+                    <span class="font-medium">{{ message }}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-gray-400 hover:text-gray-600">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -924,11 +1456,6 @@
             }, duration);
         }
 
-        // Support toggle
-        function toggleSupport() {
-            window.location.href = '/support';
-        }
-
         // Auto-hide flash messages
         setTimeout(() => {
             const notifications = document.querySelectorAll('.notification');
@@ -938,6 +1465,706 @@
                 setTimeout(() => notification.remove(), 300);
             });
         }, 8000);
+
+        // Professional loading states
+        function showLoading(element) {
+            if (element.style.position !== 'relative') {
+                element.style.position = 'relative';
+            }
+
+            const overlay = document.createElement('div');
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = '<div class="loading-spinner"></div>';
+
+            element.appendChild(overlay);
+            return overlay;
+        }
+
+        function hideLoading(overlay) {
+            if (overlay && overlay.parentNode) {
+                overlay.remove();
+            }
+        }
     </script>
+
+    <!-- Widget de Support Professionnel -->
+    {% if session.user_id %}
+    <div class="support-widget-container">
+        <!-- Bouton principal -->
+        <button id="supportToggle" class="support-toggle-button" onclick="toggleSupportWidget()">
+            <div class="support-icon">
+                <i class="fas fa-headset"></i>
+            </div>
+            <div class="support-pulse"></div>
+        </button>
+
+        <!-- Widget principal -->
+        <div id="supportWidget" class="support-widget">
+            <!-- En-tête -->
+            <div class="support-header">
+                <div class="support-header-content">
+                    <div class="support-avatar">
+                        <i class="fas fa-user-headset"></i>
+                    </div>
+                    <div class="support-info">
+                        <h4>Support Expert</h4>
+                        <span class="status-online">En ligne</span>
+                    </div>
+                </div>
+                <button onclick="closeSupportWidget()" class="support-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Zone des messages -->
+            <div id="supportMessages" class="support-messages">
+                <div class="message-container">
+                    <div class="bot-message">
+                        <div class="bot-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="bot-bubble">
+                            <strong>Assistant InvestCrypto Pro</strong>
+                            <p>👋 Bonjour ! Je suis là pour vous aider. Comment puis-je vous assister aujourd'hui ?</p>
+                            <span class="message-time">À l'instant</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Zone de saisie -->
+            <div class="support-input-area">
+                <form id="supportForm" onsubmit="sendMessage(event)">
+                    <div class="input-group">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Tapez votre message..."
+                            rows="2"
+                            maxlength="500"
+                        ></textarea>
+                        <button type="submit" class="send-button">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="input-footer">
+                        <span class="char-count">0/500</span>
+                        <div class="input-actions">
+                            <button type="button" onclick="attachFile()" class="attach-btn" title="Joindre un fichier">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button type="button" onclick="addEmoji()" class="emoji-btn" title="Ajouter un emoji">
+                                <i class="fas fa-smile"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .support-widget-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .support-toggle-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .support-toggle-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
+        }
+
+        .support-icon {
+            font-size: 24px;
+            z-index: 1;
+        }
+
+        .support-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            animation: pulse 2s infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+        }
+
+        .support-widget {
+            position: absolute;
+            bottom: 75px;
+            right: 0;
+            width: 380px;
+            height: 520px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            border: 1px solid #e5e7eb;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 10000;
+        }
+
+        .support-widget.active {
+            display: flex;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .support-header {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .support-header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .support-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .support-info h4 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .status-online {
+            font-size: 12px;
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-online::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .support-close {
+            background: none;
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .support-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .support-messages {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: #f8fafc;
+            max-height: 280px;
+        }
+
+        .message-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .bot-message, .user-message-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .bot-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .bot-bubble {
+            background: white;
+            padding: 16px;
+            border-radius: 18px 18px 18px 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 280px;
+        }
+
+        .bot-bubble strong {
+            color: #1e293b;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .bot-bubble p {
+            color: #475569;
+            font-size: 14px;
+            margin: 0 0 8px 0;
+            line-height: 1.4;
+        }
+
+        .message-time {
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
+        .user-message-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .user-bubble {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 18px 18px 6px 18px;
+            max-width: 240px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+        }
+
+
+
+        .support-input-area {
+            padding: 20px;
+            background: white;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .input-group textarea {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #f8fafc;
+        }
+
+        .input-group textarea:focus {
+            border-color: #3b82f6;
+            background: white;
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border: none;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .char-count {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .attach-btn, .emoji-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: none;
+            color: #94a3b8;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .attach-btn:hover, .emoji-btn:hover {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .support-widget-container {
+                bottom: 16px;
+                right: 16px;
+            }
+
+            .support-toggle-button {
+                width: 56px;
+                height: 56px;
+            }
+
+            .support-icon {
+                font-size: 22px;
+            }
+
+            .support-widget {
+                width: calc(100vw - 32px);
+                height: 480px;
+                right: -16px;
+                bottom: 70px;
+            }
+
+            .support-messages {
+                padding: 12px;
+                max-height: 240px;
+            }
+
+            .bot-bubble, .user-bubble {
+                max-width: 200px;
+                font-size: 13px;
+            }
+
+
+        }
+
+        @media (max-width: 480px) {
+            .support-widget {
+                width: calc(100vw - 16px);
+                height: 400px;
+                right: -8px;
+            }
+
+            .support-header {
+                padding: 16px;
+            }
+
+            .support-messages {
+                padding: 16px;
+            }
+
+            .support-input-area {
+                padding: 16px;
+            }
+        }
+
+        /* Animation d'apparition */
+        @keyframes slideInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .support-widget.active {
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        /* Scrollbar personnalisée */
+        .support-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .support-messages::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 2px;
+        }
+
+        .support-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+
+        .support-messages::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+
+    <script>
+        let supportWidgetOpen = false;
+
+        function toggleSupportWidget() {
+            const widget = document.getElementById('supportWidget');
+            const button = document.getElementById('supportToggle');
+
+            if (supportWidgetOpen) {
+                closeSupportWidget();
+            } else {
+                widget.classList.add('active');
+                supportWidgetOpen = true;
+
+                // Focus sur le textarea
+                setTimeout(() => {
+                    document.getElementById('messageInput').focus();
+                }, 300);
+            }
+        }
+
+        function closeSupportWidget() {
+            const widget = document.getElementById('supportWidget');
+            widget.classList.remove('active');
+            supportWidgetOpen = false;
+        }
+
+        function sendMessage(event) {
+            event.preventDefault();
+
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Ajouter le message utilisateur
+            addUserMessage(message);
+
+            // Vider le champ
+            input.value = '';
+            updateCharCount();
+
+            // Simuler une réponse du bot
+            setTimeout(() => {
+                addBotResponse(message);
+            }, 1000);
+        }
+
+        function addUserMessage(message) {
+            const messagesContainer = document.querySelector('#supportMessages .message-container');
+            const userMessage = document.createElement('div');
+            userMessage.className = 'user-message-container';
+            userMessage.style.justifyContent = 'flex-end';
+            userMessage.innerHTML = `
+                <div class="user-bubble">
+                    ${escapeHtml(message)}
+                    <div style="font-size: 11px; opacity: 0.8; margin-top: 4px; text-align: right;">
+                        ${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(userMessage);
+            scrollToBottom();
+        }
+
+        function addBotResponse(userMessage) {
+            const messagesContainer = document.querySelector('#supportMessages .message-container');
+            const botMessage = document.createElement('div');
+            botMessage.className = 'bot-message';
+
+            // Réponses contextuelles basées sur le message
+            let response = "Merci pour votre message ! Notre équipe va vous répondre dans les plus brefs délais.";
+
+            if (userMessage.toLowerCase().includes('dépôt')) {
+                response = "Pour effectuer un dépôt, rendez-vous dans votre portefeuille et suivez les instructions. Vos fonds seront crédités automatiquement après confirmation blockchain.";
+            } else if (userMessage.toLowerCase().includes('retrait')) {
+                response = "Les retraits sont traités automatiquement. Assurez-vous que votre adresse USDT TRC20 est correcte et que vous respectez le montant minimum.";
+            } else if (userMessage.toLowerCase().includes('profit')) {
+                response = "Les profits sont calculés quotidiennement et crédités automatiquement à minuit UTC. Vous pouvez voir l'historique dans votre dashboard.";
+            }
+
+            botMessage.innerHTML = `
+                <div class="bot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="bot-bubble">
+                    <strong>Assistant Support</strong>
+                    <p>${response}</p>
+                    <span class="message-time">${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}</span>
+                </div>
+            `;
+            messagesContainer.appendChild(botMessage);
+            scrollToBottom();
+        }
+
+        function addQuickMessage(message) {
+            document.getElementById('messageInput').value = message;
+            updateCharCount();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('supportMessages');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateCharCount() {
+            const input = document.getElementById('messageInput');
+            const counter = document.querySelector('.char-count');
+            const length = input.value.length;
+            counter.textContent = `${length}/500`;
+
+            if (length > 450) {
+                counter.style.color = '#ef4444';
+            } else if (length > 400) {
+                counter.style.color = '#f59e0b';
+            } else {
+                counter.style.color = '#94a3b8';
+            }
+        }
+
+        function attachFile() {
+            showNotification('Fonctionnalité bientôt disponible', 'info');
+        }
+
+        function addEmoji() {
+            const input = document.getElementById('messageInput');
+            const emojis = ['😊', '👍', '🤝', '💡', '❓', '✅', '📈', '💰'];
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            input.value += randomEmoji;
+            updateCharCount();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Événements
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('messageInput');
+            if (input) {
+                input.addEventListener('input', updateCharCount);
+
+                // Envoi avec Ctrl+Enter
+                input.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        sendMessage(e);
+                    }
+                });
+            }
+        });
+
+        // Fermer en cliquant à l'extérieur
+        document.addEventListener('click', function(event) {
+            const container = document.querySelector('.support-widget-container');
+            const widget = document.getElementById('supportWidget');
+
+            if (supportWidgetOpen && container && !container.contains(event.target)) {
+                closeSupportWidget();
+            }
+        });
+
+        // Empêcher la fermeture lors du clic dans le widget
+        document.getElementById('supportWidget')?.addEventListener('click', function(event) {
+            event.stopPropagation();
+        });
+    </script>
+    {% endif %}
 </body>
 </html>
