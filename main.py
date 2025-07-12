@@ -330,25 +330,22 @@ def init_db():
         ('Quel est le montant minimum d investissement ?', 'Le montant minimum est de 20 USDT pour tous nos plans d investissement.', 'investment')
     ''')
 
-    # Insert top 10 ROI plans - Starting from 20 USDT
+    # Insert optimized ROI plans - Starting from 20 USDT
     cursor.execute('''
         INSERT OR IGNORE INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
         ('Starter Pro', '🚀 Parfait pour débuter ! 3% quotidien sur 30 jours. Idéal pour tester nos services avec un petit budget.', 0.03, 30, 20, 500),
         ('Rapid Growth', '⚡ Croissance rapide ! 4% par jour pendant 25 jours. Parfait équilibre temps/profit.', 0.04, 25, 20, 800),
         ('Silver Plan', '🥈 Plan argent ! 5% quotidien sur 30 jours. Notre bestseller pour débutants.', 0.05, 30, 20, 1000),
-        ('Golden Boost', '🥇 Plan or ! 6% par jour pendant 35 jours. Excellent retour sur investissement.', 0.06, 35, 20, 2000),
-        ('Platinum Elite', '💎 Elite platinum ! 7% quotidien sur 40 jours. Pour investisseurs sérieux.', 0.07, 40, 20, 3000),
-        ('Diamond Pro', '💍 Diamant professionnel ! 8% par jour pendant 45 jours. Rendement exceptionnel.', 0.08, 45, 20, 5000),
-        ('VIP Supreme', '👑 VIP suprême ! 10% quotidien sur 50 jours. Pour les grands investisseurs.', 0.10, 50, 20, 8000),
-        ('Royal Master', '🏆 Royal master ! 12% par jour pendant 60 jours. Retour royal garanti.', 0.12, 60, 20, 12000),
-        ('Ultra Premium', '⭐ Ultra premium ! 15% quotidien sur 70 jours. Performance maximale.', 0.15, 70, 20, 20000),
-        ('Emperor Elite', '👨‍💼 Empereur elite ! 18% par jour pendant 80 jours. Le summum de l''investissement.', 0.18, 80, 20, 50000),
-        ('Super Express', '🔥 NOUVEAU ! 25% quotidien pendant 7 jours ! Profits explosifs garantis ! IA révolutionnaire + algorithmes secrets.', 0.25, 7, 50, 10000),
-        ('Turbo Flash', '⚡ EXCLUSIF ! 20% par jour sur 14 jours ! Trading haute fréquence + arbitrage premium. Réservé aux VIP.', 0.20, 14, 100, 25000),
+        ('Golden Boost', '🥇 Plan or ! 8% par jour pendant 35 jours. Excellent retour sur investissement.', 0.08, 35, 20, 2000),
+        ('Platinum Elite', '💎 Elite platinum ! 12% quotidien sur 40 jours. Pour investisseurs sérieux.', 0.12, 40, 20, 5000),
+        ('Diamond Pro', '💍 Diamant professionnel ! 15% par jour pendant 50 jours. Rendement exceptionnel.', 0.15, 50, 20, 10000),
+        ('VIP Supreme', '👑 VIP suprême ! 18% quotidien sur 60 jours. Pour les grands investisseurs.', 0.18, 60, 20, 25000),
+        ('Rocket Launch', '🚀 METEORE ! 35% quotidien pendant 3 jours ! Stratégie ultra-secrète ! Rendement historique jamais vu !', 0.35, 3, 500, 20000),
         ('Mega Booster', '💥 LIMITE ! 30% quotidien pendant 5 jours ! Stratégie secrète révolutionnaire ! Places limitées !', 0.30, 5, 200, 15000),
+        ('Super Express', '🔥 NOUVEAU ! 25% quotidien pendant 7 jours ! Profits explosifs garantis ! IA révolutionnaire + algorithmes secrets.', 0.25, 7, 100, 10000),
         ('Lightning Pro', '⚡ FLASH ! 22% par jour sur 10 jours ! Technologie quantum trading + IA prédictive avancée.', 0.22, 10, 150, 30000),
-        ('Rocket Launch', '🚀 METEORE ! 35% quotidien pendant 3 jours ! Stratégie ultra-secrète ! Rendement historique jamais vu !', 0.35, 3, 500, 20000)
+        ('Turbo Flash', '⚡ EXCLUSIF ! 20% par jour sur 14 jours ! Trading haute fréquence + arbitrage premium. Réservé aux VIP.', 0.20, 14, 100, 25000)
     ''')
 
     # Insert top 10 staking plans - Starting from 20 USDT
