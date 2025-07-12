@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"></meta>
     <title>{% block title %}Ttrust{% endblock %}</title>
     
     <!-- PWA Meta Tags -->
@@ -67,6 +67,13 @@
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         /* Typography */
@@ -947,14 +954,22 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                touch-action: manipulation;
             }
 
             .professional-input, .professional-select {
                 min-height: 44px;
+                touch-action: manipulation;
             }
 
             .quick-action-card {
                 min-height: 120px;
+                touch-action: manipulation;
+            }
+
+            /* Empêcher le zoom sur les éléments interactifs */
+            button, input, select, textarea, a {
+                touch-action: manipulation;
             }
         }
 
