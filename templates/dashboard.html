@@ -683,6 +683,162 @@
         background: #fef3c7;
     }
 
+    /* Zone de notifications mobile */
+    .notifications-container {
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        width: calc(100% - 2rem);
+        max-width: 400px;
+        pointer-events: none;
+    }
+
+    .notification-mobile {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 0.75rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        border-left: 4px solid;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        animation: slideInDown 0.4s ease-out;
+        pointer-events: auto;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .notification-mobile.success {
+        border-left-color: var(--success-green);
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    }
+
+    .notification-mobile.error {
+        border-left-color: var(--danger-red);
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    }
+
+    .notification-mobile.info {
+        border-left-color: var(--primary-blue);
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    }
+
+    .notification-mobile.warning {
+        border-left-color: var(--warning-orange);
+        background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    }
+
+    .notification-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .notification-icon.success {
+        background: var(--success-green);
+    }
+
+    .notification-icon.error {
+        background: var(--danger-red);
+    }
+
+    .notification-icon.info {
+        background: var(--primary-blue);
+    }
+
+    .notification-icon.warning {
+        background: var(--warning-orange);
+    }
+
+    .notification-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notification-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--gray-900);
+        margin-bottom: 0.25rem;
+    }
+
+    .notification-message {
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        line-height: 1.4;
+    }
+
+    .notification-close {
+        width: 24px;
+        height: 24px;
+        border: none;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--gray-500);
+        font-size: 12px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .notification-close:hover {
+        background: rgba(0, 0, 0, 0.2);
+        color: var(--gray-700);
+    }
+
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 0 0 16px 16px;
+        animation: progressBar 5s linear forwards;
+    }
+
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideOutUp {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    @keyframes progressBar {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
+
     /* Responsive Design */
     @media (min-width: 640px) {
         .dashboard-container {
@@ -822,6 +978,11 @@
                 🚀 Gains cumulés
             </div>
         </div>
+    </div>
+
+    <!-- Zone de notifications -->
+    <div id="notificationsContainer" class="notifications-container fade-in">
+        <!-- Les notifications apparaîtront ici -->
     </div>
 
     <!-- Actions rapides -->
@@ -1209,6 +1370,72 @@ async function recalculateProfits() {
     } catch (error) {
         showNotification('❌ Erreur de connexion', 'error');
     }
+}
+
+// Système de notifications mobile amélioré
+function showNotification(message, type = 'info', duration = 5000) {
+    const container = document.getElementById('notificationsContainer');
+    if (!container) return;
+
+    const notification = document.createElement('div');
+    notification.className = `notification-mobile ${type}`;
+
+    const iconMap = {
+        success: 'fas fa-check',
+        error: 'fas fa-times',
+        warning: 'fas fa-exclamation-triangle',
+        info: 'fas fa-info-circle'
+    };
+
+    const titleMap = {
+        success: 'Succès',
+        error: 'Erreur',
+        warning: 'Attention',
+        info: 'Information'
+    };
+
+    notification.innerHTML = `
+        <div class="notification-icon ${type}">
+            <i class="${iconMap[type] || iconMap.info}"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">${titleMap[type] || 'Notification'}</div>
+            <div class="notification-message">${message}</div>
+        </div>
+        <button class="notification-close" onclick="removeNotification(this.parentElement)">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="notification-progress"></div>
+    `;
+
+    container.appendChild(notification);
+
+    // Animation d'entrée
+    setTimeout(() => {
+        notification.style.animation = 'slideInDown 0.4s ease-out';
+    }, 10);
+
+    // Suppression automatique
+    setTimeout(() => {
+        removeNotification(notification);
+    }, duration);
+
+    // Limiter le nombre de notifications affichées
+    const notifications = container.querySelectorAll('.notification-mobile');
+    if (notifications.length > 3) {
+        removeNotification(notifications[0]);
+    }
+}
+
+function removeNotification(notification) {
+    if (!notification || !notification.parentNode) return;
+    
+    notification.style.animation = 'slideOutUp 0.3s ease-in forwards';
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 300);
 }
 
 // Système de gains en temps réel
