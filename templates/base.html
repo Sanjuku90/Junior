@@ -1005,6 +1005,10 @@
                     <i class="nav-icon fas fa-rocket"></i>
                     Plans Ultra-Rentables
                 </a>
+                 <a href="{{ url_for('investment_history') }}" class="nav-item {{ 'active' if request.endpoint == 'investment_history' }} w-full justify-start">
+                    <i class="nav-icon fas fa-history"></i>
+                    Historique
+                </a>
                 <a href="{{ url_for('projects') }}" class="nav-item {{ 'active' if request.endpoint == 'projects' }} w-full justify-start">
                     <i class="nav-icon fas fa-rocket"></i>
                     Projets

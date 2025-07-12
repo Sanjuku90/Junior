@@ -1,0 +1,493 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="chat-bubble">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">📊 Historique des investissements</h1>
+                <p class="text-gray-600">Consultez l'historique complet de tous vos investissements</p>
+            </div>
+            <div class="text-right">
+                <button onclick="refreshData()" class="messenger-btn-outline">
+                    <i class="fas fa-sync mr-2"></i>Actualiser
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques globales -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-green-500 to-green-600">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="text-sm text-gray-500 font-medium mb-1">Total investi</div>
+            <div class="text-xl font-bold text-gray-900">
+                {% set total_invested = 0 %}
+                {% for inv in all_investments %}
+                    {% set total_invested = total_invested + inv.amount %}
+                {% endfor %}
+                {{ "%.2f"|format(total_invested) }} USDT
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-blue-500 to-blue-600">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="text-sm text-gray-500 font-medium mb-1">Total des profits</div>
+            <div class="text-xl font-bold text-gray-900">
+                {% set total_profits = 0 %}
+                {% for inv in all_investments %}
+                    {% set total_profits = total_profits + (inv.total_earned or 0) %}
+                {% endfor %}
+                {{ "%.2f"|format(total_profits) }} USDT
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-purple-500 to-purple-600">
+                <i class="fas fa-play-circle"></i>
+            </div>
+            <div class="text-sm text-gray-500 font-medium mb-1">Investissements actifs</div>
+            <div class="text-xl font-bold text-gray-900">
+                {% set active_count = 0 %}
+                {% for inv in all_investments %}
+                    {% if inv.is_active %}
+                        {% set active_count = active_count + 1 %}
+                    {% endif %}
+                {% endfor %}
+                {{ active_count }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon bg-gradient-to-r from-orange-500 to-orange-600">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="text-sm text-gray-500 font-medium mb-1">Investissements terminés</div>
+            <div class="text-xl font-bold text-gray-900">
+                {% set completed_count = 0 %}
+                {% for inv in all_investments %}
+                    {% if not inv.is_active %}
+                        {% set completed_count = completed_count + 1 %}
+                    {% endif %}
+                {% endfor %}
+                {{ completed_count }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="chat-bubble">
+        <h2 class="text-lg font-bold text-gray-900 mb-4">🔍 Filtres</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <select id="statusFilter" class="messenger-input" onchange="filterInvestments()">
+                <option value="all">Tous les statuts</option>
+                <option value="active">Actifs seulement</option>
+                <option value="completed">Terminés seulement</option>
+            </select>
+            
+            <select id="typeFilter" class="messenger-input" onchange="filterInvestments()">
+                <option value="all">Tous les types</option>
+                <option value="roi">Plans ROI</option>
+                <option value="staking">Plans Staking</option>
+                <option value="trading">Bots Trading</option>
+                <option value="copy">Copy Trading</option>
+                <option value="project">Projets</option>
+            </select>
+            
+            <input type="date" id="dateFromFilter" class="messenger-input" placeholder="Date de début" onchange="filterInvestments()">
+            
+            <input type="date" id="dateToFilter" class="messenger-input" placeholder="Date de fin" onchange="filterInvestments()">
+        </div>
+    </div>
+
+    <!-- Tableau des investissements ROI -->
+    {% if roi_investments %}
+    <div class="chat-bubble">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">🚀 Investissements ROI Premium</h2>
+        
+        <!-- Mobile View -->
+        <div class="block md:hidden space-y-4">
+            {% for investment in roi_investments %}
+            <div class="investment-card mobile-card" data-type="roi" data-status="{{ 'active' if investment.is_active else 'completed' }}" data-date="{{ investment.start_date }}">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-900">{{ investment.plan_name or 'Plan ROI' }}</h3>
+                        <div class="text-sm text-gray-600">{{ "%.2f"|format(investment.amount) }} USDT investis</div>
+                        <div class="text-xs text-gray-500">
+                            Début: {{ investment.start_date[:10] if investment.start_date else 'N/A' }}
+                        </div>
+                    </div>
+                    <span class="status-indicator status-{{ 'active' if investment.is_active else 'completed' }}">
+                        {{ 'Actif' if investment.is_active else 'Terminé' }}
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mt-3">
+                    <div class="text-center bg-white p-3 rounded-xl border">
+                        <div class="text-xs text-gray-500 font-medium">Profit quotidien</div>
+                        <div class="text-sm font-bold text-green-600">{{ "%.2f"|format(investment.daily_profit) }} USDT</div>
+                    </div>
+                    <div class="text-center bg-white p-3 rounded-xl border">
+                        <div class="text-xs text-gray-500 font-medium">Total gagné</div>
+                        <div class="text-sm font-bold" style="color: var(--messenger-blue)">
+                            {{ "%.2f"|format(investment.total_earned or 0) }} USDT
+                        </div>
+                    </div>
+                </div>
+                
+                {% if investment.end_date %}
+                <div class="mt-3 text-xs text-gray-500 text-center">
+                    ⏰ Fin: {{ investment.end_date[:10] if investment.end_date else 'N/A' }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Desktop View -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="messenger-table">
+                <thead>
+                    <tr>
+                        <th>Plan</th>
+                        <th>Montant investi</th>
+                        <th>Profit quotidien</th>
+                        <th>Total gagné</th>
+                        <th>Date début</th>
+                        <th>Date fin</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for investment in roi_investments %}
+                    <tr class="investment-row" data-type="roi" data-status="{{ 'active' if investment.is_active else 'completed' }}" data-date="{{ investment.start_date }}">
+                        <td class="font-medium">{{ investment.plan_name or 'Plan ROI' }}</td>
+                        <td class="font-semibold">{{ "%.2f"|format(investment.amount) }} USDT</td>
+                        <td class="font-bold text-green-600">{{ "%.2f"|format(investment.daily_profit) }} USDT</td>
+                        <td class="font-bold" style="color: var(--messenger-blue)">{{ "%.2f"|format(investment.total_earned or 0) }} USDT</td>
+                        <td class="text-gray-600">{{ investment.start_date[:10] if investment.start_date else 'N/A' }}</td>
+                        <td class="text-gray-600">{{ investment.end_date[:10] if investment.end_date else 'N/A' }}</td>
+                        <td>
+                            <span class="status-indicator status-{{ 'active' if investment.is_active else 'completed' }}">
+                                {{ 'Actif' if investment.is_active else 'Terminé' }}
+                            </span>
+                        </td>
+                        <td>
+                            <button onclick="viewDetails('roi', {{ investment.id }})" class="messenger-btn-outline py-1 px-3 text-sm">
+                                <i class="fas fa-eye mr-1"></i>Détails
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tableau des investissements Staking -->
+    {% if staking_investments %}
+    <div class="chat-bubble">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">💎 Investissements Staking</h2>
+        
+        <div class="overflow-x-auto">
+            <table class="messenger-table">
+                <thead>
+                    <tr>
+                        <th>Plan</th>
+                        <th>Montant</th>
+                        <th>Durée</th>
+                        <th>Taux annuel</th>
+                        <th>Date début</th>
+                        <th>Date fin</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for investment in staking_investments %}
+                    <tr class="investment-row" data-type="staking" data-status="{{ 'active' if investment.is_active else 'completed' }}" data-date="{{ investment.start_date }}">
+                        <td class="font-medium">{{ investment.plan_name or 'Plan Staking' }}</td>
+                        <td class="font-semibold">{{ "%.2f"|format(investment.amount) }} USDT</td>
+                        <td>{{ investment.duration_days or 'N/A' }} jours</td>
+                        <td class="text-green-600">{{ "%.1f"|format((investment.annual_rate or 0) * 100) }}%</td>
+                        <td class="text-gray-600">{{ investment.start_date[:10] if investment.start_date else 'N/A' }}</td>
+                        <td class="text-gray-600">{{ investment.end_date[:10] if investment.end_date else 'N/A' }}</td>
+                        <td>
+                            <span class="status-indicator status-{{ 'active' if investment.is_active else 'completed' }}">
+                                {{ 'Actif' if investment.is_active else 'Terminé' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Bots de Trading -->
+    {% if trading_bots %}
+    <div class="chat-bubble">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">🤖 Bots de Trading IA</h2>
+        
+        <div class="overflow-x-auto">
+            <table class="messenger-table">
+                <thead>
+                    <tr>
+                        <th>Stratégie</th>
+                        <th>Montant</th>
+                        <th>Profit quotidien</th>
+                        <th>Total gagné</th>
+                        <th>Niveau de risque</th>
+                        <th>Date début</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bot in trading_bots %}
+                    <tr class="investment-row" data-type="trading" data-status="{{ 'active' if bot.is_active else 'completed' }}" data-date="{{ bot.start_date }}">
+                        <td class="font-medium">{{ bot.strategy_name or 'Bot Trading' }}</td>
+                        <td class="font-semibold">{{ "%.2f"|format(bot.amount) }} USDT</td>
+                        <td class="font-bold text-green-600">{{ "%.2f"|format(bot.daily_profit or 0) }} USDT</td>
+                        <td class="font-bold" style="color: var(--messenger-blue)">{{ "%.2f"|format(bot.total_profit or 0) }} USDT</td>
+                        <td>
+                            <span class="px-2 py-1 rounded-full text-xs font-medium
+                                {{ 'bg-green-100 text-green-800' if bot.risk_level == 'Faible' 
+                                   else 'bg-yellow-100 text-yellow-800' if bot.risk_level == 'Moyen'
+                                   else 'bg-red-100 text-red-800' }}">
+                                {{ bot.risk_level or 'N/A' }}
+                            </span>
+                        </td>
+                        <td class="text-gray-600">{{ bot.start_date[:10] if bot.start_date else 'N/A' }}</td>
+                        <td>
+                            <span class="status-indicator status-{{ 'active' if bot.is_active else 'completed' }}">
+                                {{ 'Actif' if bot.is_active else 'Terminé' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Copy Trading -->
+    {% if copy_trades %}
+    <div class="chat-bubble">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">📈 Copy Trading</h2>
+        
+        <div class="overflow-x-auto">
+            <table class="messenger-table">
+                <thead>
+                    <tr>
+                        <th>Trader</th>
+                        <th>Montant</th>
+                        <th>Ratio de copie</th>
+                        <th>Total gagné</th>
+                        <th>Retour total trader</th>
+                        <th>Date début</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trade in copy_trades %}
+                    <tr class="investment-row" data-type="copy" data-status="{{ 'active' if trade.is_active else 'completed' }}" data-date="{{ trade.start_date }}">
+                        <td class="font-medium">{{ trade.trader_name or 'Trader' }}</td>
+                        <td class="font-semibold">{{ "%.2f"|format(trade.amount) }} USDT</td>
+                        <td>{{ "%.1f"|format((trade.copy_ratio or 1) * 100) }}%</td>
+                        <td class="font-bold" style="color: var(--messenger-blue)">{{ "%.2f"|format(trade.total_profit or 0) }} USDT</td>
+                        <td class="text-green-600">{{ "%.1f"|format(trade.total_return or 0) }}%</td>
+                        <td class="text-gray-600">{{ trade.start_date[:10] if trade.start_date else 'N/A' }}</td>
+                        <td>
+                            <span class="status-indicator status-{{ 'active' if trade.is_active else 'completed' }}">
+                                {{ 'Actif' if trade.is_active else 'Terminé' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Investissements dans les projets -->
+    {% if project_investments %}
+    <div class="chat-bubble">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">🚀 Investissements Projets</h2>
+        
+        <div class="overflow-x-auto">
+            <table class="messenger-table">
+                <thead>
+                    <tr>
+                        <th>Projet</th>
+                        <th>Montant</th>
+                        <th>Rendement attendu</th>
+                        <th>Date investissement</th>
+                        <th>Statut projet</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for investment in project_investments %}
+                    <tr class="investment-row" data-type="project" data-status="active" data-date="{{ investment.investment_date }}">
+                        <td class="font-medium">{{ investment.title or 'Projet' }}</td>
+                        <td class="font-semibold">{{ "%.2f"|format(investment.amount) }} USDT</td>
+                        <td class="text-green-600">{{ "%.0f"|format((investment.expected_return or 0) * 100) }}%</td>
+                        <td class="text-gray-600">{{ investment.investment_date[:10] if investment.investment_date else 'N/A' }}</td>
+                        <td>
+                            <span class="status-indicator status-{{ 'pending' if investment.status == 'collecting' else 'active' if investment.status == 'active' else 'completed' }}">
+                                {{ investment.status.title() if investment.status else 'En cours' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Message si aucun investissement -->
+    {% if not all_investments %}
+    <div class="chat-bubble text-center py-12">
+        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-chart-line text-2xl text-white"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Aucun investissement trouvé</h3>
+        <p class="text-gray-600 mb-4">Vous n'avez pas encore d'historique d'investissement.</p>
+        <div class="space-y-2">
+            <a href="{{ url_for('ultra_plans') }}" class="messenger-btn inline-flex items-center">
+                <i class="fas fa-rocket mr-2"></i>Découvrir les plans premium
+            </a>
+            <button onclick="restoreInvestments()" class="messenger-btn bg-orange-500 hover:bg-orange-600 inline-flex items-center">
+                <i class="fas fa-history mr-2"></i>Restaurer mes investissements
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function filterInvestments() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const typeFilter = document.getElementById('typeFilter').value;
+    const dateFromFilter = document.getElementById('dateFromFilter').value;
+    const dateToFilter = document.getElementById('dateToFilter').value;
+
+    const rows = document.querySelectorAll('.investment-row, .mobile-card');
+
+    rows.forEach(row => {
+        let show = true;
+
+        // Filtre par statut
+        if (statusFilter !== 'all') {
+            const rowStatus = row.getAttribute('data-status');
+            if (rowStatus !== statusFilter) {
+                show = false;
+            }
+        }
+
+        // Filtre par type
+        if (typeFilter !== 'all') {
+            const rowType = row.getAttribute('data-type');
+            if (rowType !== typeFilter) {
+                show = false;
+            }
+        }
+
+        // Filtre par date
+        if (dateFromFilter || dateToFilter) {
+            const rowDate = row.getAttribute('data-date');
+            if (rowDate) {
+                const investmentDate = new Date(rowDate);
+                
+                if (dateFromFilter && investmentDate < new Date(dateFromFilter)) {
+                    show = false;
+                }
+                
+                if (dateToFilter && investmentDate > new Date(dateToFilter)) {
+                    show = false;
+                }
+            }
+        }
+
+        row.style.display = show ? '' : 'none';
+    });
+}
+
+function viewDetails(type, id) {
+    // Fonction pour voir les détails d'un investissement
+    showNotification(`Détails de l'investissement ${type} #${id} - Fonctionnalité à venir`, 'info');
+}
+
+function refreshData() {
+    showNotification('Actualisation des données...', 'info');
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+// Fonction de restauration d'investissements (déjà définie dans dashboard.html)
+async function restoreInvestments() {
+    if (!confirm('⚠️ Cette action va restaurer vos investissements perdus. Êtes-vous sûr de vouloir continuer ?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/restore-investments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('✅ ' + data.message, 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showNotification('❌ ' + (data.error || 'Erreur lors de la restauration'), 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Erreur de connexion', 'error');
+    }
+}
+</script>
+
+<style>
+.mobile-card {
+    @apply bg-gradient-to-r from-gray-50 to-white p-4 rounded-2xl border border-gray-200;
+}
+
+.investment-row:hover {
+    @apply bg-gray-50;
+}
+
+.status-indicator {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+}
+
+.status-active {
+    @apply bg-green-100 text-green-800;
+}
+
+.status-completed {
+    @apply bg-gray-100 text-gray-800;
+}
+
+.status-pending {
+    @apply bg-yellow-100 text-yellow-800;
+}
+</style>
+{% endblock %}

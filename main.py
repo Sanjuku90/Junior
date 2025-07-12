@@ -1238,6 +1238,122 @@ def invest_roi():
 
 
 
+@app.route('/investment-history')
+@login_required
+def investment_history():
+    """Page d'historique complet des investissements"""
+    conn = get_db_connection()
+
+    # Récupérer tous les investissements ROI de l'utilisateur
+    roi_investments = conn.execute('''
+        SELECT ui.*, rp.name as plan_name
+        FROM user_investments ui
+        LEFT JOIN roi_plans rp ON ui.plan_id = rp.id
+        WHERE ui.user_id = ?
+        ORDER BY ui.start_date DESC
+    ''', (session['user_id'],)).fetchall()
+
+    # Récupérer tous les investissements staking
+    staking_investments = conn.execute('''
+        SELECT us.*, sp.name as plan_name, sp.duration_days, sp.annual_rate
+        FROM user_staking us
+        LEFT JOIN staking_plans sp ON us.plan_id = sp.id
+        WHERE us.user_id = ?
+        ORDER BY us.start_date DESC
+    ''', (session['user_id'],)).fetchall()
+
+    # Récupérer tous les bots de trading
+    trading_bots = conn.execute('''
+        SELECT utb.*, ts.name as strategy_name, ts.risk_level
+        FROM user_trading_bots utb
+        LEFT JOIN trading_strategies ts ON utb.strategy_id = ts.id
+        WHERE utb.user_id = ?
+        ORDER BY utb.start_date DESC
+    ''', (session['user_id'],)).fetchall()
+
+    # Récupérer tous les copy trades
+    copy_trades = conn.execute('''
+        SELECT uct.*, tt.name as trader_name, tt.total_return
+        FROM user_copy_trading uct
+        LEFT JOIN top_traders tt ON uct.trader_id = tt.id
+        WHERE uct.user_id = ?
+        ORDER BY uct.start_date DESC
+    ''', (session['user_id'],)).fetchall()
+
+    # Récupérer les investissements dans les projets
+    project_investments = conn.execute('''
+        SELECT pi.*, p.title, p.status, p.expected_return
+        FROM project_investments pi
+        JOIN projects p ON pi.project_id = p.id
+        WHERE pi.user_id = ?
+        ORDER BY pi.investment_date DESC
+    ''', (session['user_id'],)).fetchall()
+
+    conn.close()
+
+    # Combiner tous les investissements pour les statistiques
+    all_investments = []
+    
+    # Ajouter les investissements ROI
+    for inv in roi_investments:
+        all_investments.append({
+            'id': inv['id'],
+            'type': 'roi',
+            'amount': inv['amount'],
+            'total_earned': inv.get('total_earned', 0),
+            'is_active': inv['is_active'],
+            'start_date': inv['start_date']
+        })
+    
+    # Ajouter les autres types d'investissements
+    for inv in staking_investments:
+        all_investments.append({
+            'id': inv['id'],
+            'type': 'staking',
+            'amount': inv['amount'],
+            'total_earned': inv.get('total_earned', 0),
+            'is_active': inv['is_active'],
+            'start_date': inv['start_date']
+        })
+    
+    for bot in trading_bots:
+        all_investments.append({
+            'id': bot['id'],
+            'type': 'trading',
+            'amount': bot['amount'],
+            'total_earned': bot.get('total_profit', 0),
+            'is_active': bot['is_active'],
+            'start_date': bot['start_date']
+        })
+    
+    for trade in copy_trades:
+        all_investments.append({
+            'id': trade['id'],
+            'type': 'copy',
+            'amount': trade['amount'],
+            'total_earned': trade.get('total_profit', 0),
+            'is_active': trade['is_active'],
+            'start_date': trade['start_date']
+        })
+    
+    for proj in project_investments:
+        all_investments.append({
+            'id': proj['id'],
+            'type': 'project',
+            'amount': proj['amount'],
+            'total_earned': 0,  # Les projets n'ont pas encore de gains
+            'is_active': True,
+            'start_date': proj['investment_date']
+        })
+
+    return render_template('investment_history.html',
+                         roi_investments=roi_investments,
+                         staking_investments=staking_investments,
+                         trading_bots=trading_bots,
+                         copy_trades=copy_trades,
+                         project_investments=project_investments,
+                         all_investments=all_investments)
+
 @app.route('/projects')
 @login_required
 def projects():
