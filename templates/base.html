@@ -849,76 +849,7 @@
             font-size: 0.8rem;
 
 
-    <script>
-        // Support Widget Functions
-        function toggleSupportChat() {
-            const chat = document.getElementById('supportChat');
-            chat.classList.toggle('active');
-        }
-
-        function closeSupportChat() {
-            const chat = document.getElementById('supportChat');
-            chat.classList.remove('active');
-        }
-
-        function sendSupportMessage(event) {
-            event.preventDefault();
-            
-            const messageInput = event.target.querySelector('textarea');
-            const message = messageInput.value.trim();
-            
-            if (!message) return;
-
-            // Ajouter le message de l'utilisateur
-            const messageArea = document.getElementById('messageArea');
-            const userMessage = document.createElement('div');
-            userMessage.innerHTML = `
-                <div style="text-align: right; margin-bottom: 12px;">
-                    <div style="display: inline-block; background: #667eea; color: white; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px;">
-                        ${message}
-                    </div>
-                </div>
-            `;
-            messageArea.appendChild(userMessage);
-
-            // Vider le champ
-            messageInput.value = '';
-
-            // Scroll vers le bas
-            messageArea.scrollTop = messageArea.scrollHeight;
-
-            // Simuler une réponse automatique
-            setTimeout(() => {
-                const botResponse = document.createElement('div');
-                botResponse.innerHTML = `
-                    <div class="bot-message">
-                        <i class="fas fa-robot"></i>
-                        <div>
-                            <strong>Support</strong>
-                            <p>Merci pour votre message ! Un agent va vous répondre dans les plus brefs délais. Pour une assistance immédiate, vous pouvez créer un ticket de support.</p>
-                        </div>
-                    </div>
-                `;
-                messageArea.appendChild(botResponse);
-                messageArea.scrollTop = messageArea.scrollHeight;
-            }, 1000);
-        }
-
-        // Fermer le chat en cliquant à l'extérieur
-        document.addEventListener('click', function(event) {
-            const widget = document.getElementById('supportWidget');
-            const chat = document.getElementById('supportChat');
-            
-            if (widget && !widget.contains(event.target)) {
-                chat.classList.remove('active');
-            }
-        });
-
-        // Empêcher la fermeture quand on clique dans le chat
-        document.getElementById('supportChat')?.addEventListener('click', function(event) {
-            event.stopPropagation();
-        });
-    </script>
+    
 
             color: var(--text-muted);
             margin-top: 0.25rem;
@@ -1276,60 +1207,6 @@
             </div>
         </div>
     </div>
-    {% endif %} id="supportForm">
-                    <div class="form-group">
-                        <label for="subject" class="form-label">Sujet</label>
-                        <input type="text" id="subject" name="subject" required placeholder="Décrivez votre problème" class="professional-input">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="category" class="form-label">Catégorie</label>
-                        <select id="category" name="category" required class="professional-select">
-                            <option value="">Sélectionnez une catégorie</option>
-                            <option value="wallet">💰 Portefeuille & Transactions</option>
-                            <option value="investment">📈 Investissements</option>
-                            <option value="technical">🔧 Problème technique</option>
-                            <option value="account">👤 Compte & Sécurité</option>
-                            <option value="general">💬 Question générale</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="priority" class="form-label">Priorité</label>
-                        <select id="priority" name="priority" required class="professional-select">
-                            <option value="normal">🟢 Normale</option>
-                            <option value="high">🟡 Haute</option>
-                            <option value="urgent">🔴 Urgente</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="message" class="form-label">Message</label>
-                        <textarea id="message" name="message" required placeholder="Décrivez votre problème en détail..." class="professional-input" rows="4"></textarea>
-                    </div>
-                    
-                    <button type="submit" class="btn-primary w-full">
-                        <i class="fas fa-paper-plane"></i>
-                        Envoyer la demande
-                    </button>
-                </form>
-                
-                <div class="faq-section">
-                    <div class="faq-title">💡 Questions Fréquentes</div>
-                    
-                    <div class="faq-item">
-                        <div class="faq-question">Comment effectuer un dépôt ?</div>
-                        <div class="faq-answer">Rendez-vous dans votre dashboard et cliquez sur "Déposer".</div>
-                    </div>
-                    
-                    <div class="faq-item">
-                        <div class="faq-question">Quand reçois-je mes profits ?</div>
-                        <div class="faq-answer">Les profits quotidiens sont crédités automatiquement chaque jour.</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <style>
         .support-widget {
@@ -1558,155 +1435,6 @@
                 right: -10px;
                 height: 350px;
             }
-        }content: space-between;
-            align-items: center;
-        }
-
-        .chat-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-
-        .close-chat {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s ease;
-        }
-
-        .close-chat:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .chat-body {
-            flex: 1;
-            padding: 1.5rem;
-            overflow-y: auto;
-            background: var(--bg-secondary);
-        }
-
-        .support-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .success-message, .error-message {
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .success-message {
-            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
-
-        .error-message {
-            background: linear-gradient(135deg, #fef2f2, #fecaca);
-            color: #991b1b;
-            border: 1px solid #fca5a5;
-        }
-
-        .faq-section {
-            margin-top: 2rem;
-        }
-
-        .faq-title {
-            font-weight: 700;
-            margin-bottom: 1rem;
-            color: var(--text-primary);
-            font-size: 1rem;
-        }
-
-        .faq-item {
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background: var(--bg-card);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        .faq-question {
-            font-weight: 600;
-            color: var(--accent-blue);
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .faq-answer {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            line-height: 1.5;
-        }
-
-        @media (max-width: 768px) {
-            .support-chat {
-                width: calc(100vw - 2rem);
-                height: 75vh;
-                bottom: 70px;
-                right: 1rem;
-                left: 1rem;
-                max-width: 380px;
-            }
-
-            .support-button {
-                width: 56px;
-                height: 56px;
-                font-size: 20px;
-                border-radius: 16px;
-            }
-
-            .chat-body {
-                padding: 1rem;
-            }
-
-            .faq-item {
-                padding: 0.875rem;
-            }
-
-            .faq-question {
-                font-size: 0.85rem;
-            }
-
-            .faq-answer {
-                font-size: 0.8rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .support-chat {
-                width: calc(100vw - 1rem);
-                height: 80vh;
-                bottom: 60px;
-                right: 0.5rem;
-                left: 0.5rem;
-            }
-
-            .support-button {
-                width: 52px;
-                height: 52px;
-                font-size: 18px;
-            }
-
-            .chat-header {
-                padding: 1.25rem;
-            }
-
-            .chat-title {
-                font-size: 1rem;
-            }
         }
     </style>
 
@@ -1721,65 +1449,62 @@
             chat.classList.remove('active');
         }
 
-        function showMessage(message, type = 'success') {
+        function sendSupportMessage(event) {
+            event.preventDefault();
+            
+            const messageInput = event.target.querySelector('textarea');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+
+            // Ajouter le message de l'utilisateur
             const messageArea = document.getElementById('messageArea');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
-            messageDiv.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} mr-2"></i>
-                    ${message}
+            const userMessage = document.createElement('div');
+            userMessage.innerHTML = `
+                <div style="text-align: right; margin-bottom: 12px;">
+                    <div style="display: inline-block; background: #667eea; color: white; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 14px;">
+                        ${message}
+                    </div>
                 </div>
             `;
-            messageArea.appendChild(messageDiv);
-            
+            messageArea.appendChild(userMessage);
+
+            // Vider le champ
+            messageInput.value = '';
+
+            // Scroll vers le bas
+            messageArea.scrollTop = messageArea.scrollHeight;
+
+            // Simuler une réponse automatique
             setTimeout(() => {
-                messageDiv.remove();
-            }, 5000);
+                const botResponse = document.createElement('div');
+                botResponse.innerHTML = `
+                    <div class="bot-message">
+                        <i class="fas fa-robot"></i>
+                        <div>
+                            <strong>Support</strong>
+                            <p>Merci pour votre message ! Un agent va vous répondre dans les plus brefs délais. Pour une assistance immédiate, vous pouvez créer un ticket de support.</p>
+                        </div>
+                    </div>
+                `;
+                messageArea.appendChild(botResponse);
+                messageArea.scrollTop = messageArea.scrollHeight;
+            }, 1000);
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const supportForm = document.getElementById('supportForm');
-            if (supportForm) {
-                supportForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.innerHTML;
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi en cours...';
-                    
-                    const formData = new FormData(this);
-                    const data = Object.fromEntries(formData);
-                    
-                    try {
-                        const response = await fetch('/support/create-ticket', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(data)
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            showMessage('✅ Votre demande de support a été envoyée avec succès !', 'success');
-                            this.reset();
-                            setTimeout(() => {
-                                closeSupportChat();
-                            }, 3000);
-                        } else {
-                            showMessage('❌ ' + (result.error || 'Une erreur s\'est produite.'), 'error');
-                        }
-                    } catch (error) {
-                        showMessage('❌ Erreur de connexion. Veuillez réessayer.', 'error');
-                    } finally {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalText;
-                    }
-                });
+        // Fermer le chat en cliquant à l'extérieur
+        document.addEventListener('click', function(event) {
+            const widget = document.getElementById('supportWidget');
+            const chat = document.getElementById('supportChat');
+            
+            if (widget && !widget.contains(event.target)) {
+                chat.classList.remove('active');
             }
+        });
+
+        // Empêcher la fermeture quand on clique dans le chat
+        document.getElementById('supportChat')?.addEventListener('click', function(event) {
+            event.stopPropagation();
         });
     </script>
     {% endif %}
