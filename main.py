@@ -150,9 +150,16 @@ def init_db():
             status TEXT DEFAULT 'pending',
             transaction_hash TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
     ''')
+
+    # Add missing columns to existing tables
+    try:
+        cursor.execute('ALTER TABLE transactions ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
+    except sqlite3.OperationalError:
+        pass  # Column already exists
 
     # Notifications table
     cursor.execute('''
@@ -1596,11 +1603,22 @@ def approve_transaction(transaction_id):
 
             if transaction['type'] == 'deposit':
                 # Approuver le dépôt - créditer le compte
-                conn.execute('''
-                    UPDATE users 
-                    SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP 
-                    WHERE id = ?
-                ''', (transaction['amount'], transaction['user_id']))
+                try:
+                    conn.execute('''
+                        UPDATE users 
+                        SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP 
+                        WHERE id = ?
+                    ''', (transaction['amount'], transaction['user_id']))
+                except sqlite3.OperationalError as e:
+                    if "no such column: updated_at" in str(e):
+                        # Fallback if updated_at column doesn't exist
+                        conn.execute('''
+                            UPDATE users 
+                            SET balance = balance + ? 
+                            WHERE id = ?
+                        ''', (transaction['amount'], transaction['user_id']))
+                    else:
+                        raise e
 
                 # Log de sécurité
                 log_security_action(
@@ -1635,11 +1653,22 @@ def approve_transaction(transaction_id):
                 )
 
             # Marquer comme complété
-            conn.execute('''
-                UPDATE transactions 
-                SET status = 'completed', updated_at = CURRENT_TIMESTAMP 
-                WHERE id = ?
-            ''', (transaction_id,))
+            try:
+                conn.execute('''
+                    UPDATE transactions 
+                    SET status = 'completed', updated_at = CURRENT_TIMESTAMP 
+                    WHERE id = ?
+                ''', (transaction_id,))
+            except sqlite3.OperationalError as e:
+                if "no such column: updated_at" in str(e):
+                    # Fallback if updated_at column doesn't exist
+                    conn.execute('''
+                        UPDATE transactions 
+                        SET status = 'completed' 
+                        WHERE id = ?
+                    ''', (transaction_id,))
+                else:
+                    raise e
 
             conn.commit()
             
