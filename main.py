@@ -286,6 +286,20 @@ def init_db():
         )
     ''')
 
+    # Security Logs table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS security_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            action TEXT NOT NULL,
+            details TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
     # Insert default FAQ entries
     cursor.execute('''
         INSERT OR IGNORE INTO faq (question, answer, category) VALUES 
@@ -1309,13 +1323,35 @@ def security_settings():
     conn = get_db_connection()
     user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
     
+    # Créer la table security_logs si elle n'existe pas
+    try:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS security_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                action TEXT NOT NULL,
+                details TEXT,
+                ip_address TEXT,
+                user_agent TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        conn.commit()
+    except Exception as e:
+        print(f"Erreur création table security_logs: {e}")
+    
     # Récupérer les logs de sécurité récents
-    security_logs = conn.execute('''
-        SELECT * FROM security_logs 
-        WHERE user_id = ? 
-        ORDER BY created_at DESC 
-        LIMIT 10
-    ''', (session['user_id'],)).fetchall()
+    try:
+        security_logs = conn.execute('''
+            SELECT * FROM security_logs 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC 
+            LIMIT 10
+        ''', (session['user_id'],)).fetchall()
+    except Exception as e:
+        print(f"Erreur récupération logs: {e}")
+        security_logs = []
     
     conn.close()
     
