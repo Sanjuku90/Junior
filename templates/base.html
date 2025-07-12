@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -667,7 +668,7 @@
                 .xs\:hidden {
                     display: none !important;
                 }
-
+                
                 .btn-primary, .btn-secondary {
                     padding: 0.5rem;
                     min-width: 40px;
@@ -947,7 +948,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <button id="mobile-menu-button" class="btn-primary p-3">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -1141,11 +1142,11 @@
             if (element.style.position !== 'relative') {
                 element.style.position = 'relative';
             }
-
+            
             const overlay = document.createElement('div');
             overlay.className = 'loading-overlay';
             overlay.innerHTML = '<div class="loading-spinner"></div>';
-
+            
             element.appendChild(overlay);
             return overlay;
         }
@@ -1163,7 +1164,7 @@
         <button class="support-button" onclick="toggleSupportChat()" title="Support Client">
             <i class="fas fa-comment-alt"></i>
         </button>
-
+        
         <div class="support-chat" id="supportChat">
             <div class="chat-header">
                 <div class="flex items-center gap-3">
@@ -1174,16 +1175,16 @@
                 </div>
                 <button class="close-chat" onclick="closeSupportChat()">&times;</button>
             </div>
-
+            
             <div class="chat-body">
                 <div id="messageArea"></div>
-
+                
                 <form class="support-form" id="supportForm">
                     <div class="form-group">
                         <label for="subject" class="form-label">Sujet</label>
                         <input type="text" id="subject" name="subject" required placeholder="Décrivez votre problème" class="professional-input">
                     </div>
-
+                    
                     <div class="form-group">
                         <label for="category" class="form-label">Catégorie</label>
                         <select id="category" name="category" required class="professional-select">
@@ -1195,7 +1196,7 @@
                             <option value="general">💬 Question générale</option>
                         </select>
                     </div>
-
+                    
                     <div class="form-group">
                         <label for="priority" class="form-label">Priorité</label>
                         <select id="priority" name="priority" required class="professional-select">
@@ -1204,26 +1205,26 @@
                             <option value="urgent">🔴 Urgente</option>
                         </select>
                     </div>
-
+                    
                     <div class="form-group">
                         <label for="message" class="form-label">Message</label>
                         <textarea id="message" name="message" required placeholder="Décrivez votre problème en détail..." class="professional-input" rows="4"></textarea>
                     </div>
-
+                    
                     <button type="submit" class="btn-primary w-full">
                         <i class="fas fa-paper-plane"></i>
                         Envoyer la demande
                     </button>
                 </form>
-
+                
                 <div class="faq-section">
                     <div class="faq-title">💡 Questions Fréquentes</div>
-
+                    
                     <div class="faq-item">
                         <div class="faq-question">Comment effectuer un dépôt ?</div>
                         <div class="faq-answer">Rendez-vous dans votre dashboard et cliquez sur "Déposer".</div>
                     </div>
-
+                    
                     <div class="faq-item">
                         <div class="faq-question">Quand reçois-je mes profits ?</div>
                         <div class="faq-answer">Les profits quotidiens sont crédités automatiquement chaque jour.</div>
@@ -1461,7 +1462,7 @@
                 </div>
             `;
             messageArea.appendChild(messageDiv);
-
+            
             setTimeout(() => {
                 messageDiv.remove();
             }, 5000);
@@ -1472,15 +1473,15 @@
             if (supportForm) {
                 supportForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
-
+                    
                     const submitBtn = this.querySelector('button[type="submit"]');
                     const originalText = submitBtn.innerHTML;
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Envoi en cours...';
-
+                    
                     const formData = new FormData(this);
                     const data = Object.fromEntries(formData);
-
+                    
                     try {
                         const response = await fetch('/support/create-ticket', {
                             method: 'POST',
@@ -1489,9 +1490,9 @@
                             },
                             body: JSON.stringify(data)
                         });
-
+                        
                         const result = await response.json();
-
+                        
                         if (result.success) {
                             showMessage('✅ Votre demande de support a été envoyée avec succès !', 'success');
                             this.reset();
