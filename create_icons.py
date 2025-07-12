@@ -46,40 +46,31 @@ def create_icon(size, filename):
     # Symbole crypto moderne et sophistiqué
     symbol_size = size // 2.5
     
-    # Dessiner un logo "C" stylisé pour Crypto
+    # Dessiner un logo "T" stylisé pour Ttrust
     line_width = max(3, size // 24)
     
-    # Calculer les positions pour le "C"
-    c_radius = symbol_size // 2
-    c_center_x, c_center_y = center_x, center_y
+    # Calculer les positions pour le "T"
+    t_width = symbol_size
+    t_height = symbol_size
+    t_center_x, t_center_y = center_x, center_y
     
-    # Créer le "C" avec des arcs élégants
-    # Arc extérieur
-    outer_bbox = (c_center_x - c_radius, c_center_y - c_radius,
-                  c_center_x + c_radius, c_center_y + c_radius)
-    
-    # Arc intérieur
-    inner_radius = c_radius - line_width
-    inner_bbox = (c_center_x - inner_radius, c_center_y - inner_radius,
-                  c_center_x + inner_radius, c_center_y + inner_radius)
-    
-    # Dessiner le "C" en or avec effet métallique
-    # Partie principale du C
-    angles = [180, 0]  # Ouverture à droite
-    
-    # Créer un masque pour le "C"
+    # Créer le "T" moderne et élégant
+    # Créer un masque pour le "T"
     mask = Image.new('L', (size, size), 0)
     mask_draw = ImageDraw.Draw(mask)
     
-    # Dessiner le cercle complet puis soustraire l'intérieur et l'ouverture
-    mask_draw.ellipse(outer_bbox, fill=255)
-    mask_draw.ellipse(inner_bbox, fill=0)
+    # Barre horizontale du T (en haut)
+    bar_top = t_center_y - t_height // 2
+    bar_height = line_width
+    horizontal_bar = (t_center_x - t_width // 2, bar_top,
+                     t_center_x + t_width // 2, bar_top + bar_height)
+    mask_draw.rectangle(horizontal_bar, fill=255)
     
-    # Créer l'ouverture du "C" (côté droit)
-    opening_width = line_width * 1.5
-    opening_bbox = (c_center_x, c_center_y - opening_width // 2,
-                   c_center_x + c_radius + 5, c_center_y + opening_width // 2)
-    mask_draw.rectangle(opening_bbox, fill=0)
+    # Barre verticale du T (au centre)
+    vertical_width = line_width
+    vertical_bar = (t_center_x - vertical_width // 2, bar_top,
+                   t_center_x + vertical_width // 2, t_center_y + t_height // 2)
+    mask_draw.rectangle(vertical_bar, fill=255)
     
     # Appliquer le dégradé doré
     for y in range(size):
@@ -95,7 +86,7 @@ def create_icon(size, filename):
                 
                 # Ajouter un effet de brillance
                 distance_from_center = math.sqrt((x - center_x)**2 + (y - center_y)**2)
-                if distance_from_center < c_radius * 0.3:
+                if distance_from_center < t_width * 0.3:
                     brightness = 1.2
                     r = min(255, int(r * brightness))
                     g = min(255, int(g * brightness))
@@ -104,17 +95,24 @@ def create_icon(size, filename):
                 draw.point((x, y), fill=(r, g, b, 255))
     
     # Ajouter des détails de finition
-    # Points d'accent aux extrémités du "C"
+    # Points d'accent aux extrémités du "T"
     accent_size = max(2, size // 32)
     
-    # Point haut
-    top_y = center_y - c_radius + line_width // 2
-    draw.ellipse((center_x - accent_size, top_y - accent_size,
-                 center_x + accent_size, top_y + accent_size), 
+    # Points aux extrémités de la barre horizontale
+    left_x = center_x - t_width // 2
+    right_x = center_x + t_width // 2
+    bar_y = center_y - t_height // 2 + line_width // 2
+    
+    draw.ellipse((left_x - accent_size, bar_y - accent_size,
+                 left_x + accent_size, bar_y + accent_size), 
                 fill=(255, 255, 255, 200))
     
-    # Point bas
-    bottom_y = center_y + c_radius - line_width // 2
+    draw.ellipse((right_x - accent_size, bar_y - accent_size,
+                 right_x + accent_size, bar_y + accent_size), 
+                fill=(255, 255, 255, 200))
+    
+    # Point en bas de la barre verticale
+    bottom_y = center_y + t_height // 2
     draw.ellipse((center_x - accent_size, bottom_y - accent_size,
                  center_x + accent_size, bottom_y + accent_size), 
                 fill=(255, 255, 255, 200))
@@ -133,7 +131,7 @@ def create_icon(size, filename):
                 alpha = int(60 * (1 - distance / (highlight_size // 2)))
                 highlight_draw.point((i, j), fill=(255, 255, 255, alpha))
     
-    img.paste(highlight_gradient, (highlight_x, highlight_y), highlight_gradient)
+    img.paste(highlight_gradient, (int(highlight_x), int(highlight_y)), highlight_gradient)
     
     # Sauvegarder l'icône
     img.save(filename, 'PNG')
@@ -156,31 +154,26 @@ def create_favicon():
             b = int(42 + (246 - 42) * progress)
             draw.rectangle([(0, y), (size, y+1)], fill=(r, g, b, 255))
         
-        # Symbole "C" simplifié pour favicon
+        # Symbole "T" simplifié pour favicon
         center = size // 2
         if size >= 32:
             # Version détaillée pour les grandes tailles
-            radius = size // 3
+            t_size = size // 2
             line_width = max(2, size // 16)
             
-            # Cercle de fond
-            draw.ellipse([center - radius, center - radius, center + radius, center + radius], 
-                        fill=(255, 215, 0, 255))
+            # Barre horizontale
+            draw.rectangle([center - t_size//2, 2, center + t_size//2, 2 + line_width], 
+                          fill=(255, 215, 0, 255))
             
-            # Créer l'ouverture du "C"
-            inner_radius = radius - line_width
-            draw.ellipse([center - inner_radius, center - inner_radius, 
-                         center + inner_radius, center + inner_radius], 
-                        fill=(0, 0, 0, 0))
-            
-            # Ouverture droite
-            draw.rectangle([center, center - line_width//2, size, center + line_width//2], 
-                          fill=(0, 0, 0, 0))
+            # Barre verticale
+            draw.rectangle([center - line_width//2, 2, center + line_width//2, size - 2], 
+                          fill=(255, 215, 0, 255))
         else:
             # Version ultra-simplifiée pour 16x16
-            draw.ellipse([2, 2, size-2, size-2], fill=(255, 215, 0, 255))
-            draw.ellipse([4, 4, size-4, size-4], fill=(0, 0, 0, 0))
-            draw.rectangle([center, center-1, size, center+1], fill=(0, 0, 0, 0))
+            # Barre horizontale
+            draw.rectangle([2, 2, size-2, 4], fill=(255, 215, 0, 255))
+            # Barre verticale
+            draw.rectangle([center-1, 2, center+1, size-2], fill=(255, 215, 0, 255))
         
         images.append(img)
     
@@ -190,7 +183,7 @@ def create_favicon():
 
 def main():
     """Créer toutes les icônes PWA avec design professionnel"""
-    print("🎨 Création des icônes PWA professionnelles pour InvestCrypto Pro...")
+    print("🎨 Création des icônes PWA professionnelles pour Ttrust...")
     
     # Créer le dossier icons s'il n'existe pas
     os.makedirs('static/icons', exist_ok=True)
@@ -206,7 +199,7 @@ def main():
     create_favicon()
     
     print("\n🎉 Icônes PWA professionnelles créées avec succès!")
-    print("💼 Design corporate moderne avec logo 'C' doré sur fond dégradé bleu")
+    print("💼 Design corporate moderne avec logo 'T' doré sur fond dégradé bleu")
     print("📱 Optimisées pour tous les appareils et tailles d'écran!")
 
 if __name__ == "__main__":

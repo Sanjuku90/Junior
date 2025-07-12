@@ -237,7 +237,7 @@ self.addEventListener('push', event => {
   
   const data = event.data.json();
   const options = {
-    body: data.body || 'Nouvelle notification InvestCrypto Pro',
+    body: data.body || 'Nouvelle notification Ttrust',
     icon: '/static/icons/icon-192x192.png',
     badge: '/static/icons/badge-72x72.png',
     vibrate: [200, 100, 200],
@@ -259,7 +259,7 @@ self.addEventListener('push', event => {
   };
   
   event.waitUntil(
-    self.registration.showNotification(data.title || 'InvestCrypto Pro', options)
+    self.registration.showNotification(data.title || 'Ttrust', options)
   );
 });
 
