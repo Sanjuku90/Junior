@@ -2158,8 +2158,23 @@ Démocratiser l'investissement crypto et offrir des rendements exceptionnels à 
     elif data == "faq":
         await show_faq(update, context)
 
-    elif data == "change_password":
-        await show_change_password(update, context)
+    elif data == "security_settings":
+        await show_security_settings(update, context)
+        
+    elif data == "2fa_settings":
+        await show_2fa_settings(update, context)
+        
+    elif data == "security_logs":
+        await show_security_logs(update, context)
+        
+    elif data == "change_password_start":
+        await show_change_password_start(update, context)
+        
+    elif data == "enable_2fa_start":
+        await enable_2fa_telegram(update, context)
+        
+    elif data == "disable_2fa_confirm":
+        await disable_2fa_telegram(update, context)
 
     elif data == "full_history":
         await show_full_history(update, context)
@@ -2235,7 +2250,7 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.close()
 
     keyboard = [
-        [InlineKeyboardButton("🔄 Changer mot de passe", callback_data="change_password")],
+        [InlineKeyboardButton("🔐 Sécurité du compte", callback_data="security_settings")],
         [InlineKeyboardButton("📋 Historique complet", callback_data="full_history")],
         [InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")]
     ]
@@ -2257,6 +2272,9 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         created_date = "Non disponible"
 
+    # Statut de sécurité
+    security_status = "🔒 Sécurisé" if user.get('two_fa_enabled') else "⚠️ Non sécurisé"
+
     # Sécuriser les valeurs pour éviter les erreurs Markdown - échapper les caractères spéciaux
     first_name = str(user['first_name'] or 'Utilisateur').replace('_', '\\_').replace('*', '\\*').replace('[', '\\[').replace(']', '\\]').replace('(', '\\(').replace(')', '\\)')
     last_name = str(user['last_name'] or '').replace('_', '\\_').replace('*', '\\*').replace('[', '\\[').replace(']', '\\]').replace('(', '\\(').replace(')', '\\)')
@@ -2274,6 +2292,7 @@ async def show_profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 *Statut compte :*
 • Niveau : {level}
 • KYC : {kyc_status}
+• Sécurité : {security_status}
 • Solde : {user['balance']:.2f} USDT
 
 *Statistiques :*
@@ -2719,23 +2738,148 @@ R: Non, seuls 2 USDT de frais s'appliquent aux retraits.
 
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
-async def show_change_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Afficher le changement de mot de passe"""
+async def show_security_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les paramètres de sécurité"""
     await update.callback_query.answer()
+    user = get_user_by_telegram_id(update.effective_user.id)
 
-    message = """
-🔄 **CHANGER MOT DE PASSE**
+    if not user:
+        await update.callback_query.edit_message_text("❌ Veuillez vous connecter d'abord.")
+        return
 
-Cette fonctionnalité sera bientôt disponible !
+    keyboard = [
+        [InlineKeyboardButton("🔑 Changer mot de passe", callback_data="change_password_start")],
+        [InlineKeyboardButton("🛡️ Authentification 2FA", callback_data="2fa_settings")],
+        [InlineKeyboardButton("📜 Logs de sécurité", callback_data="security_logs")],
+        [InlineKeyboardButton("🔙 Retour au profil", callback_data="profile")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
 
-Pour le moment, votre compte est sécurisé par votre ID Telegram.
-Si vous avez des préoccupations de sécurité, contactez le support.
+    # Statut 2FA
+    fa_status = "✅ Activé" if user.get('two_fa_enabled') else "❌ Désactivé"
+    
+    message = f"""
+🔐 **PARAMÈTRES DE SÉCURITÉ**
 
-📞 **Support :** @InvestCryptoPro_Support
+👤 **Compte :** {user['first_name']} {user['last_name']}
+📧 **Email :** {user['email']}
+
+🛡️ **État de la sécurité :**
+• Authentification 2FA : {fa_status}
+• Connexion Telegram : ✅ Sécurisée
+• Dernière connexion : {user.get('last_login', 'Inconnue')}
+
+🔒 **Actions disponibles :**
+• Modifier votre mot de passe
+• Gérer l'authentification 2FA
+• Consulter les logs de sécurité
+
+⚠️ **Important :** Votre compte est déjà sécurisé par Telegram, mais nous recommandons d'activer la 2FA pour une protection maximale.
     """
 
-    keyboard = [[InlineKeyboardButton("🔙 Retour", callback_data="profile")]]
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_2fa_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les paramètres 2FA"""
+    await update.callback_query.answer()
+    user = get_user_by_telegram_id(update.effective_user.id)
+
+    if user.get('two_fa_enabled'):
+        keyboard = [
+            [InlineKeyboardButton("❌ Désactiver 2FA", callback_data="disable_2fa_confirm")],
+            [InlineKeyboardButton("🔙 Retour sécurité", callback_data="security_settings")]
+        ]
+        
+        message = """
+🛡️ **AUTHENTIFICATION 2FA ACTIVÉE**
+
+✅ **Statut :** Votre compte est protégé par l'authentification à deux facteurs.
+
+🔒 **Protection active :**
+• Connexions sécurisées
+• Protection contre les accès non autorisés
+• Sécurité renforcée pour les transactions
+
+⚠️ **Désactivation :** Si vous souhaitez désactiver la 2FA, vous devrez confirmer cette action.
+        """
+    else:
+        keyboard = [
+            [InlineKeyboardButton("✅ Activer 2FA", callback_data="enable_2fa_start")],
+            [InlineKeyboardButton("🔙 Retour sécurité", callback_data="security_settings")]
+        ]
+        
+        message = """
+🛡️ **AUTHENTIFICATION 2FA DÉSACTIVÉE**
+
+❌ **Statut :** Votre compte n'est pas protégé par la 2FA.
+
+🔐 **Avantages de la 2FA :**
+• Protection supplémentaire contre le piratage
+• Sécurité renforcée pour vos fonds
+• Conformité aux meilleures pratiques de sécurité
+
+📱 **Applications recommandées :**
+• Google Authenticator
+• Authy
+• Microsoft Authenticator
+
+💡 **Recommandation :** Activez la 2FA pour sécuriser votre compte.
+        """
+
     reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_security_logs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les logs de sécurité utilisateur"""
+    await update.callback_query.answer()
+    user = get_user_by_telegram_id(update.effective_user.id)
+
+    conn = get_db_connection()
+    
+    # Récupérer les logs de sécurité de l'utilisateur
+    try:
+        logs = conn.execute('''
+            SELECT * FROM security_logs 
+            WHERE user_id = ? 
+            ORDER BY created_at DESC 
+            LIMIT 10
+        ''', (user['id'],)).fetchall()
+    except:
+        logs = []
+    
+    conn.close()
+
+    keyboard = [[InlineKeyboardButton("🔙 Retour sécurité", callback_data="security_settings")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    message = "📜 **LOGS DE SÉCURITÉ** (10 derniers)\n\n"
+
+    if logs:
+        for log in logs:
+            try:
+                date_str = datetime.fromisoformat(log['created_at'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
+            except:
+                date_str = "N/A"
+
+            action_emoji = "🔐" if "password" in log['action'] else "🛡️" if "2fa" in log['action'] else "🔑"
+            
+            message += f"{action_emoji} **{log['action'].replace('_', ' ').title()}**\n"
+            message += f"📅 {date_str}\n"
+            if log['details']:
+                message += f"📝 {log['details']}\n"
+            if log['ip_address']:
+                message += f"🌐 IP: {log['ip_address']}\n"
+            message += "\n"
+    else:
+        message += "Aucun événement de sécurité enregistré pour le moment.\n\n"
+        message += "Les événements suivants seront enregistrés :\n"
+        message += "• Changements de mot de passe\n"
+        message += "• Activation/désactivation 2FA\n"
+        message += "• Connexions suspectes"
+
+    # Limiter la taille du message
+    if len(message) > 4000:
+        message = message[:3900] + "\n\n✂️ Message tronqué..."
 
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 

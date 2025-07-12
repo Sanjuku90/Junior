@@ -58,7 +58,14 @@ def init_db():
             referral_code TEXT UNIQUE,
             referred_by TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            two_fa_enabled BOOLEAN DEFAULT 0
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            two_fa_enabled BOOLEAN DEFAULT 0,
+            two_fa_secret TEXT,
+            telegram_id INTEGER UNIQUE,
+            last_login TIMESTAMP,
+            failed_login_attempts INTEGER DEFAULT 0,
+            account_locked BOOLEAN DEFAULT 0,
+            locked_until TIMESTAMP
         )
     ''')
 
@@ -1293,6 +1300,268 @@ def admin_support_reply_disabled():
 def admin_close_ticket_disabled(ticket_id):
     """API désactivée - utiliser Telegram"""
     return jsonify({'error': 'Administration via Telegram uniquement. Utilisez @InvestCryptoProBot'}), 403
+
+# Security Routes
+@app.route('/security')
+@login_required
+def security_settings():
+    """Page des paramètres de sécurité"""
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    
+    # Récupérer les logs de sécurité récents
+    security_logs = conn.execute('''
+        SELECT * FROM security_logs 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT 10
+    ''', (session['user_id'],)).fetchall()
+    
+    conn.close()
+    
+    return render_template('security.html', user=user, security_logs=security_logs)
+
+@app.route('/change-password', methods=['POST'])
+@login_required
+def change_password():
+    """Changer le mot de passe"""
+    data = request.get_json()
+    current_password = data.get('current_password')
+    new_password = data.get('new_password')
+    confirm_password = data.get('confirm_password')
+    
+    if not all([current_password, new_password, confirm_password]):
+        return jsonify({'error': 'Tous les champs sont requis'}), 400
+    
+    if new_password != confirm_password:
+        return jsonify({'error': 'Les nouveaux mots de passe ne correspondent pas'}), 400
+    
+    if len(new_password) < 8:
+        return jsonify({'error': 'Le mot de passe doit contenir au moins 8 caractères'}), 400
+    
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    
+    # Vérifier l'ancien mot de passe
+    if not check_password_hash(user['password_hash'], current_password):
+        conn.close()
+        return jsonify({'error': 'Mot de passe actuel incorrect'}), 401
+    
+    # Mettre à jour le mot de passe
+    new_password_hash = generate_password_hash(new_password)
+    conn.execute('''
+        UPDATE users 
+        SET password_hash = ?, updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ?
+    ''', (new_password_hash, session['user_id']))
+    
+    # Enregistrer dans les logs de sécurité
+    log_security_action(session['user_id'], 'password_changed', 'Mot de passe modifié avec succès')
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification
+    add_notification(
+        session['user_id'],
+        'Mot de passe modifié',
+        'Votre mot de passe a été modifié avec succès.',
+        'success'
+    )
+    
+    return jsonify({'success': True, 'message': 'Mot de passe modifié avec succès'})
+
+@app.route('/enable-2fa', methods=['POST'])
+@login_required
+def enable_2fa():
+    """Activer l'authentification 2FA"""
+    import pyotp
+    import qrcode
+    import io
+    import base64
+    
+    try:
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+        
+        if user['two_fa_enabled']:
+            return jsonify({'error': '2FA déjà activé'}), 400
+        
+        # Générer une clé secrète pour l'utilisateur
+        secret = pyotp.random_base32()
+        
+        # Créer l'URI pour le QR code
+        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+            user['email'], 
+            issuer_name="InvestCrypto Pro"
+        )
+        
+        # Générer le QR code
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(totp_uri)
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Convertir en base64
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        qr_code_b64 = base64.b64encode(buffer.getvalue()).decode()
+        
+        # Stocker temporairement la clé secrète
+        conn.execute('''
+            UPDATE users 
+            SET two_fa_secret = ? 
+            WHERE id = ?
+        ''', (secret, session['user_id']))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            'success': True,
+            'secret': secret,
+            'qr_code': f"data:image/png;base64,{qr_code_b64}",
+            'manual_entry_key': secret
+        })
+        
+    except ImportError:
+        return jsonify({'error': 'Modules 2FA non disponibles. Installez pyotp et qrcode'}), 500
+    except Exception as e:
+        return jsonify({'error': f'Erreur lors de l\'activation 2FA: {str(e)}'}), 500
+
+@app.route('/verify-2fa', methods=['POST'])
+@login_required
+def verify_2fa():
+    """Vérifier et finaliser l'activation 2FA"""
+    import pyotp
+    
+    try:
+        data = request.get_json()
+        token = data.get('token')
+        
+        if not token:
+            return jsonify({'error': 'Code de vérification requis'}), 400
+        
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+        
+        if not user['two_fa_secret']:
+            return jsonify({'error': 'Processus 2FA non initié'}), 400
+        
+        # Vérifier le token
+        totp = pyotp.TOTP(user['two_fa_secret'])
+        if not totp.verify(token, valid_window=1):
+            return jsonify({'error': 'Code de vérification invalide'}), 400
+        
+        # Activer 2FA
+        conn.execute('''
+            UPDATE users 
+            SET two_fa_enabled = 1, updated_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
+        ''', (session['user_id'],))
+        
+        # Enregistrer dans les logs
+        log_security_action(session['user_id'], '2fa_enabled', 'Authentification 2FA activée')
+        
+        conn.commit()
+        conn.close()
+        
+        # Ajouter notification
+        add_notification(
+            session['user_id'],
+            'Authentification 2FA activée',
+            'Votre authentification à deux facteurs a été activée avec succès.',
+            'success'
+        )
+        
+        return jsonify({'success': True, 'message': 'Authentification 2FA activée avec succès'})
+        
+    except ImportError:
+        return jsonify({'error': 'Modules 2FA non disponibles'}), 500
+    except Exception as e:
+        return jsonify({'error': f'Erreur lors de la vérification: {str(e)}'}), 500
+
+@app.route('/disable-2fa', methods=['POST'])
+@login_required
+def disable_2fa():
+    """Désactiver l'authentification 2FA"""
+    data = request.get_json()
+    password = data.get('password')
+    
+    if not password:
+        return jsonify({'error': 'Mot de passe requis pour désactiver 2FA'}), 400
+    
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    
+    # Vérifier le mot de passe
+    if not check_password_hash(user['password_hash'], password):
+        conn.close()
+        return jsonify({'error': 'Mot de passe incorrect'}), 401
+    
+    # Désactiver 2FA
+    conn.execute('''
+        UPDATE users 
+        SET two_fa_enabled = 0, two_fa_secret = NULL, updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ?
+    ''', (session['user_id']))
+    
+    # Enregistrer dans les logs
+    log_security_action(session['user_id'], '2fa_disabled', 'Authentification 2FA désactivée')
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification
+    add_notification(
+        session['user_id'],
+        'Authentification 2FA désactivée',
+        'Votre authentification à deux facteurs a été désactivée.',
+        'warning'
+    )
+    
+    return jsonify({'success': True, 'message': 'Authentification 2FA désactivée'})
+
+def log_security_action(user_id, action, details=""):
+    """Enregistrer une action de sécurité"""
+    try:
+        conn = get_db_connection()
+        
+        # Créer table de logs de sécurité si elle n'existe pas
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS security_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                action TEXT NOT NULL,
+                details TEXT,
+                ip_address TEXT,
+                user_agent TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Récupérer l'IP et User-Agent depuis Flask si disponible
+        ip_address = None
+        user_agent = None
+        try:
+            from flask import request
+            ip_address = request.remote_addr
+            user_agent = request.headers.get('User-Agent', '')
+        except:
+            pass
+        
+        conn.execute('''
+            INSERT INTO security_logs (user_id, action, details, ip_address, user_agent)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (user_id, action, details, ip_address, user_agent))
+        
+        conn.commit()
+        conn.close()
+        
+    except Exception as e:
+        print(f"❌ Erreur log sécurité: {e}")
 
 if __name__ == '__main__':
     init_db()
