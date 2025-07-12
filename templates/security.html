@@ -1,19 +1,19 @@
 
 {% extends "base.html" %}
 
-{% block title %}Sécurité - InvestCrypto Pro{% endblock %}
+{% block title %}Paramètres de Sécurité{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Header -->
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Page Header -->
     <div class="bg-white rounded-lg shadow-lg p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Paramètres de Sécurité</h1>
-        <p class="text-gray-600">Gérez la sécurité de votre compte InvestCrypto Pro</p>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">🔐 Paramètres de Sécurité</h1>
+        <p class="text-gray-600">Gérez la sécurité de votre compte et consultez votre historique de sécurité.</p>
     </div>
 
     <!-- Password Change Section -->
     <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Modifier le Mot de Passe</h2>
+        <h2 class="text-xl font-semibold mb-4">🔑 Changer le Mot de Passe</h2>
         <form id="changePasswordForm" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe actuel</label>
@@ -22,26 +22,25 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Nouveau mot de passe</label>
                 <input type="password" id="newPassword" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <p class="text-sm text-gray-500 mt-1">Minimum 8 caractères</p>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Confirmer le nouveau mot de passe</label>
                 <input type="password" id="confirmPassword" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
             <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md font-medium">
-                Modifier le mot de passe
+                Changer le Mot de Passe
             </button>
         </form>
     </div>
 
     <!-- 2FA Section -->
     <div class="bg-white rounded-lg shadow-lg p-6">
-        <h2 class="text-xl font-semibold mb-4">Authentification à Deux Facteurs (2FA)</h2>
+        <h2 class="text-xl font-semibold mb-4">🛡️ Authentification à Deux Facteurs (2FA)</h2>
         
         {% if user.two_fa_enabled %}
         <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
             <div class="flex items-center">
-                <i class="fas fa-shield-alt text-green-600 mr-2"></i>
+                <i class="fas fa-check-circle text-green-600 mr-2"></i>
                 <span class="font-semibold text-green-800">2FA Activé</span>
             </div>
             <p class="text-sm text-green-700 mt-1">Votre compte est protégé par l'authentification à deux facteurs.</p>
@@ -96,7 +95,7 @@
         {% endif %}
     </div>
 
-    <!-- Account Security Tips -->
+    <!-- Security Tips -->
     <div class="bg-blue-50 rounded-lg p-6">
         <h3 class="text-lg font-semibold text-blue-900 mb-3">Conseils de Sécurité</h3>
         <ul class="space-y-2 text-sm text-blue-800">
@@ -125,18 +124,12 @@
     <div class="bg-white rounded-lg p-6 max-w-md w-full m-4">
         <h3 class="text-lg font-semibold mb-4">Configuration 2FA</h3>
         <div id="setup2FAContent">
-            <!-- Content will be populated by JavaScript -->
-        </div>
-        <div class="mt-4 flex justify-end space-x-2">
-            <button id="cancel2FASetup" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
-                Annuler
-            </button>
+            <!-- Content will be populated dynamically -->
         </div>
     </div>
 </div>
 
 <script>
-// Change Password
 document.getElementById('changePasswordForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -145,19 +138,16 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
     const confirmPassword = document.getElementById('confirmPassword').value;
     
     if (newPassword !== confirmPassword) {
-        showNotification('Les nouveaux mots de passe ne correspondent pas', 'error');
-        return;
-    }
-    
-    if (newPassword.length < 8) {
-        showNotification('Le mot de passe doit contenir au moins 8 caractères', 'error');
+        alert('Les nouveaux mots de passe ne correspondent pas');
         return;
     }
     
     try {
         const response = await fetch('/change-password', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify({
                 current_password: currentPassword,
                 new_password: newPassword,
@@ -168,37 +158,49 @@ document.getElementById('changePasswordForm').addEventListener('submit', async f
         const data = await response.json();
         
         if (data.success) {
-            showNotification(data.message, 'success');
-            document.getElementById('changePasswordForm').reset();
+            alert('Mot de passe changé avec succès');
+            this.reset();
         } else {
-            showNotification(data.error, 'error');
+            alert(data.error || 'Erreur lors du changement de mot de passe');
         }
     } catch (error) {
-        showNotification('Erreur lors du changement de mot de passe', 'error');
+        alert('Erreur de connexion');
     }
 });
 
-// Enable 2FA
 document.getElementById('enable2FABtn')?.addEventListener('click', async function() {
     try {
         const response = await fetch('/enable-2fa', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: {
+                'Content-Type': 'application/json',
+            }
         });
         
         const data = await response.json();
         
         if (data.success) {
-            show2FASetup(data);
+            document.getElementById('setup2FAContent').innerHTML = `
+                <div class="text-center mb-4">
+                    <img src="${data.qr_code}" alt="QR Code 2FA" class="mx-auto mb-4">
+                    <p class="text-sm text-gray-600 mb-2">Scannez ce QR code avec votre app d'authentification</p>
+                    <p class="text-xs text-gray-500">Clé manuelle: ${data.secret}</p>
+                </div>
+                <form id="verify2FAForm">
+                    <input type="text" id="verification2FACode" placeholder="Code de vérification" class="w-full px-3 py-2 border border-gray-300 rounded-md mb-4">
+                    <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md">Vérifier et Activer</button>
+                </form>
+                <button onclick="document.getElementById('setup2FAModal').classList.add('hidden')" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 rounded-md mt-2">Annuler</button>
+            `;
+            document.getElementById('setup2FAModal').classList.remove('hidden');
         } else {
-            showNotification(data.error, 'error');
+            alert(data.error || 'Erreur lors de l\'activation 2FA');
         }
     } catch (error) {
-        showNotification('Erreur lors de l\'activation 2FA', 'error');
+        alert('Erreur de connexion');
     }
 });
 
-// Disable 2FA
 document.getElementById('disable2FAForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -207,83 +209,57 @@ document.getElementById('disable2FAForm')?.addEventListener('submit', async func
     try {
         const response = await fetch('/disable-2fa', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: password })
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                password: password
+            })
         });
         
         const data = await response.json();
         
         if (data.success) {
-            showNotification(data.message, 'success');
-            setTimeout(() => location.reload(), 1500);
+            alert('2FA désactivé avec succès');
+            location.reload();
         } else {
-            showNotification(data.error, 'error');
+            alert(data.error || 'Erreur lors de la désactivation 2FA');
         }
     } catch (error) {
-        showNotification('Erreur lors de la désactivation 2FA', 'error');
+        alert('Erreur de connexion');
     }
 });
 
-function show2FASetup(data) {
-    const modal = document.getElementById('setup2FAModal');
-    const content = document.getElementById('setup2FAContent');
-    
-    content.innerHTML = `
-        <div class="space-y-4">
-            <p class="text-sm text-gray-600">Scannez ce QR code avec votre application d'authentification (Google Authenticator, Authy, etc.)</p>
-            <div class="text-center">
-                <img src="${data.qr_code}" alt="QR Code 2FA" class="mx-auto max-w-48">
-            </div>
-            <div class="text-center">
-                <p class="text-xs text-gray-500 mb-2">Ou entrez cette clé manuellement:</p>
-                <code class="bg-gray-100 px-2 py-1 rounded text-sm">${data.secret}</code>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Code de vérification</label>
-                <input type="text" id="verification2FACode" placeholder="000000" maxlength="6" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <button id="verify2FACode" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md font-medium">
-                Vérifier et Activer
-            </button>
-        </div>
-    `;
-    
-    modal.classList.remove('hidden');
-    
-    // Verify 2FA Code
-    document.getElementById('verify2FACode').addEventListener('click', async function() {
-        const token = document.getElementById('verification2FACode').value;
+// Handle 2FA verification form dynamically
+document.addEventListener('submit', async function(e) {
+    if (e.target.id === 'verify2FAForm') {
+        e.preventDefault();
         
-        if (!token || token.length !== 6) {
-            showNotification('Code de vérification invalide', 'error');
-            return;
-        }
+        const code = document.getElementById('verification2FACode').value;
         
         try {
             const response = await fetch('/verify-2fa', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: token })
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    token: code
+                })
             });
             
             const data = await response.json();
             
             if (data.success) {
-                showNotification(data.message, 'success');
-                modal.classList.add('hidden');
-                setTimeout(() => location.reload(), 1500);
+                alert('2FA activé avec succès');
+                location.reload();
             } else {
-                showNotification(data.error, 'error');
+                alert(data.error || 'Code de vérification invalide');
             }
         } catch (error) {
-            showNotification('Erreur lors de la vérification', 'error');
+            alert('Erreur de connexion');
         }
-    });
-}
-
-// Cancel 2FA Setup
-document.getElementById('cancel2FASetup').addEventListener('click', function() {
-    document.getElementById('setup2FAModal').classList.add('hidden');
+    }
 });
 </script>
 {% endblock %}
