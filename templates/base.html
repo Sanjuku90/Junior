@@ -498,15 +498,34 @@
             }
         }
 
+        /* Extra small breakpoint */
+        @media (min-width: 475px) {
+            .xs\:inline {
+                display: inline !important;
+            }
+            .xs\:hidden {
+                display: none !important;
+            }
+        }
+
         /* Mobile Optimizations */
         @media (max-width: 768px) {
             .nav-container {
-                padding: 0 1rem;
+                padding: 0 0.75rem;
                 height: 64px;
+                gap: 0.5rem;
+            }
+
+            .nav-logo {
+                flex: 1;
+                min-width: 0;
             }
 
             .nav-logo-text {
-                font-size: 1.25rem;
+                font-size: 1.1rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .nav-item {
@@ -616,18 +635,44 @@
         /* Extra small devices */
         @media (max-width: 480px) {
             .nav-container {
-                padding: 0 0.75rem;
+                padding: 0 0.5rem;
                 height: 60px;
+                gap: 0.25rem;
             }
 
             .nav-logo-icon {
-                width: 36px;
-                height: 36px;
-                font-size: 18px;
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+                border-radius: 8px;
             }
 
             .nav-logo-text {
-                font-size: 1.1rem;
+                font-size: 1rem;
+            }
+
+            /* Boutons compacts pour très petits écrans */
+            .btn-primary, .btn-secondary {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.8rem;
+                border-radius: 8px;
+                min-width: auto;
+            }
+
+            .btn-primary i, .btn-secondary i {
+                font-size: 0.75rem;
+            }
+
+            /* Cache le texte sur très petits écrans, garde uniquement les icônes */
+            @media (max-width: 400px) {
+                .xs\:hidden {
+                    display: none !important;
+                }
+                
+                .btn-primary, .btn-secondary {
+                    padding: 0.5rem;
+                    min-width: 40px;
+                }
             }
 
             .professional-card {
@@ -910,12 +955,16 @@
             </div>
             {% else %}
             <!-- Guest Navigation -->
-            <div class="flex items-center gap-3">
-                <a href="{{ url_for('login') }}" class="btn-secondary hidden sm:flex">
-                    <i class="fas fa-sign-in-alt"></i>Connexion
+            <div class="flex items-center gap-2">
+                <a href="{{ url_for('login') }}" class="btn-secondary text-sm px-3 py-2">
+                    <i class="fas fa-sign-in-alt text-xs"></i>
+                    <span class="hidden xs:inline ml-1">Connexion</span>
+                    <span class="xs:hidden ml-1">Login</span>
                 </a>
-                <a href="{{ url_for('register') }}" class="btn-primary">
-                    <i class="fas fa-user-plus"></i>Inscription
+                <a href="{{ url_for('register') }}" class="btn-primary text-sm px-3 py-2">
+                    <i class="fas fa-user-plus text-xs"></i>
+                    <span class="hidden xs:inline ml-1">Inscription</span>
+                    <span class="xs:hidden ml-1">Sign up</span>
                 </a>
             </div>
             {% endif %}
