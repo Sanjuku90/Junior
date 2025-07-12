@@ -1,17 +1,22 @@
-
 {
-  "name": "Ttrust",
+  "name": "Ttrust - Plateforme d'Investissement",
   "short_name": "Ttrust",
-  "description": "Ttrust - Plateforme d'investissement crypto nouvelle génération avec rendements optimisés",
+  "description": "Plateforme d'investissement sécurisée avec trading automatique et copy trading",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
-  "theme_color": "#3b82f6",
+  "theme_color": "#1e40af",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "fr",
   "dir": "ltr",
-  "categories": ["finance", "business", "productivity"],
+  "categories": ["finance", "business"],
+  "prefer_related_applications": false,
+  "display_override": ["window-controls-overlay", "standalone"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "screenshots": [],
   "icons": [
     {
       "src": "/static/icons/icon-72x72.png",
@@ -101,7 +106,6 @@
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false,
   "screenshots": [
     {
       "src": "/static/screenshots/desktop-1280x800.png",
