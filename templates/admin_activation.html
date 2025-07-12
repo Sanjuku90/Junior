@@ -36,36 +36,40 @@
             </div>
         </div>
         {% else %}
-</div>
-        </div>
+<div class="text-center">
+            <p class="text-gray-600 mb-6">
+                L'accès administrateur est actuellement désactivé pour des raisons de sécurité.
+                Utilisez le code d'activation pour activer l'accès temporaire.
+            </p>
 
-        <form id="activationForm" class="space-y-6">
-            <div>
-                <label for="activation_code" class="block text-sm font-medium text-gray-700 mb-2">Code d'activation</label>
-                <input type="password" id="activation_code" name="activation_code" required 
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                       placeholder="Entrez le code d'activation">
-            </div>
+            <!-- Activation Form -->
+            <form id="activationForm" class="space-y-4">
+                <div>
+                    <label for="activationCode" class="block text-sm font-medium text-gray-700 mb-2">
+                        Code d'activation
+                    </label>
+                    <input type="password" id="activationCode" name="activationCode" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           placeholder="Entrez le code d'activation" required>
+                </div>
 
-            <div>
-                <label for="duration" class="block text-sm font-medium text-gray-700 mb-2">Durée (minutes)</label>
-                <select id="duration" name="duration" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option value="30">30 minutes</option>
-                    <option value="60">1 heure</option>
-                    <option value="120">2 heures</option>
-                    <option value="480">8 heures</option>
-                </select>
-            </div>
+                <div>
+                    <label for="duration" class="block text-sm font-medium text-gray-700 mb-2">
+                        Durée d'activation (minutes)
+                    </label>
+                    <select id="duration" name="duration" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="30">30 minutes</option>
+                        <option value="60">1 heure</option>
+                        <option value="120">2 heures</option>
+                    </select>
+                </div>
 
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
-                🔓 Activer l'accès admin
-            </button>
-        </form>
-
-        <div class="text-center">
-            <a href="/" class="text-gray-600 hover:text-gray-800">
-                ← Retour à l'accueil
-            </a>
+                <button type="submit" 
+                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                    Activer l'accès admin
+                </button>
+            </form>
         </div>
         {% endif %}
     </div>
@@ -80,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const formData = new FormData(this);
             const data = {
-                activation_code: formData.get('activation_code'),
+                activation_code: formData.get('activationCode'),
                 duration: parseInt(formData.get('duration'))
             };
 

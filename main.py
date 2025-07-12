@@ -9,6 +9,7 @@ import json
 from functools import wraps
 import threading
 import time
+import sqlite3
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
@@ -442,10 +443,22 @@ def get_admin_status():
 
 # Utility functions
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE, timeout=30.0)
-    conn.row_factory = sqlite3.Row
-    # Enable WAL mode for better concurrency
-    conn.execute('PRAGMA journal_mode=WAL;')
+    import time
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            conn = sqlite3.connect(DATABASE, timeout=30.0)
+            conn.row_factory = sqlite3.Row
+            # Enable WAL mode for better concurrency
+            conn.execute('PRAGMA journal_mode=WAL;')
+            conn.execute('PRAGMA busy_timeout=30000;')  # 30 seconds timeout
+            return conn
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e) and attempt < max_retries - 1:
+                time.sleep(0.1 * (attempt + 1))  # Progressive backoff
+                continue
+            else:
+                raise e
     return conn
 
 def generate_transaction_hash():
@@ -1544,19 +1557,22 @@ def admin_transactions():
 @admin_required
 def approve_transaction(transaction_id):
     """Approuver une transaction"""
-    conn = get_db_connection()
-    
-    try:
-        # Récupérer la transaction
-        transaction = conn.execute('''
-            SELECT t.*, u.email, u.first_name
-            FROM transactions t
-            JOIN users u ON t.user_id = u.id
-            WHERE t.id = ?
-        ''', (transaction_id,)).fetchone()
-        
-        if not transaction:
-            return jsonify({'error': 'Transaction non trouvée'}), 404
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            conn = get_db_connection()
+            
+            # Récupérer la transaction
+            transaction = conn.execute('''
+                SELECT t.*, u.email, u.first_name
+                FROM transactions t
+                JOIN users u ON t.user_id = u.id
+                WHERE t.id = ? AND t.status = 'pending'
+            ''', (transaction_id,)).fetchone()
+            
+            if not transaction:
+                conn.close()
+                return jsonify({'error': 'Transaction non trouvée ou déjà traitée'}), 404
         
         if transaction['type'] == 'deposit':
             # Approuver le dépôt - créditer le compte
@@ -1592,14 +1608,26 @@ def approve_transaction(transaction_id):
         ''', (transaction_id,))
         
         conn.commit()
-        
-        return jsonify({'success': True, 'message': 'Transaction approuvée'})
-        
-    except Exception as e:
-        conn.rollback()
-        return jsonify({'error': f'Erreur: {str(e)}'}), 500
-    finally:
-        conn.close()
+            conn.close()
+            
+            return jsonify({'success': True, 'message': 'Transaction approuvée'})
+            
+        except sqlite3.OperationalError as e:
+            if conn:
+                conn.rollback()
+                conn.close()
+            if "database is locked" in str(e) and attempt < max_retries - 1:
+                time.sleep(0.1 * (attempt + 1))
+                continue
+            else:
+                return jsonify({'error': f'Erreur base de données: {str(e)}'}), 500
+        except Exception as e:
+            if conn:
+                conn.rollback()
+                conn.close()
+            return jsonify({'error': f'Erreur: {str(e)}'}), 500
+    
+    return jsonify({'error': 'Échec après plusieurs tentatives'}), 500
 
 @app.route('/admin/reject-transaction/<int:transaction_id>', methods=['POST'])
 @admin_required
