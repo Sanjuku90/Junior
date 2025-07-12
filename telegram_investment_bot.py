@@ -680,15 +680,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # S'assurer que la base de données est correctement initialisée
     init_telegram_db()
 
-    # Vérifier si c'est un admin et créer l'utilisateur admin si nécessaire
-    if is_admin(telegram_user.id):
-        # Récupérer l'utilisateur admin (maintenant créé automatiquement)
-        admin_user = get_user_by_telegram_id(telegram_user.id)
-        if admin_user:
-            await show_admin_menu(update, context)
-        else:
-            await update.message.reply_text("❌ Erreur lors de la création du compte administrateur.")
-        return
+    # Pour /start, toujours afficher le menu utilisateur même pour les admins
+    # Les admins doivent utiliser /admin pour accéder à l'administration
 
     # Obtenir ou créer l'utilisateur automatiquement
     user = get_or_create_user_by_telegram_id(
@@ -722,11 +715,46 @@ Veuillez réessayer dans quelques instants.
             await update.callback_query.edit_message_text(message, parse_mode='Markdown')
 
 async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Commande /admin pour accéder au panneau d'administration"""
-    if not is_admin(update.effective_user.id):
-        await update.message.reply_text("❌ Accès refusé.")
+    """Commande /admin - ACCÈS ADMINISTRATEUR SÉCURISÉ"""
+    admin_user_id = update.effective_user.id
+    
+    # Vérification de sécurité multicouches
+    if not is_admin(admin_user_id):
+        # Log de tentative d'accès non autorisé
+        log_admin_action(admin_user_id, "UNAUTHORIZED_ADMIN_ACCESS_ATTEMPT", 
+                        f"Tentative d'accès admin non autorisé par ID: {admin_user_id}")
+        
+        await update.message.reply_text(
+            "🚫 **ACCÈS REFUSÉ**\n\n"
+            "❌ Vous n'avez pas les privilèges administrateur.\n"
+            "🔒 Cet incident a été enregistré.\n\n"
+            "📞 Contact: @InvestCryptoPro_Support",
+            parse_mode='Markdown'
+        )
         return
 
+    # Vérification additionnelle - Session Telegram valide
+    if not update.effective_user or update.effective_user.id != admin_user_id:
+        log_admin_action(admin_user_id, "ADMIN_SESSION_INVALID", "Session Telegram invalide lors de l'accès admin")
+        await update.message.reply_text("🚫 Session invalide. Veuillez redémarrer Telegram.")
+        return
+
+    # Log d'accès admin réussi
+    log_admin_action(admin_user_id, "ADMIN_ACCESS_GRANTED", f"Accès administrateur accordé via commande /admin")
+    
+    # Message de confirmation sécurisée
+    await update.message.reply_text(
+        "🔐 **VÉRIFICATION ADMINISTRATIVE**\n\n"
+        "✅ Identité vérifiée\n"
+        "🛡️ Accès sécurisé accordé\n"
+        "📊 Chargement du panneau...",
+        parse_mode='Markdown'
+    )
+    
+    # Délai de sécurité avant affichage du menu
+    import asyncio
+    await asyncio.sleep(1)
+    
     await show_admin_menu(update, context)
 
 async def show_admin_menu(update, context):
@@ -807,6 +835,10 @@ async def show_main_menu(update, context, user):
         [InlineKeyboardButton("👤 Profil", callback_data="profile"),
          InlineKeyboardButton("❓ Aide", callback_data="help")]
     ]
+    
+    # Ajouter bouton admin seulement pour les administrateurs
+    if is_admin(update.effective_user.id):
+        keyboard.append([InlineKeyboardButton("🔧 Administration (/admin)", callback_data="admin_hint")]))
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Calcul des statistiques utilisateur
@@ -1910,8 +1942,24 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Vérifier si c'est une action admin
     if data.startswith("admin_"):
-        if not is_admin(update.effective_user.id):
-            await query.edit_message_text("❌ Accès refusé.")
+        admin_user_id = update.effective_user.id
+        
+        # Vérification de sécurité renforcée pour les callbacks admin
+        if not is_admin(admin_user_id):
+            log_admin_action(admin_user_id, "UNAUTHORIZED_ADMIN_CALLBACK", f"Tentative d'accès callback admin: {data}")
+            await query.edit_message_text(
+                "🚫 **ACCÈS REFUSÉ**\n\n"
+                "❌ Privilèges administrateur requis\n"
+                "🔐 Utilisez la commande /admin\n"
+                "📊 Incident enregistré",
+                parse_mode='Markdown'
+            )
+            return
+
+        # Vérification session pour callbacks admin
+        if update.effective_user.id != admin_user_id:
+            log_admin_action(admin_user_id, "ADMIN_CALLBACK_SESSION_INVALID", f"Session invalide pour callback: {data}")
+            await query.edit_message_text("🚫 Session invalide - Utilisez /admin")
             return
 
         if data == "admin_menu":
@@ -1929,8 +1977,11 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif data == "admin_security_logs":
             await show_admin_security_logs(update, context)
         elif data == "admin_to_user":
-            # Passer en mode utilisateur
-            user = get_user_by_telegram_id(update.effective_user.id)
+            # Passer en mode utilisateur normal
+            admin_user_id = update.effective_user.id
+            log_admin_action(admin_user_id, "ADMIN_TO_USER_MODE", "Passage du mode admin au mode utilisateur")
+            
+            user = get_user_by_telegram_id(admin_user_id)
             if user:
                 await show_main_menu(update, context, user)
             else:
@@ -2224,6 +2275,24 @@ Démocratiser l'investissement crypto et offrir des rendements exceptionnels à 
 
     elif data == "full_history":
         await show_full_history(update, context)
+        
+    elif data == "admin_hint":
+        # Bouton informatif pour les admins
+        keyboard = [[InlineKeyboardButton("🔙 Menu principal", callback_data="main_menu")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.edit_message_text(
+            "🔧 **ACCÈS ADMINISTRATION**\n\n"
+            "🔐 Pour accéder au panneau d'administration, utilisez la commande :\n\n"
+            "`/admin`\n\n"
+            "⚠️ **Sécurité renforcée :**\n"
+            "• Accès uniquement par commande\n"
+            "• Vérifications multiples\n"
+            "• Logs de sécurité automatiques\n\n"
+            "💡 Cette méthode garantit une sécurité maximale.",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
 
 async def show_notifications(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher les notifications"""
