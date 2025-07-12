@@ -1,7 +1,22 @@
 import logging
 import sqlite3
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes, ConversationHandler
+try:
+    from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+    from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes, ConversationHandler
+except ImportError as e:
+    print(f"❌ Erreur import Telegram: {e}")
+    print("💡 Installation de python-telegram-bot requise")
+    Update = None
+    InlineKeyboardButton = None
+    InlineKeyboardMarkup = None
+    Application = None
+    CommandHandler = None
+    CallbackQueryHandler = None
+    MessageHandler = None
+    filters = None
+    ContextTypes = None
+    ConversationHandler = None
+
 import asyncio
 import os
 from datetime import datetime, timedelta
@@ -2820,8 +2835,14 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def setup_user_telegram_bot():
     """Configure le bot utilisateur"""
     if not TELEGRAM_BOT_TOKEN:
-        logger.error("❌ TELEGRAM_BOT_TOKEN_USER non configuré")
+        logger.error("❌ TELEGRAM_BOT_TOKEN non configuré")
         print("❌ Bot utilisateur non disponible - Token manquant")
+        return None
+
+    # Vérifier si les imports Telegram sont disponibles
+    if not Application:
+        print("❌ Bot utilisateur non disponible - Modules Telegram manquants")
+        print("💡 Exécutez: pip install python-telegram-bot")
         return None
 
     try:

@@ -17,10 +17,16 @@ TELEGRAM_ENABLED = False
 TELEGRAM_USER_BOT_ENABLED = False
 try:
     from telegram_investment_bot import setup_user_telegram_bot
-    TELEGRAM_USER_BOT_ENABLED = True
-    print("✅ Bot Telegram disponible")
+    # Tester si le bot peut être configuré
+    test_bot = setup_user_telegram_bot()
+    if test_bot:
+        TELEGRAM_USER_BOT_ENABLED = True
+        print("✅ Bot Telegram disponible et configuré")
+    else:
+        print("⚠️ Bot Telegram non disponible - Configuration échouée")
 except ImportError as e:
     print(f"⚠️ Bot Telegram non disponible: {e}")
+    print("💡 Installez python-telegram-bot pour activer le bot")
 except Exception as e:
     print(f"❌ Erreur configuration bot: {e}")
 
