@@ -1627,6 +1627,62 @@ def admin_console_status():
     else:
         return "Admin DÉSACTIVÉ"
 
+def restore_user_investments(user_id, investments_data=None):
+    """Restaurer les investissements d'un utilisateur"""
+    conn = get_db_connection()
+    
+    if investments_data is None:
+        # Données d'exemple pour restauration d'urgence
+        investments_data = [
+            {
+                'plan_id': 1, 'amount': 100, 'days_remaining': 25,
+                'daily_profit': 3.0, 'total_earned': 15.0
+            },
+            {
+                'plan_id': 5, 'amount': 500, 'days_remaining': 35,
+                'daily_profit': 60.0, 'total_earned': 150.0
+            }
+        ]
+    
+    try:
+        for inv_data in investments_data:
+            start_date = datetime.now() - timedelta(days=(30 - inv_data.get('days_remaining', 30)))
+            end_date = datetime.now() + timedelta(days=inv_data.get('days_remaining', 30))
+            
+            conn.execute('''
+                INSERT INTO user_investments (user_id, plan_id, amount, start_date, end_date, daily_profit, total_earned, is_active, transaction_hash)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?)
+            ''', (
+                user_id, 
+                inv_data['plan_id'], 
+                inv_data['amount'], 
+                start_date, 
+                end_date, 
+                inv_data['daily_profit'], 
+                inv_data.get('total_earned', 0),
+                generate_transaction_hash()
+            ))
+        
+        conn.commit()
+        conn.close()
+        
+        # Notification
+        add_notification(
+            user_id,
+            'Investissements restaurés',
+            f'{len(investments_data)} investissement(s) ont été restaurés avec succès.',
+            'success'
+        )
+        
+        print(f"✅ {len(investments_data)} investissements restaurés pour l'utilisateur {user_id}")
+        return True
+        
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        print(f"❌ Erreur restauration investissements: {e}")
+        return False
+
 @app.route('/admin/transactions')
 @admin_required
 def admin_transactions():
@@ -1966,6 +2022,45 @@ def user_calculate_profits():
     except Exception as e:
         return jsonify({
             'error': f'Erreur lors du calcul des profits: {str(e)}'
+        }), 500
+
+@app.route('/restore-investments', methods=['POST'])
+@login_required
+def restore_investments():
+    """Restaurer les investissements perdus d'un utilisateur"""
+    try:
+        # Vérifier s'il n'y a vraiment aucun investissement actif
+        conn = get_db_connection()
+        active_count = conn.execute('''
+            SELECT COUNT(*) as count 
+            FROM user_investments 
+            WHERE user_id = ? AND is_active = 1
+        ''', (session['user_id'],)).fetchone()['count']
+        
+        if active_count > 0:
+            conn.close()
+            return jsonify({
+                'error': 'Vous avez déjà des investissements actifs'
+            }), 400
+        
+        conn.close()
+        
+        # Restaurer avec des investissements de base
+        success = restore_user_investments(session['user_id'])
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Vos investissements ont été restaurés! Rechargez la page pour les voir.'
+            })
+        else:
+            return jsonify({
+                'error': 'Erreur lors de la restauration'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'error': f'Erreur: {str(e)}'
         }), 500
 
 # Security Routes

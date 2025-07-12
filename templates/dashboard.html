@@ -289,6 +289,9 @@
                     <button onclick="recalculateProfits()" class="messenger-btn-outline inline-flex items-center w-full justify-center">
                         <i class="fas fa-sync mr-2"></i>Actualiser mes gains
                     </button>
+                    <button onclick="restoreInvestments()" class="messenger-btn inline-flex items-center w-full justify-center bg-orange-500 hover:bg-orange-600">
+                        <i class="fas fa-history mr-2"></i>Restaurer mes investissements
+                    </button>
                 </div>
             </div>
         {% endif %}
@@ -577,6 +580,35 @@ document.getElementById('withdrawAmount')?.addEventListener('input', function() 
     const netAmount = Math.max(0, amount - fee);
     document.getElementById('netAmount').textContent = netAmount.toFixed(2) + ' USDT';
 });
+
+// Fonction de restauration d'investissements
+async function restoreInvestments() {
+    if (!confirm('⚠️ Cette action va restaurer vos investissements perdus. Êtes-vous sûr de vouloir continuer ?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/restore-investments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('✅ ' + data.message, 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showNotification('❌ ' + (data.error || 'Erreur lors de la restauration'), 'error');
+        }
+    } catch (error) {
+        showNotification('❌ Erreur de connexion', 'error');
+    }
+}
 
 // Système de gains en temps réel
 class RealTimeEarnings {
