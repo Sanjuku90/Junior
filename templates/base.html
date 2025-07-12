@@ -997,6 +997,10 @@
                     <i class="nav-icon fas fa-user"></i>
                     Profil
                 </a>
+                <a href="{{ url_for('security') }}" class="nav-item {{ 'active' if request.endpoint == 'security' }} w-full justify-start">
+                    <i class="nav-icon fas fa-shield-alt"></i>
+                    Sécurité
+                </a>
                 <a href="{{ url_for('support') }}" class="nav-item {{ 'active' if request.endpoint == 'support' }} w-full justify-start">
                     <i class="nav-icon fas fa-headset"></i>
                     Support

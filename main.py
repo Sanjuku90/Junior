@@ -11,6 +11,15 @@ import threading
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
+import pyotp
+import qrcode
+import io
+import base64
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import re
+import ipaddress
 
 # Import du bot Telegram utilisateur uniquement
 TELEGRAM_ENABLED = False
@@ -49,9 +58,47 @@ def init_db():
             referral_code TEXT UNIQUE,
             referred_by TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            two_fa_enabled BOOLEAN DEFAULT 0
+            two_fa_enabled BOOLEAN DEFAULT 0,
+            email_verified BOOLEAN DEFAULT 0,
+            account_locked BOOLEAN DEFAULT 0,
+            failed_login_attempts INTEGER DEFAULT 0,
+            last_login TIMESTAMP,
+            last_login_ip TEXT,
+            password_changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            telegram_id TEXT
         )
     ''')
+
+    # Ajouter les nouvelles colonnes si elles n'existent pas
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN account_locked BOOLEAN DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN last_login TIMESTAMP')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN last_login_ip TEXT')
+    except:
+        pass
+    
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN password_changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
+    except:
+        pass
 
     # ROI Plans table
     cursor.execute('''
@@ -270,6 +317,88 @@ def init_db():
         )
     ''')
 
+    # Security Sessions table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS security_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            session_token TEXT UNIQUE NOT NULL,
+            ip_address TEXT,
+            user_agent TEXT,
+            is_active BOOLEAN DEFAULT 1,
+            last_activity TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            expires_at TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
+    # Login Attempts table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS login_attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT,
+            ip_address TEXT,
+            success BOOLEAN DEFAULT 0,
+            attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            user_agent TEXT
+        )
+    ''')
+
+    # Security Logs table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS security_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            action TEXT NOT NULL,
+            ip_address TEXT,
+            user_agent TEXT,
+            details TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
+    # Password Reset Tokens table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            used BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
+    # Email Verification table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS email_verification (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT UNIQUE NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            verified BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
+    # Two Factor Authentication table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS two_factor_auth (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            secret_key TEXT NOT NULL,
+            backup_codes TEXT,
+            is_enabled BOOLEAN DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_used TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
     # Insert default FAQ entries
     cursor.execute('''
         INSERT OR IGNORE INTO faq (question, answer, category) VALUES 
@@ -353,6 +482,13 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return redirect(url_for('login'))
+        
+        # Valider la session sécurisée
+        if not validate_session():
+            session.clear()
+            flash('Session expirée, veuillez vous reconnecter', 'warning')
+            return redirect(url_for('login'))
+        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -371,6 +507,187 @@ def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
+
+# Security functions
+def get_client_ip():
+    """Obtenir l'IP réelle du client"""
+    if request.headers.getlist("X-Forwarded-For"):
+        ip = request.headers.getlist("X-Forwarded-For")[0].split(',')[0]
+    else:
+        ip = request.remote_addr
+    return ip
+
+def log_security_event(user_id, action, details=None):
+    """Enregistrer un événement de sécurité"""
+    conn = get_db_connection()
+    conn.execute('''
+        INSERT INTO security_logs (user_id, action, ip_address, user_agent, details)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (user_id, action, get_client_ip(), request.headers.get('User-Agent', ''), details))
+    conn.commit()
+    conn.close()
+
+def check_account_lockout(email):
+    """Vérifier si le compte est verrouillé"""
+    conn = get_db_connection()
+    user = conn.execute('SELECT account_locked, failed_login_attempts FROM users WHERE email = ?', (email,)).fetchone()
+    conn.close()
+    
+    if not user:
+        return False
+    
+    return user['account_locked'] or user['failed_login_attempts'] >= 5
+
+def handle_failed_login(email):
+    """Gérer les tentatives de connexion échouées"""
+    conn = get_db_connection()
+    
+    # Enregistrer la tentative
+    conn.execute('''
+        INSERT INTO login_attempts (email, ip_address, success, user_agent)
+        VALUES (?, ?, 0, ?)
+    ''', (email, get_client_ip(), request.headers.get('User-Agent', '')))
+    
+    # Incrémenter les tentatives échouées
+    conn.execute('''
+        UPDATE users 
+        SET failed_login_attempts = failed_login_attempts + 1
+        WHERE email = ?
+    ''', (email,))
+    
+    # Verrouiller le compte après 5 tentatives
+    conn.execute('''
+        UPDATE users 
+        SET account_locked = 1
+        WHERE email = ? AND failed_login_attempts >= 5
+    ''', (email,))
+    
+    conn.commit()
+    conn.close()
+
+def handle_successful_login(user_id, email):
+    """Gérer une connexion réussie"""
+    conn = get_db_connection()
+    
+    # Enregistrer la tentative réussie
+    conn.execute('''
+        INSERT INTO login_attempts (email, ip_address, success, user_agent)
+        VALUES (?, ?, 1, ?)
+    ''', (email, get_client_ip(), request.headers.get('User-Agent', '')))
+    
+    # Réinitialiser les tentatives échouées et déverrouiller
+    conn.execute('''
+        UPDATE users 
+        SET failed_login_attempts = 0, account_locked = 0, last_login = ?, last_login_ip = ?
+        WHERE id = ?
+    ''', (datetime.now(), get_client_ip(), user_id))
+    
+    conn.commit()
+    conn.close()
+    
+    # Créer une session sécurisée
+    create_secure_session(user_id)
+    log_security_event(user_id, 'LOGIN_SUCCESS')
+
+def create_secure_session(user_id):
+    """Créer une session sécurisée"""
+    session_token = secrets.token_urlsafe(32)
+    expires_at = datetime.now() + timedelta(hours=24)
+    
+    conn = get_db_connection()
+    conn.execute('''
+        INSERT INTO security_sessions (user_id, session_token, ip_address, user_agent, expires_at)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (user_id, session_token, get_client_ip(), request.headers.get('User-Agent', ''), expires_at))
+    conn.commit()
+    conn.close()
+    
+    session['session_token'] = session_token
+    session['csrf_token'] = secrets.token_urlsafe(32)
+
+def validate_session():
+    """Valider la session actuelle"""
+    if 'session_token' not in session or 'user_id' not in session:
+        return False
+    
+    conn = get_db_connection()
+    session_data = conn.execute('''
+        SELECT * FROM security_sessions 
+        WHERE session_token = ? AND user_id = ? AND is_active = 1 AND expires_at > ?
+    ''', (session['session_token'], session['user_id'], datetime.now())).fetchone()
+    
+    if session_data:
+        # Mettre à jour la dernière activité
+        conn.execute('''
+            UPDATE security_sessions 
+            SET last_activity = ? 
+            WHERE id = ?
+        ''', (datetime.now(), session_data['id']))
+        conn.commit()
+    
+    conn.close()
+    return session_data is not None
+
+def generate_2fa_secret():
+    """Générer un secret pour 2FA"""
+    return pyotp.random_base32()
+
+def generate_2fa_qr_code(email, secret):
+    """Générer un QR code pour 2FA"""
+    totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+        name=email,
+        issuer_name="InvestCrypto Pro"
+    )
+    
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(totp_uri)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    img_buffer = io.BytesIO()
+    img.save(img_buffer, format='PNG')
+    img_buffer.seek(0)
+    
+    return base64.b64encode(img_buffer.getvalue()).decode()
+
+def verify_2fa_token(secret, token):
+    """Vérifier un token 2FA"""
+    totp = pyotp.TOTP(secret)
+    return totp.verify(token, valid_window=1)
+
+def is_strong_password(password):
+    """Vérifier la force du mot de passe"""
+    if len(password) < 8:
+        return False, "Le mot de passe doit contenir au moins 8 caractères"
+    
+    if not re.search(r"[A-Z]", password):
+        return False, "Le mot de passe doit contenir au moins une majuscule"
+    
+    if not re.search(r"[a-z]", password):
+        return False, "Le mot de passe doit contenir au moins une minuscule"
+    
+    if not re.search(r"\d", password):
+        return False, "Le mot de passe doit contenir au moins un chiffre"
+    
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        return False, "Le mot de passe doit contenir au moins un caractère spécial"
+    
+    return True, "Mot de passe valide"
+
+def generate_password_reset_token(user_id):
+    """Générer un token de réinitialisation de mot de passe"""
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.now() + timedelta(hours=1)
+    
+    conn = get_db_connection()
+    conn.execute('''
+        INSERT INTO password_reset_tokens (user_id, token, expires_at)
+        VALUES (?, ?, ?)
+    ''', (user_id, token, expires_at))
+    conn.commit()
+    conn.close()
+    
+    return token
 
 def generate_transaction_hash():
     return hashlib.sha256(f"{datetime.now().isoformat()}{secrets.token_hex(16)}".encode()).hexdigest()
@@ -472,10 +789,21 @@ def register():
         if not all([email, password, first_name, last_name]):
             return jsonify({'error': 'Tous les champs sont requis'}), 400
 
+        # Validation de l'email
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            return jsonify({'error': 'Format d\'email invalide'}), 400
+
+        # Validation du mot de passe
+        is_valid, password_message = is_strong_password(password)
+        if not is_valid:
+            return jsonify({'error': password_message}), 400
+
         conn = get_db_connection()
 
         # Check if user already exists
         if conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone():
+            conn.close()
+            log_security_event(None, 'REGISTER_FAILED_EMAIL_EXISTS', f'Email: {email}')
             return jsonify({'error': 'Cet email est déjà utilisé'}), 400
 
         # Hash password
@@ -484,13 +812,19 @@ def register():
 
         # Insert user
         cursor = conn.execute('''
-            INSERT INTO users (email, password_hash, first_name, last_name, referral_code, referred_by)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (email, password_hash, first_name, last_name, user_referral_code, referral_code))
+            INSERT INTO users (email, password_hash, first_name, last_name, referral_code, referred_by, password_changed_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (email, password_hash, first_name, last_name, user_referral_code, referral_code, datetime.now()))
 
         user_id = cursor.lastrowid
         conn.commit()
         conn.close()
+
+        # Log successful registration
+        log_security_event(user_id, 'REGISTER_SUCCESS')
+
+        # Create secure session
+        create_secure_session(user_id)
 
         # Auto login
         session['user_id'] = user_id
@@ -508,30 +842,288 @@ def login():
 
         email = data.get('email')
         password = data.get('password')
+        totp_code = data.get('totp_code', '')
 
         if not email or not password:
             return jsonify({'error': 'Email et mot de passe requis'}), 400
 
+        # Vérifier le verrouillage du compte
+        if check_account_lockout(email):
+            log_security_event(None, 'LOGIN_BLOCKED_ACCOUNT_LOCKED', f'Email: {email}')
+            return jsonify({'error': 'Compte verrouillé en raison de trop nombreuses tentatives de connexion. Contactez le support.'}), 423
+
         conn = get_db_connection()
         user = conn.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
+        
+        if not user:
+            conn.close()
+            handle_failed_login(email)
+            log_security_event(None, 'LOGIN_FAILED_USER_NOT_FOUND', f'Email: {email}')
+            return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
+
+        if not check_password_hash(user['password_hash'], password):
+            conn.close()
+            handle_failed_login(email)
+            log_security_event(user['id'], 'LOGIN_FAILED_WRONG_PASSWORD')
+            return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
+
+        # Vérifier 2FA si activé
+        if user['two_fa_enabled']:
+            if not totp_code:
+                conn.close()
+                return jsonify({'error': 'Code 2FA requis', 'require_2fa': True}), 200
+            
+            # Récupérer le secret 2FA
+            totp_data = conn.execute('SELECT secret_key FROM two_factor_auth WHERE user_id = ? AND is_enabled = 1', (user['id'],)).fetchone()
+            
+            if not totp_data or not verify_2fa_token(totp_data['secret_key'], totp_code):
+                conn.close()
+                handle_failed_login(email)
+                log_security_event(user['id'], 'LOGIN_FAILED_INVALID_2FA')
+                return jsonify({'error': 'Code 2FA invalide'}), 401
+            
+            # Mettre à jour la dernière utilisation 2FA
+            conn.execute('UPDATE two_factor_auth SET last_used = ? WHERE user_id = ?', (datetime.now(), user['id']))
+
+        conn.commit()
         conn.close()
 
-        if user and check_password_hash(user['password_hash'], password):
-            session['user_id'] = user['id']
-            session['email'] = user['email']
-            session['first_name'] = user['first_name']
-            session['is_admin'] = (user['email'] == 'admin@example.com')  # Simple admin check
+        # Connexion réussie
+        handle_successful_login(user['id'], email)
+        
+        session['user_id'] = user['id']
+        session['email'] = user['email']
+        session['first_name'] = user['first_name']
+        session['is_admin'] = (user['email'] == 'admin@example.com')
 
-            return jsonify({'success': True, 'redirect': url_for('dashboard')})
-
-        return jsonify({'error': 'Email ou mot de passe incorrect'}), 401
+        return jsonify({'success': True, 'redirect': url_for('dashboard')})
 
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
+    if 'user_id' in session:
+        log_security_event(session['user_id'], 'LOGOUT')
+        
+        # Désactiver la session sécurisée
+        if 'session_token' in session:
+            conn = get_db_connection()
+            conn.execute('UPDATE security_sessions SET is_active = 0 WHERE session_token = ?', (session['session_token'],))
+            conn.commit()
+            conn.close()
+    
     session.clear()
     return redirect(url_for('index'))
+
+@app.route('/security')
+@login_required
+def security():
+    conn = get_db_connection()
+    
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    
+    # Récupérer les sessions actives
+    active_sessions = conn.execute('''
+        SELECT ip_address, user_agent, last_activity, created_at
+        FROM security_sessions 
+        WHERE user_id = ? AND is_active = 1 AND expires_at > ?
+        ORDER BY last_activity DESC
+    ''', (session['user_id'], datetime.now())).fetchall()
+    
+    # Récupérer les dernières tentatives de connexion
+    login_attempts = conn.execute('''
+        SELECT ip_address, success, attempt_time
+        FROM login_attempts 
+        WHERE email = ?
+        ORDER BY attempt_time DESC
+        LIMIT 10
+    ''', (user['email'],)).fetchall()
+    
+    # Vérifier si 2FA est configuré
+    totp_data = conn.execute('SELECT is_enabled FROM two_factor_auth WHERE user_id = ?', (session['user_id'],)).fetchone()
+    
+    conn.close()
+    
+    return render_template('security.html', 
+                         user=user, 
+                         active_sessions=active_sessions,
+                         login_attempts=login_attempts,
+                         totp_enabled=totp_data['is_enabled'] if totp_data else False)
+
+@app.route('/enable-2fa', methods=['POST'])
+@login_required
+def enable_2fa():
+    conn = get_db_connection()
+    
+    # Vérifier si 2FA est déjà activé
+    existing = conn.execute('SELECT id FROM two_factor_auth WHERE user_id = ?', (session['user_id'],)).fetchone()
+    
+    if existing:
+        conn.close()
+        return jsonify({'error': '2FA déjà configuré'}), 400
+    
+    # Générer un nouveau secret
+    secret = generate_2fa_secret()
+    
+    # Sauvegarder le secret (désactivé par défaut)
+    conn.execute('''
+        INSERT INTO two_factor_auth (user_id, secret_key, is_enabled)
+        VALUES (?, ?, 0)
+    ''', (session['user_id'], secret))
+    
+    conn.commit()
+    conn.close()
+    
+    # Générer le QR code
+    user = get_db_connection().execute('SELECT email FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    qr_code = generate_2fa_qr_code(user['email'], secret)
+    
+    log_security_event(session['user_id'], '2FA_SETUP_INITIATED')
+    
+    return jsonify({
+        'success': True,
+        'secret': secret,
+        'qr_code': qr_code,
+        'message': 'Scannez le QR code avec votre application d\'authentification'
+    })
+
+@app.route('/verify-2fa', methods=['POST'])
+@login_required
+def verify_2fa():
+    data = request.get_json()
+    token = data.get('token', '')
+    
+    if not token:
+        return jsonify({'error': 'Code requis'}), 400
+    
+    conn = get_db_connection()
+    totp_data = conn.execute('SELECT secret_key FROM two_factor_auth WHERE user_id = ?', (session['user_id'],)).fetchone()
+    
+    if not totp_data:
+        conn.close()
+        return jsonify({'error': 'Configuration 2FA non trouvée'}), 404
+    
+    if verify_2fa_token(totp_data['secret_key'], token):
+        # Activer 2FA
+        conn.execute('UPDATE two_factor_auth SET is_enabled = 1 WHERE user_id = ?', (session['user_id'],))
+        conn.execute('UPDATE users SET two_fa_enabled = 1 WHERE id = ?', (session['user_id'],))
+        conn.commit()
+        conn.close()
+        
+        log_security_event(session['user_id'], '2FA_ENABLED')
+        
+        return jsonify({'success': True, 'message': '2FA activé avec succès!'})
+    else:
+        conn.close()
+        log_security_event(session['user_id'], '2FA_VERIFICATION_FAILED')
+        return jsonify({'error': 'Code invalide'}), 400
+
+@app.route('/disable-2fa', methods=['POST'])
+@login_required
+def disable_2fa():
+    data = request.get_json()
+    password = data.get('password', '')
+    
+    if not password:
+        return jsonify({'error': 'Mot de passe requis pour désactiver 2FA'}), 400
+    
+    conn = get_db_connection()
+    user = conn.execute('SELECT password_hash FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    
+    if not check_password_hash(user['password_hash'], password):
+        conn.close()
+        log_security_event(session['user_id'], '2FA_DISABLE_FAILED_WRONG_PASSWORD')
+        return jsonify({'error': 'Mot de passe incorrect'}), 401
+    
+    # Désactiver 2FA
+    conn.execute('UPDATE two_factor_auth SET is_enabled = 0 WHERE user_id = ?', (session['user_id'],))
+    conn.execute('UPDATE users SET two_fa_enabled = 0 WHERE id = ?', (session['user_id'],))
+    conn.commit()
+    conn.close()
+    
+    log_security_event(session['user_id'], '2FA_DISABLED')
+    
+    return jsonify({'success': True, 'message': '2FA désactivé avec succès'})
+
+@app.route('/change-password', methods=['POST'])
+@login_required
+def change_password():
+    data = request.get_json()
+    current_password = data.get('current_password', '')
+    new_password = data.get('new_password', '')
+    
+    if not current_password or not new_password:
+        return jsonify({'error': 'Mots de passe requis'}), 400
+    
+    # Validation du nouveau mot de passe
+    is_valid, password_message = is_strong_password(new_password)
+    if not is_valid:
+        return jsonify({'error': password_message}), 400
+    
+    conn = get_db_connection()
+    user = conn.execute('SELECT password_hash FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    
+    if not check_password_hash(user['password_hash'], current_password):
+        conn.close()
+        log_security_event(session['user_id'], 'PASSWORD_CHANGE_FAILED_WRONG_CURRENT')
+        return jsonify({'error': 'Mot de passe actuel incorrect'}), 401
+    
+    # Changer le mot de passe
+    new_password_hash = generate_password_hash(new_password)
+    conn.execute('''
+        UPDATE users 
+        SET password_hash = ?, password_changed_at = ?
+        WHERE id = ?
+    ''', (new_password_hash, datetime.now(), session['user_id']))
+    
+    # Désactiver toutes les autres sessions
+    conn.execute('UPDATE security_sessions SET is_active = 0 WHERE user_id = ? AND session_token != ?', 
+                (session['user_id'], session.get('session_token')))
+    
+    conn.commit()
+    conn.close()
+    
+    log_security_event(session['user_id'], 'PASSWORD_CHANGED')
+    
+    return jsonify({'success': True, 'message': 'Mot de passe changé avec succès'})
+
+@app.route('/revoke-session', methods=['POST'])
+@login_required
+def revoke_session():
+    data = request.get_json()
+    session_ip = data.get('ip_address', '')
+    
+    if not session_ip:
+        return jsonify({'error': 'Adresse IP requise'}), 400
+    
+    conn = get_db_connection()
+    conn.execute('''
+        UPDATE security_sessions 
+        SET is_active = 0 
+        WHERE user_id = ? AND ip_address = ? AND session_token != ?
+    ''', (session['user_id'], session_ip, session.get('session_token')))
+    
+    conn.commit()
+    conn.close()
+    
+    log_security_event(session['user_id'], 'SESSION_REVOKED', f'IP: {session_ip}')
+    
+    return jsonify({'success': True, 'message': 'Session révoquée'})
+
+@app.route('/security-logs')
+@login_required
+def security_logs():
+    conn = get_db_connection()
+    logs = conn.execute('''
+        SELECT action, ip_address, details, created_at
+        FROM security_logs 
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT 50
+    ''', (session['user_id'],)).fetchall()
+    conn.close()
+    
+    return render_template('security_logs.html', logs=logs)
 
 @app.route('/dashboard')
 @login_required
