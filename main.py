@@ -453,18 +453,21 @@ def get_admin_status():
 # Utility functions
 def get_db_connection():
     import time
-    max_retries = 3
+    max_retries = 5
     for attempt in range(max_retries):
         try:
-            conn = sqlite3.connect(DATABASE, timeout=30.0)
+            conn = sqlite3.connect(DATABASE, timeout=60.0)
             conn.row_factory = sqlite3.Row
             # Enable WAL mode for better concurrency
             conn.execute('PRAGMA journal_mode=WAL;')
-            conn.execute('PRAGMA busy_timeout=30000;')  # 30 seconds timeout
+            conn.execute('PRAGMA busy_timeout=60000;')  # 60 seconds timeout
+            conn.execute('PRAGMA synchronous=NORMAL;')  # Better performance
+            conn.execute('PRAGMA cache_size=10000;')     # Larger cache
+            conn.execute('PRAGMA temp_store=memory;')    # Use memory for temp
             return conn
         except sqlite3.OperationalError as e:
             if "database is locked" in str(e) and attempt < max_retries - 1:
-                time.sleep(0.1 * (attempt + 1))  # Progressive backoff
+                time.sleep(0.5 * (attempt + 1))  # Progressive backoff
                 continue
             else:
                 print(f"❌ Database connection failed after {max_retries} attempts: {e}")
@@ -1576,13 +1579,16 @@ def admin_transactions():
 def approve_transaction(transaction_id):
     """Approuver une transaction"""
     conn = None
-    max_retries = 3
+    max_retries = 5
     
     for attempt in range(max_retries):
         try:
             conn = get_db_connection()
+            
+            # Commencer une transaction
+            conn.execute('BEGIN IMMEDIATE;')
 
-            # Récupérer la transaction
+            # Récupérer la transaction avec verrouillage
             transaction = conn.execute('''
                 SELECT t.*, u.email, u.first_name
                 FROM transactions t
@@ -1591,41 +1597,23 @@ def approve_transaction(transaction_id):
             ''', (transaction_id,)).fetchone()
 
             if not transaction:
-                if conn:
-                    conn.close()
+                conn.rollback()
+                conn.close()
                 return jsonify({'error': 'Transaction non trouvée ou déjà traitée'}), 404
 
             # Validation des données
             if not transaction['amount'] or transaction['amount'] <= 0:
-                if conn:
-                    conn.close()
+                conn.rollback()
+                conn.close()
                 return jsonify({'error': 'Montant de transaction invalide'}), 400
 
             if transaction['type'] == 'deposit':
                 # Approuver le dépôt - créditer le compte
-                try:
-                    conn.execute('''
-                        UPDATE users 
-                        SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP 
-                        WHERE id = ?
-                    ''', (transaction['amount'], transaction['user_id']))
-                except sqlite3.OperationalError as e:
-                    if "no such column: updated_at" in str(e):
-                        # Fallback if updated_at column doesn't exist
-                        conn.execute('''
-                            UPDATE users 
-                            SET balance = balance + ? 
-                            WHERE id = ?
-                        ''', (transaction['amount'], transaction['user_id']))
-                    else:
-                        raise e
-
-                # Log de sécurité
-                log_security_action(
-                    session.get('user_id', 1), 
-                    'deposit_approved', 
-                    f'Dépôt #{transaction_id} approuvé: {transaction["amount"]} USDT pour {transaction["email"]}'
-                )
+                conn.execute('''
+                    UPDATE users 
+                    SET balance = balance + ? 
+                    WHERE id = ?
+                ''', (transaction['amount'], transaction['user_id']))
 
                 # Ajouter notification
                 add_notification(
@@ -1637,13 +1625,6 @@ def approve_transaction(transaction_id):
 
             elif transaction['type'] == 'withdrawal':
                 # Le montant a déjà été débité lors de la demande
-                # Log de sécurité
-                log_security_action(
-                    session.get('user_id', 1), 
-                    'withdrawal_approved', 
-                    f'Retrait #{transaction_id} approuvé: {transaction["amount"]} USDT pour {transaction["email"]}'
-                )
-
                 # Ajouter notification
                 add_notification(
                     transaction['user_id'],
@@ -1653,27 +1634,22 @@ def approve_transaction(transaction_id):
                 )
 
             # Marquer comme complété
-            try:
-                conn.execute('''
-                    UPDATE transactions 
-                    SET status = 'completed', updated_at = CURRENT_TIMESTAMP 
-                    WHERE id = ?
-                ''', (transaction_id,))
-            except sqlite3.OperationalError as e:
-                if "no such column: updated_at" in str(e):
-                    # Fallback if updated_at column doesn't exist
-                    conn.execute('''
-                        UPDATE transactions 
-                        SET status = 'completed' 
-                        WHERE id = ?
-                    ''', (transaction_id,))
-                else:
-                    raise e
+            conn.execute('''
+                UPDATE transactions 
+                SET status = 'completed' 
+                WHERE id = ?
+            ''', (transaction_id,))
 
+            # Valider la transaction
             conn.commit()
-            
-            if conn:
-                conn.close()
+            conn.close()
+
+            # Log de sécurité après fermeture de la connexion
+            log_security_action(
+                session.get('user_id', 1), 
+                f'{transaction["type"]}_approved', 
+                f'{transaction["type"].title()} #{transaction_id} approuvé: {transaction["amount"]} USDT pour {transaction["email"]}'
+            )
 
             print(f"✅ Transaction #{transaction_id} approuvée avec succès")
             return jsonify({
@@ -1692,11 +1668,12 @@ def approve_transaction(transaction_id):
                 conn = None
                 
             if "database is locked" in str(e) and attempt < max_retries - 1:
-                time.sleep(0.2 * (attempt + 1))  # Augmenter le délai
+                import time
+                time.sleep(1.0 * (attempt + 1))  # Délai plus long
                 continue
             else:
                 return jsonify({
-                    'error': f'Erreur base de données après {attempt + 1} tentatives: {str(e)}'
+                    'error': f'Erreur base de données: {str(e)}'
                 }), 500
                 
         except Exception as e:
@@ -1710,7 +1687,7 @@ def approve_transaction(transaction_id):
                 conn = None
             return jsonify({'error': f'Erreur système: {str(e)}'}), 500
 
-    return jsonify({'error': 'Échec après plusieurs tentatives de base de données'}), 500
+    return jsonify({'error': 'Échec après plusieurs tentatives'}), 500
 
 @app.route('/admin/reject-transaction/<int:transaction_id>', methods=['POST'])
 @admin_required
@@ -2254,7 +2231,25 @@ def log_security_action(user_id, action, details=""):
         print(f"❌ Erreur log sécurité: {e}")
 
 if __name__ == '__main__':
-    init_db()
+    # Initialize database with retry logic
+    max_init_retries = 3
+    for init_attempt in range(max_init_retries):
+        try:
+            init_db()
+            print("✅ Base de données initialisée avec succès")
+            break
+        except sqlite3.OperationalError as e:
+            if "database is locked" in str(e) and init_attempt < max_init_retries - 1:
+                print(f"⚠️ Base de données verrouillée, tentative {init_attempt + 1}/{max_init_retries}")
+                import time
+                time.sleep(2)
+                continue
+            else:
+                print(f"❌ Erreur initialisation DB: {e}")
+                break
+        except Exception as e:
+            print(f"❌ Erreur inattendue initialisation: {e}")
+            break
 
     # Créer les comptes administrateur sécurisés
     print("🔐 Initialisation des comptes administrateur...")
