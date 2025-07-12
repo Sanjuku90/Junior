@@ -264,6 +264,95 @@ def init_db():
         )
     ''')
 
+    # Auto Trading Strategies table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS trading_strategies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT NOT NULL,
+            risk_level TEXT NOT NULL,
+            expected_daily_return REAL NOT NULL,
+            min_amount REAL NOT NULL,
+            max_amount REAL NOT NULL,
+            strategy_type TEXT NOT NULL,
+            parameters TEXT NOT NULL,
+            is_active BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # User Trading Bots table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_trading_bots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            strategy_id INTEGER NOT NULL,
+            amount REAL NOT NULL,
+            start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            end_date TIMESTAMP,
+            is_active BOOLEAN DEFAULT 1,
+            total_profit REAL DEFAULT 0.0,
+            daily_profit REAL DEFAULT 0.0,
+            last_profit_date TIMESTAMP,
+            transaction_hash TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (strategy_id) REFERENCES trading_strategies (id)
+        )
+    ''')
+
+    # Top Traders table (pour copy trading)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS top_traders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            avatar_url TEXT,
+            total_return REAL NOT NULL,
+            win_rate REAL NOT NULL,
+            followers_count INTEGER DEFAULT 0,
+            monthly_return REAL NOT NULL,
+            risk_score REAL NOT NULL,
+            trading_style TEXT NOT NULL,
+            min_copy_amount REAL NOT NULL,
+            max_copy_amount REAL NOT NULL,
+            is_active BOOLEAN DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # User Copy Trading table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS user_copy_trading (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            trader_id INTEGER NOT NULL,
+            amount REAL NOT NULL,
+            start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            end_date TIMESTAMP,
+            is_active BOOLEAN DEFAULT 1,
+            total_profit REAL DEFAULT 0.0,
+            copy_ratio REAL DEFAULT 1.0,
+            transaction_hash TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (trader_id) REFERENCES top_traders (id)
+        )
+    ''')
+
+    # Trading Signals table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS trading_signals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            strategy_id INTEGER NOT NULL,
+            signal_type TEXT NOT NULL,
+            asset_pair TEXT NOT NULL,
+            action TEXT NOT NULL,
+            price REAL NOT NULL,
+            confidence REAL NOT NULL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            is_executed BOOLEAN DEFAULT 0,
+            FOREIGN KEY (strategy_id) REFERENCES trading_strategies (id)
+        )
+    ''')
+
     # Support Tickets table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS support_tickets (
@@ -397,6 +486,38 @@ def init_db():
         ('Biotech Innovation', '🧬 Innovation biotechnologique ! 35% de retour en 24 mois.', 'Biotechnologie', 60000, 0.35, 24, 20, 6000, datetime("now", "+80 days")),
         ('Space Technology', '🚀 Technologie spatiale ! 40% de retour en 30 mois.', 'Espace', 80000, 0.40, 30, 20, 8000, datetime("now", "+90 days")),
         ('Quantum Computing', '⚛️ Informatique quantique ! 50% de retour en 36 mois.', 'Quantique', 100000, 0.50, 36, 20, 10000, datetime("now", "+120 days"))
+    ''')
+
+    # Insert trading strategies
+    cursor.execute('''
+        INSERT OR IGNORE INTO trading_strategies (name, description, risk_level, expected_daily_return, min_amount, max_amount, strategy_type, parameters)
+        VALUES 
+        ('IA Conservateur', '🛡️ Stratégie IA sécurisée avec analyse de risque avancée. Idéale pour débuter le trading automatique.', 'Faible', 0.015, 20, 1000, 'ai_conservative', '{"stop_loss": 0.05, "take_profit": 0.03, "max_trades": 3}'),
+        ('IA Équilibré', '⚖️ Stratégie IA équilibrée combinant sécurité et performance. Parfait équilibre risque/rendement.', 'Moyen', 0.025, 20, 2000, 'ai_balanced', '{"stop_loss": 0.08, "take_profit": 0.05, "max_trades": 5}'),
+        ('IA Agressif', '🚀 Stratégie IA haute performance avec algorithmes avancés. Pour investisseurs expérimentés.', 'Élevé', 0.04, 20, 5000, 'ai_aggressive', '{"stop_loss": 0.12, "take_profit": 0.08, "max_trades": 8}'),
+        ('Scalping Bot', '⚡ Bot de scalping ultra-rapide avec IA prédictive. Trades haute fréquence pour profits constants.', 'Moyen', 0.035, 20, 3000, 'scalping_ai', '{"timeframe": "1m", "trades_per_hour": 10, "profit_target": 0.02}'),
+        ('Arbitrage IA', '🔄 Bot d\'arbitrage intelligent détectant les écarts de prix entre exchanges. Profits garantis.', 'Faible', 0.02, 20, 10000, 'arbitrage_ai', '{"min_spread": 0.01, "max_exposure": 0.3, "exchanges": 5}'),
+        ('Swing Trading Pro', '📈 IA de swing trading analysant les tendances moyennes. Positions 2-7 jours pour profits optimaux.', 'Moyen', 0.03, 20, 4000, 'swing_ai', '{"timeframe": "4h", "trend_strength": 0.7, "position_size": 0.2}'),
+        ('DeFi Yield Bot', '🌾 Bot DeFi intelligent optimisant les rendements sur protocols décentralisés. Farming automatisé.', 'Moyen', 0.045, 20, 8000, 'defi_yield', '{"protocols": ["uniswap", "compound"], "rebalance_frequency": "daily"}'),
+        ('Grid Trading IA', '🔳 Stratégie de trading en grille avec IA adaptative. Profits dans tous les marchés.', 'Faible', 0.018, 20, 6000, 'grid_ai', '{"grid_size": 20, "price_range": 0.1, "adaptive": true}'),
+        ('News Trading Bot', '📰 Bot réagissant aux news crypto en temps réel avec analyse sentiment IA. Profits sur volatilité.', 'Élevé', 0.038, 20, 2500, 'news_ai', '{"sentiment_threshold": 0.8, "reaction_time": "30s", "news_sources": 15}'),
+        ('Multi-Strategy IA', '🎯 Bot combinant plusieurs stratégies IA adaptatives. Performance optimisée automatiquement.', 'Moyen', 0.032, 20, 15000, 'multi_ai', '{"strategies": 5, "allocation_dynamic": true, "rebalance": "weekly"}}')
+    ''')
+
+    # Insert top traders for copy trading
+    cursor.execute('''
+        INSERT OR IGNORE INTO top_traders (name, avatar_url, total_return, win_rate, followers_count, monthly_return, risk_score, trading_style, min_copy_amount, max_copy_amount)
+        VALUES 
+        ('CryptoKing_AI', '/static/avatars/trader1.png', 245.5, 78.5, 1250, 25.2, 6.2, 'Swing Trading + IA', 20, 5000),
+        ('QuantMaster_Pro', '/static/avatars/trader2.png', 189.3, 82.1, 980, 18.7, 4.8, 'Algorithmic Trading', 20, 3000),
+        ('ScalpBot_Elite', '/static/avatars/trader3.png', 156.8, 75.3, 1580, 22.4, 7.1, 'Scalping + Arbitrage', 20, 2500),
+        ('TrendHunter_IA', '/static/avatars/trader4.png', 198.7, 80.2, 920, 19.8, 5.5, 'Trend Following IA', 20, 4000),
+        ('DeFi_Wizard', '/static/avatars/trader5.png', 134.2, 88.9, 750, 15.8, 3.2, 'DeFi Yield Farming', 20, 8000),
+        ('Volatility_Pro', '/static/avatars/trader6.png', 178.5, 73.4, 1120, 21.3, 8.5, 'Volatility Trading', 20, 3500),
+        ('AI_GridMaster', '/static/avatars/trader7.png', 145.6, 85.7, 680, 16.9, 4.1, 'Grid + IA Adaptive', 20, 6000),
+        ('NewsBot_Elite', '/static/avatars/trader8.png', 167.3, 76.8, 1340, 20.1, 6.8, 'News-based Trading', 20, 2800),
+        ('Hodl_IA_Pro', '/static/avatars/trader9.png', 123.8, 91.2, 2100, 14.5, 2.9, 'Long-term IA', 20, 10000),
+        ('MultiStrat_Bot', '/static/avatars/trader10.png', 201.4, 79.6, 1450, 23.7, 5.9, 'Multi-Strategy IA', 20, 7500)
     ''')
 
     conn.commit()
@@ -535,8 +656,27 @@ def calculate_daily_profits():
         WHERE ui.is_active = 1
     ''').fetchall()
 
-    print(f"🔄 Calcul des profits pour {len(active_investments)} investissements actifs")
+    # Récupérer tous les bots de trading actifs
+    active_bots = conn.execute('''
+        SELECT utb.*, u.email, ts.name as strategy_name
+        FROM user_trading_bots utb
+        JOIN users u ON utb.user_id = u.id
+        JOIN trading_strategies ts ON utb.strategy_id = ts.id
+        WHERE utb.is_active = 1
+    ''').fetchall()
 
+    # Récupérer tous les copy trades actifs
+    active_copies = conn.execute('''
+        SELECT uct.*, u.email, tt.name as trader_name, tt.monthly_return
+        FROM user_copy_trading uct
+        JOIN users u ON uct.user_id = u.id
+        JOIN top_traders tt ON uct.trader_id = tt.id
+        WHERE uct.is_active = 1
+    ''').fetchall()
+
+    print(f"🔄 Calcul des profits pour {len(active_investments)} investissements, {len(active_bots)} bots, {len(active_copies)} copy trades")
+
+    # Traiter les investissements ROI classiques
     for investment in active_investments:
         try:
             # Vérifier si l'investissement est vraiment actif (pas expiré)
@@ -597,6 +737,93 @@ def calculate_daily_profits():
 
         except Exception as e:
             print(f"❌ Erreur calcul profit pour investissement {investment['id']}: {e}")
+            continue
+
+    # Traiter les bots de trading
+    for bot in active_bots:
+        try:
+            daily_profit = bot['daily_profit']
+            
+            if daily_profit > 0:
+                print(f"🤖 Ajout de {daily_profit:.2f} USDT pour le bot {bot['id']} de l'utilisateur {bot['user_id']}")
+
+                # Mettre à jour le solde utilisateur
+                conn.execute('''
+                    UPDATE users 
+                    SET balance = balance + ? 
+                    WHERE id = ?
+                ''', (daily_profit, bot['user_id']))
+
+                # Mettre à jour les profits totaux du bot
+                current_profit = bot.get('total_profit', 0) or 0
+                new_total_profit = current_profit + daily_profit
+                conn.execute('''
+                    UPDATE user_trading_bots 
+                    SET total_profit = ?, last_profit_date = CURRENT_TIMESTAMP 
+                    WHERE id = ?
+                ''', (new_total_profit, bot['id']))
+
+                # Ajouter transaction
+                conn.execute('''
+                    INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+                    VALUES (?, 'bot_profit', ?, 'completed', ?)
+                ''', (bot['user_id'], daily_profit, generate_transaction_hash()))
+
+                # Ajouter notification
+                add_notification(
+                    bot['user_id'],
+                    'Profit bot de trading',
+                    f'Votre bot {bot["strategy_name"]} a généré {daily_profit:.2f} USDT de profit!',
+                    'success'
+                )
+
+        except Exception as e:
+            print(f"❌ Erreur calcul profit pour bot {bot['id']}: {e}")
+            continue
+
+    # Traiter les copy trades
+    for copy_trade in active_copies:
+        try:
+            # Calculer le profit basé sur le rendement mensuel du trader
+            monthly_return = copy_trade['monthly_return'] / 100  # Convertir en décimal
+            daily_return = monthly_return / 30  # Approximation quotidienne
+            daily_profit = copy_trade['amount'] * daily_return * copy_trade['copy_ratio']
+            
+            if daily_profit > 0:
+                print(f"📈 Ajout de {daily_profit:.2f} USDT pour le copy trade {copy_trade['id']} de l'utilisateur {copy_trade['user_id']}")
+
+                # Mettre à jour le solde utilisateur
+                conn.execute('''
+                    UPDATE users 
+                    SET balance = balance + ? 
+                    WHERE id = ?
+                ''', (daily_profit, copy_trade['user_id']))
+
+                # Mettre à jour les profits totaux du copy trade
+                current_profit = copy_trade.get('total_profit', 0) or 0
+                new_total_profit = current_profit + daily_profit
+                conn.execute('''
+                    UPDATE user_copy_trading 
+                    SET total_profit = ? 
+                    WHERE id = ?
+                ''', (new_total_profit, copy_trade['id']))
+
+                # Ajouter transaction
+                conn.execute('''
+                    INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+                    VALUES (?, 'copy_profit', ?, 'completed', ?)
+                ''', (copy_trade['user_id'], daily_profit, generate_transaction_hash()))
+
+                # Ajouter notification
+                add_notification(
+                    copy_trade['user_id'],
+                    'Profit copy trading',
+                    f'Votre copy de {copy_trade["trader_name"]} a généré {daily_profit:.2f} USDT de profit!',
+                    'success'
+                )
+
+        except Exception as e:
+            print(f"❌ Erreur calcul profit pour copy trade {copy_trade['id']}: {e}")
             continue
 
     conn.commit()
@@ -2062,6 +2289,257 @@ def restore_investments():
         return jsonify({
             'error': f'Erreur: {str(e)}'
         }), 500
+
+# Auto-Trading IA Routes
+@app.route('/auto-trading')
+@login_required
+def auto_trading():
+    """Page d'auto-trading IA"""
+    conn = get_db_connection()
+    
+    # Récupérer les stratégies de trading
+    strategies = conn.execute('''
+        SELECT * FROM trading_strategies 
+        WHERE is_active = 1
+        ORDER BY risk_level, expected_daily_return DESC
+    ''').fetchall()
+    
+    # Récupérer les bots actifs de l'utilisateur
+    user_bots = conn.execute('''
+        SELECT utb.*, ts.name as strategy_name, ts.risk_level, ts.expected_daily_return
+        FROM user_trading_bots utb
+        JOIN trading_strategies ts ON utb.strategy_id = ts.id
+        WHERE utb.user_id = ? AND utb.is_active = 1
+        ORDER BY utb.start_date DESC
+    ''', (session['user_id'],)).fetchall()
+    
+    conn.close()
+    
+    return render_template('auto_trading.html', strategies=strategies, user_bots=user_bots)
+
+@app.route('/copy-trading')
+@login_required
+def copy_trading():
+    """Page de copy trading"""
+    conn = get_db_connection()
+    
+    # Récupérer les top traders
+    top_traders = conn.execute('''
+        SELECT * FROM top_traders 
+        WHERE is_active = 1
+        ORDER BY total_return DESC
+    ''').fetchall()
+    
+    # Récupérer les copy trades actifs de l'utilisateur
+    user_copies = conn.execute('''
+        SELECT uct.*, tt.name as trader_name, tt.total_return, tt.win_rate, tt.trading_style
+        FROM user_copy_trading uct
+        JOIN top_traders tt ON uct.trader_id = tt.id
+        WHERE uct.user_id = ? AND uct.is_active = 1
+        ORDER BY uct.start_date DESC
+    ''', (session['user_id'],)).fetchall()
+    
+    conn.close()
+    
+    return render_template('copy_trading.html', top_traders=top_traders, user_copies=user_copies)
+
+@app.route('/start-trading-bot', methods=['POST'])
+@login_required
+def start_trading_bot():
+    """Démarrer un bot de trading IA"""
+    data = request.get_json()
+    strategy_id = data.get('strategy_id')
+    amount = float(data.get('amount', 0))
+    
+    conn = get_db_connection()
+    
+    # Récupérer les détails de la stratégie
+    strategy = conn.execute('SELECT * FROM trading_strategies WHERE id = ?', (strategy_id,)).fetchone()
+    if not strategy:
+        conn.close()
+        return jsonify({'error': 'Stratégie non trouvée'}), 404
+    
+    # Vérifier les limites de montant
+    if amount < strategy['min_amount'] or amount > strategy['max_amount']:
+        conn.close()
+        return jsonify({'error': f'Montant doit être entre {strategy["min_amount"]} et {strategy["max_amount"]} USDT'}), 400
+    
+    # Vérifier le solde utilisateur
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user['balance'] < amount:
+        conn.close()
+        return jsonify({'error': 'Solde insuffisant'}), 400
+    
+    # Calculer le profit quotidien estimé
+    daily_profit = amount * strategy['expected_daily_return']
+    
+    # Créer le bot de trading
+    cursor = conn.execute('''
+        INSERT INTO user_trading_bots (user_id, strategy_id, amount, daily_profit, transaction_hash)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (session['user_id'], strategy_id, amount, daily_profit, generate_transaction_hash()))
+    
+    # Mettre à jour le solde utilisateur
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, session['user_id']))
+    
+    # Ajouter transaction
+    conn.execute('''
+        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+        VALUES (?, 'trading_bot', ?, 'completed', ?)
+    ''', (session['user_id'], amount, generate_transaction_hash()))
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification
+    add_notification(
+        session['user_id'],
+        'Bot de trading activé',
+        f'Votre bot {strategy["name"]} a été activé avec {amount} USDT!',
+        'success'
+    )
+    
+    return jsonify({'success': True, 'message': f'Bot {strategy["name"]} activé avec succès!'})
+
+@app.route('/start-copy-trading', methods=['POST'])
+@login_required
+def start_copy_trading():
+    """Démarrer le copy trading d'un trader"""
+    data = request.get_json()
+    trader_id = data.get('trader_id')
+    amount = float(data.get('amount', 0))
+    copy_ratio = float(data.get('copy_ratio', 1.0))
+    
+    conn = get_db_connection()
+    
+    # Récupérer les détails du trader
+    trader = conn.execute('SELECT * FROM top_traders WHERE id = ?', (trader_id,)).fetchone()
+    if not trader:
+        conn.close()
+        return jsonify({'error': 'Trader non trouvé'}), 404
+    
+    # Vérifier les limites de montant
+    if amount < trader['min_copy_amount'] or amount > trader['max_copy_amount']:
+        conn.close()
+        return jsonify({'error': f'Montant doit être entre {trader["min_copy_amount"]} et {trader["max_copy_amount"]} USDT'}), 400
+    
+    # Vérifier le solde utilisateur
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user['balance'] < amount:
+        conn.close()
+        return jsonify({'error': 'Solde insuffisant'}), 400
+    
+    # Créer le copy trading
+    cursor = conn.execute('''
+        INSERT INTO user_copy_trading (user_id, trader_id, amount, copy_ratio, transaction_hash)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (session['user_id'], trader_id, amount, copy_ratio, generate_transaction_hash()))
+    
+    # Mettre à jour le solde utilisateur
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (amount, session['user_id']))
+    
+    # Mettre à jour le nombre de followers du trader
+    conn.execute('UPDATE top_traders SET followers_count = followers_count + 1 WHERE id = ?', (trader_id,))
+    
+    # Ajouter transaction
+    conn.execute('''
+        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+        VALUES (?, 'copy_trading', ?, 'completed', ?)
+    ''', (session['user_id'], amount, generate_transaction_hash()))
+    
+    conn.commit()
+    conn.close()
+    
+    # Ajouter notification
+    add_notification(
+        session['user_id'],
+        'Copy Trading activé',
+        f'Vous copiez maintenant {trader["name"]} avec {amount} USDT!',
+        'success'
+    )
+    
+    return jsonify({'success': True, 'message': f'Copy trading de {trader["name"]} activé avec succès!'})
+
+@app.route('/stop-trading-bot/<int:bot_id>', methods=['POST'])
+@login_required
+def stop_trading_bot(bot_id):
+    """Arrêter un bot de trading"""
+    conn = get_db_connection()
+    
+    # Récupérer et vérifier le bot
+    bot = conn.execute('''
+        SELECT * FROM user_trading_bots 
+        WHERE id = ? AND user_id = ? AND is_active = 1
+    ''', (bot_id, session['user_id'])).fetchone()
+    
+    if not bot:
+        conn.close()
+        return jsonify({'error': 'Bot non trouvé ou déjà arrêté'}), 404
+    
+    # Arrêter le bot
+    conn.execute('''
+        UPDATE user_trading_bots 
+        SET is_active = 0, end_date = CURRENT_TIMESTAMP 
+        WHERE id = ?
+    ''', (bot_id,))
+    
+    # Rembourser le capital + profits
+    total_amount = bot['amount'] + bot['total_profit']
+    conn.execute('UPDATE users SET balance = balance + ? WHERE id = ?', (total_amount, session['user_id']))
+    
+    conn.commit()
+    conn.close()
+    
+    add_notification(
+        session['user_id'],
+        'Bot de trading arrêté',
+        f'Votre bot a été arrêté. Capital + profits: {total_amount:.2f} USDT remboursés.',
+        'info'
+    )
+    
+    return jsonify({'success': True, 'message': 'Bot arrêté avec succès!'})
+
+@app.route('/stop-copy-trading/<int:copy_id>', methods=['POST'])
+@login_required
+def stop_copy_trading(copy_id):
+    """Arrêter le copy trading"""
+    conn = get_db_connection()
+    
+    # Récupérer et vérifier le copy trade
+    copy_trade = conn.execute('''
+        SELECT * FROM user_copy_trading 
+        WHERE id = ? AND user_id = ? AND is_active = 1
+    ''', (copy_id, session['user_id'])).fetchone()
+    
+    if not copy_trade:
+        conn.close()
+        return jsonify({'error': 'Copy trading non trouvé ou déjà arrêté'}), 404
+    
+    # Arrêter le copy trading
+    conn.execute('''
+        UPDATE user_copy_trading 
+        SET is_active = 0, end_date = CURRENT_TIMESTAMP 
+        WHERE id = ?
+    ''', (copy_id,))
+    
+    # Rembourser le capital + profits
+    total_amount = copy_trade['amount'] + copy_trade['total_profit']
+    conn.execute('UPDATE users SET balance = balance + ? WHERE id = ?', (total_amount, session['user_id']))
+    
+    # Réduire le nombre de followers du trader
+    conn.execute('UPDATE top_traders SET followers_count = followers_count - 1 WHERE id = ?', (copy_trade['trader_id'],))
+    
+    conn.commit()
+    conn.close()
+    
+    add_notification(
+        session['user_id'],
+        'Copy Trading arrêté',
+        f'Copy trading arrêté. Capital + profits: {total_amount:.2f} USDT remboursés.',
+        'info'
+    )
+    
+    return jsonify({'success': True, 'message': 'Copy trading arrêté avec succès!'})
 
 # Security Routes
 @app.route('/security')
