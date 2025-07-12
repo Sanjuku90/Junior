@@ -170,8 +170,9 @@ async function approveTransaction(transactionId) {
     if (!confirm('Êtes-vous sûr de vouloir approuver cette transaction ?')) return;
     
     // Désactiver le bouton pendant le traitement
-    const approveBtn = document.querySelector(`#transaction-${transactionId} .bg-green-500`);
-    const rejectBtn = document.querySelector(`#transaction-${transactionId} .bg-red-500`);
+    const row = document.getElementById(`transaction-${transactionId}`);
+    const approveBtn = row.querySelector('.bg-green-500');
+    const rejectBtn = row.querySelector('.bg-red-500');
     
     if (approveBtn) {
         approveBtn.disabled = true;
@@ -189,43 +190,43 @@ async function approveTransaction(transactionId) {
         const response = await fetch(`/admin/approve-transaction/${transactionId}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             }
         });
-        
-        console.log(`Réponse reçue: ${response.status}`);
-        
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
         
         const result = await response.json();
         console.log('Résultat:', result);
         
         if (result.success) {
-            alert('✅ ' + result.message);
-            // Retirer la ligne du tableau
-            const row = document.getElementById(`transaction-${transactionId}`);
-            if (row) {
-                row.style.opacity = '0.5';
+            // Afficher un message de succès
+            showSuccessMessage('✅ ' + result.message);
+            
+            // Marquer la ligne comme traitée
+            row.style.backgroundColor = '#f0f9ff';
+            row.innerHTML = `
+                <td colspan="7" class="px-6 py-4 text-center">
+                    <div class="flex items-center justify-center text-green-600">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span class="font-semibold">Transaction approuvée avec succès</span>
+                    </div>
+                </td>
+            `;
+            
+            // Retirer la ligne après 3 secondes
+            setTimeout(() => {
+                row.style.transition = 'opacity 0.5s';
+                row.style.opacity = '0';
                 setTimeout(() => row.remove(), 500);
-            }
+            }, 3000);
+            
         } else {
-            alert('❌ ' + (result.error || 'Erreur inconnue'));
-            // Réactiver les boutons en cas d'erreur
-            if (approveBtn) {
-                approveBtn.disabled = false;
-                approveBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Approuver';
-                approveBtn.classList.remove('opacity-50');
-            }
-            if (rejectBtn) {
-                rejectBtn.disabled = false;
-                rejectBtn.classList.remove('opacity-50');
-            }
+            throw new Error(result.error || 'Erreur inconnue');
         }
+        
     } catch (error) {
         console.error('Erreur:', error);
-        alert('❌ Erreur de connexion: ' + error.message);
+        showErrorMessage('❌ ' + error.message);
         
         // Réactiver les boutons en cas d'erreur
         if (approveBtn) {
@@ -238,6 +239,32 @@ async function approveTransaction(transactionId) {
             rejectBtn.classList.remove('opacity-50');
         }
     }
+}
+
+function showSuccessMessage(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    alertDiv.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 5000);
+}
+
+function showErrorMessage(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    alertDiv.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 5000);
 }
 
 function rejectTransaction(transactionId) {
@@ -282,5 +309,27 @@ async function confirmReject() {
 function refreshTransactions() {
     location.reload();
 }
+
+// Vérification automatique du statut des transactions toutes les 30 secondes
+setInterval(async () => {
+    try {
+        const response = await fetch('/admin/transactions');
+        if (response.ok) {
+            const text = await response.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            const newTransactionCount = doc.querySelectorAll('tbody tr').length;
+            const currentTransactionCount = document.querySelectorAll('tbody tr').length;
+            
+            // Si le nombre de transactions a changé, actualiser
+            if (newTransactionCount !== currentTransactionCount) {
+                console.log('Nouvelles transactions détectées, actualisation...');
+                location.reload();
+            }
+        }
+    } catch (error) {
+        console.log('Erreur lors de la vérification des transactions:', error);
+    }
+}, 30000); // Vérification toutes les 30 secondes
 </script>
 {% endblock %}
