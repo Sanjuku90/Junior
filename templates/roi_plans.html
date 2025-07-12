@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}Plans ROI - InvestCrypto Pro{% endblock %}
@@ -11,19 +12,31 @@
     </div>
 
     <!-- Plans Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {% for plan in plans %}
-        <div class="bg-white rounded-lg md:rounded-xl shadow-lg border-2 border-gray-100 hover:border-blue-300 transition-all duration-300 overflow-hidden">
-            <div class="p-4 md:p-6">
-                <div class="text-center mb-4 md:mb-6">
-                    <div class="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 md:mb-4">
-                        <i class="fas fa-chart-line text-lg md:text-2xl text-white"></i>
-                    </div>
-                    <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-2">{{ plan.name }}</h3>
-                    <div class="text-3xl md:text-4xl font-bold text-blue-600 mb-1">{{ (plan.daily_rate * 100)|round(1) }}%</div>
-                    <div class="text-xs md:text-sm text-gray-500">par jour pendant {{ plan.duration_days }} jours</div>
+        <div class="bg-white rounded-lg shadow-lg p-6 relative {{ 'border-2 border-green-500' if plan.name == 'Plan Premium' else 'border border-gray-200' }} hover:shadow-xl transition-all duration-300">
+            {% if plan.name == 'Plan Premium' %}
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">⭐ POPULAIRE</span>
+            </div>
+            {% endif %}
+            
+            <div class="text-center">
+                <h3 class="text-xl font-semibold mb-3">{{ plan.name }}</h3>
+                
+                <!-- Description courte avec tooltip -->
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600 line-clamp-2 leading-relaxed">{{ plan.description[:80] }}...</p>
+                    <button onclick="showPlanDetails('{{ plan.name }}', '{{ plan.description }}')" class="text-blue-500 text-xs hover:text-blue-700 mt-1">
+                        Voir tous les détails →
+                    </button>
                 </div>
-
+                
+                <div class="text-4xl font-bold text-blue-600 mb-2">
+                    {{ "%.0f"|format(plan.daily_rate * 100) }}%
+                </div>
+                <div class="text-sm text-gray-600 mb-4">profit quotidien</div>
+                
                 <div class="space-y-2 mb-6">
                     <div class="text-sm text-gray-600">
                         <i class="fas fa-calendar-alt mr-2"></i>
@@ -38,14 +51,14 @@
                         Max: {{ "{:,.0f}".format(plan.max_amount) }} USDT
                     </div>
                 </div>
-
+                
                 <div class="bg-gray-50 p-3 rounded-lg mb-4">
                     <div class="text-xs text-gray-500">Profit total estimé</div>
                     <div class="text-lg font-semibold text-green-600">
                         {{ "%.0f"|format(plan.daily_rate * plan.duration_days * 100) }}%
                     </div>
                 </div>
-
+                
                 <button onclick="showInvestModal({{ plan.id }}, '{{ plan.name }}', {{ plan.min_amount }}, {{ plan.max_amount }}, {{ plan.daily_rate }})" 
                         class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-medium">
                     Investir maintenant
@@ -73,7 +86,7 @@
                 </select>
             </div>
         </div>
-
+        
         <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-blue-50 p-4 rounded-lg text-center">
                 <div class="text-sm text-blue-600 mb-1">Profit quotidien</div>
@@ -123,7 +136,7 @@
                 <p class="text-sm text-gray-600 text-center">Profits versés automatiquement toutes les 24h, sans délai</p>
             </div>
         </div>
-
+        
         <!-- Success Stories -->
         <div class="mt-8 bg-white rounded-lg p-6">
             <h3 class="text-xl font-semibold mb-4 text-center">📈 Témoignages de nos investisseurs</h3>
@@ -155,7 +168,7 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-
+            
             <div class="space-y-4">
                 <div class="bg-blue-50 p-4 rounded-lg">
                     <div class="text-sm text-blue-600 mb-2">Détails du plan</div>
@@ -165,17 +178,17 @@
                         <div>Montant max: <span id="modalMaxAmount" class="font-semibold"></span> USDT</div>
                     </div>
                 </div>
-
+                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Montant à investir</label>
                     <input type="number" id="investAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Montant en USDT">
                 </div>
-
+                
                 <div class="bg-green-50 p-3 rounded-lg">
                     <div class="text-sm text-green-600 mb-1">Profit quotidien estimé</div>
                     <div class="text-lg font-semibold" id="modalDailyProfit">0 USDT</div>
                 </div>
-
+                
                 <button onclick="submitInvestment()" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">
                     Confirmer l'investissement
                 </button>
@@ -194,11 +207,11 @@
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-
+            
             <div class="prose max-w-none">
                 <p id="planDetailsDescription" class="text-gray-700 leading-relaxed"></p>
             </div>
-
+            
             <div class="mt-6 flex justify-end">
                 <button onclick="hidePlanDetails()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md">
                     Fermer
@@ -229,12 +242,12 @@ function showInvestModal(planId, planName, minAmount, maxAmount, dailyRate) {
         maxAmount: maxAmount,
         dailyRate: dailyRate
     };
-
+    
     document.getElementById('modalTitle').textContent = `Investir dans ${planName}`;
     document.getElementById('modalDailyRate').textContent = `${(dailyRate * 100).toFixed(1)}%`;
     document.getElementById('modalMinAmount').textContent = minAmount;
     document.getElementById('modalMaxAmount').textContent = maxAmount.toLocaleString();
-
+    
     document.getElementById('investModal').classList.remove('hidden');
 }
 
@@ -254,14 +267,14 @@ document.getElementById('investAmount').addEventListener('input', function() {
 
 async function submitInvestment() {
     if (!currentPlan) return;
-
+    
     const amount = parseFloat(document.getElementById('investAmount').value);
-
+    
     if (!amount || amount < currentPlan.minAmount || amount > currentPlan.maxAmount) {
         showNotification(`Montant doit être entre ${currentPlan.minAmount} et ${currentPlan.maxAmount} USDT`, 'error');
         return;
     }
-
+    
     try {
         const response = await fetch('/invest-roi', {
             method: 'POST',
@@ -273,9 +286,9 @@ async function submitInvestment() {
                 amount: amount
             })
         });
-
+        
         const data = await response.json();
-
+        
         if (data.success) {
             showNotification(data.message, 'success');
             hideInvestModal();
@@ -297,20 +310,20 @@ document.getElementById('calcPlan').addEventListener('change', updateCalculator)
 function updateCalculator() {
     const amount = parseFloat(document.getElementById('calcAmount').value) || 0;
     const planData = document.getElementById('calcPlan').value;
-
+    
     if (!amount || !planData) {
         document.getElementById('dailyProfit').textContent = '0 USDT';
         document.getElementById('totalProfit').textContent = '0 USDT';
         document.getElementById('finalAmount').textContent = '0 USDT';
         return;
     }
-
+    
     const [dailyRate, duration] = planData.split(',').map(parseFloat);
-
+    
     const dailyProfit = amount * dailyRate;
     const totalProfit = dailyProfit * duration;
     const finalAmount = amount + totalProfit;
-
+    
     document.getElementById('dailyProfit').textContent = `${dailyProfit.toFixed(2)} USDT`;
     document.getElementById('totalProfit').textContent = `${totalProfit.toFixed(2)} USDT`;
     document.getElementById('finalAmount').textContent = `${finalAmount.toFixed(2)} USDT`;
