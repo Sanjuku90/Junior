@@ -142,7 +142,7 @@ def init_db():
 
     # Add missing columns to existing tables
     try:
-        # Vérifier si la colonne existe avant de l'ajouter
+        # Vérifier et ajouter les colonnes manquantes à transactions
         columns = cursor.execute("PRAGMA table_info(transactions)").fetchall()
         column_names = [column[1] for column in columns]
         
@@ -154,6 +154,22 @@ def init_db():
             print("✅ Colonne updated_at ajoutée à la table transactions")
     except sqlite3.OperationalError as e:
         print(f"⚠️ Erreur ajout colonne updated_at: {e}")
+
+    # Vérifier et ajouter les colonnes 2FA manquantes à users
+    try:
+        users_columns = cursor.execute("PRAGMA table_info(users)").fetchall()
+        users_column_names = [column[1] for column in users_columns]
+        
+        if 'two_fa_enabled' not in users_column_names:
+            cursor.execute('ALTER TABLE users ADD COLUMN two_fa_enabled BOOLEAN DEFAULT 0')
+            print("✅ Colonne two_fa_enabled ajoutée à la table users")
+            
+        if 'two_fa_secret' not in users_column_names:
+            cursor.execute('ALTER TABLE users ADD COLUMN two_fa_secret TEXT')
+            print("✅ Colonne two_fa_secret ajoutée à la table users")
+            
+    except sqlite3.OperationalError as e:
+        print(f"⚠️ Erreur ajout colonnes 2FA: {e}")
 
     # Notifications table
     cursor.execute('''
