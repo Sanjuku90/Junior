@@ -739,39 +739,10 @@
             </div>
 
             {% if session.user_id %}
-            <!-- Desktop Navigation -->
-            <div class="hidden lg:flex nav-menu">
-                <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }}">
-                    <i class="nav-icon fas fa-home"></i>
-                    Dashboard
-                </a>
-                <a href="{{ url_for('roi_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'roi_plans' }}">
-                    <i class="nav-icon fas fa-percentage"></i>
-                    Plans ROI
-                </a>
-                <a href="{{ url_for('staking_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'staking_plans' }}">
-                    <i class="nav-icon fas fa-lock"></i>
-                    Staking
-                </a>
-                <a href="{{ url_for('frozen_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'frozen_plans' }}">
-                    <i class="nav-icon fas fa-snowflake"></i>
-                    Plans Gelés
-                </a>
-                <a href="{{ url_for('projects') }}" class="nav-item {{ 'active' if request.endpoint == 'projects' }}">
-                    <i class="nav-icon fas fa-rocket"></i>
-                    Projets
-                </a>
-                <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }}">
-                    <i class="nav-icon fas fa-user"></i>
-                    Profil
-                </a>
-                <a href="{{ url_for('support') }}" class="nav-item {{ 'active' if request.endpoint == 'support' }}">
-                    <i class="nav-icon fas fa-headset"></i>
-                    Support
-                </a>
-
+            <!-- Navigation Button -->
+            <div class="flex items-center gap-4">
                 <!-- Balance Display -->
-                <div class="balance-card ml-4">
+                <div class="balance-card">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
                             <i class="fas fa-wallet text-white text-sm"></i>
@@ -782,31 +753,7 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- User Menu -->
-                <div class="relative group ml-4">
-                    <button class="nav-item">
-                        <i class="nav-icon fas fa-user"></i>
-                        {{ session.first_name }}
-                        <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                    </button>
-
-                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                        <a href="{{ url_for('profile') }}" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center rounded-t-2xl">
-                            <i class="fas fa-user-circle mr-3 text-blue-500"></i>
-                            Mon Profil
-                        </a>
-                        <div class="border-t border-gray-100"></div>
-                        <a href="{{ url_for('logout') }}" class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center rounded-b-2xl">
-                            <i class="fas fa-sign-out-alt mr-3"></i>
-                            Déconnexion
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mobile Navigation Button -->
-            <div class="lg:hidden flex items-center">
+                
                 <button id="mobile-menu-button" class="btn-primary p-3">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -825,8 +772,8 @@
         </div>
 
         {% if session.user_id %}
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="lg:hidden hidden bg-white border-t border-gray-100 px-4 py-4">
+        <!-- Navigation Menu -->
+        <div id="mobile-menu" class="hidden bg-white border-t border-gray-100 px-4 py-4">
             <div class="space-y-2">
                 <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }} w-full justify-start">
                     <i class="nav-icon fas fa-home"></i>
