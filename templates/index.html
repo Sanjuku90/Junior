@@ -1,26 +1,73 @@
+
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Hero Section -->
-<div class="bg-gradient-to-r from-primary to-secondary text-white -mx-4 -mt-8 px-4 pt-8 pb-16">
-    <div class="max-w-7xl mx-auto">
+<!-- Hero Section Ultra Professionnel -->
+<div class="relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 opacity-95"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
+    
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div class="absolute top-0 right-1/4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
+        <div class="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
+    </div>
+    
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
         <div class="text-center">
-            <h1 class="text-4xl md:text-6xl font-bold mb-6">
-                Investissez dans votre avenir avec la crypto
+            <!-- Badge Professionnel -->
+            <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-6 py-3 mb-8">
+                <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span class="text-white/90 font-medium text-sm">🔒 Plateforme Sécurisée & Régulée</span>
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
+                <span class="block">L'Avenir de</span>
+                <span class="gradient-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    l'Investissement Crypto
+                </span>
             </h1>
-            <p class="text-xl md:text-2xl mb-8 text-gray-200">
-                Rendements garantis • Sécurité maximale • Transparence totale
+            
+            <p class="text-xl md:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed">
+                Plateforme d'investissement institutionnelle avec <strong>rendements garantis</strong>, 
+                <strong>sécurité maximale</strong> et <strong>transparence totale</strong>
             </p>
-            <div class="space-x-4">
+            
+            <!-- Stats Rapides -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4">
+                    <div class="text-2xl font-bold text-white">500+</div>
+                    <div class="text-white/70 text-sm">Investisseurs</div>
+                </div>
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4">
+                    <div class="text-2xl font-bold text-white">$2M+</div>
+                    <div class="text-white/70 text-sm">Volume</div>
+                </div>
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4">
+                    <div class="text-2xl font-bold text-white">15%</div>
+                    <div class="text-white/70 text-sm">ROI Moyen</div>
+                </div>
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4">
+                    <div class="text-2xl font-bold text-white">24/7</div>
+                    <div class="text-white/70 text-sm">Support</div>
+                </div>
+            </div>
+            
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 {% if not session.user_id %}
-                    <a href="{{ url_for('register') }}" class="bg-accent hover:bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold inline-block">
+                    <a href="{{ url_for('register') }}" class="btn-primary px-10 py-4 text-lg font-bold">
+                        <i class="fas fa-rocket mr-3"></i>
                         Commencer maintenant
                     </a>
-                    <a href="{{ url_for('login') }}" class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary px-8 py-3 rounded-lg text-lg font-semibold inline-block">
+                    <a href="{{ url_for('login') }}" class="btn-secondary px-10 py-4 text-lg font-bold bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/20">
+                        <i class="fas fa-sign-in-alt mr-3"></i>
                         Se connecter
                     </a>
                 {% else %}
-                    <a href="{{ url_for('dashboard') }}" class="bg-accent hover:bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold inline-block">
+                    <a href="{{ url_for('dashboard') }}" class="btn-primary px-10 py-4 text-lg font-bold">
+                        <i class="fas fa-chart-line mr-3"></i>
                         Accéder au Dashboard
                     </a>
                 {% endif %}
@@ -29,129 +76,434 @@
     </div>
 </div>
 
-<!-- Features Section -->
-<div class="py-16">
-    <div class="text-center mb-12">
-        <h2 class="text-3xl font-bold text-gray-900 mb-4">Pourquoi choisir InvestCrypto Pro ?</h2>
-        <p class="text-lg text-gray-600">Des solutions d'investissement innovantes pour tous les profils</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-            <div class="bg-secondary text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-shield-alt text-2xl"></i>
+<!-- Features Section Ultra Moderne -->
+<div class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-20">
+            <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-6 py-3 mb-6">
+                <i class="fas fa-crown text-blue-600"></i>
+                <span class="text-blue-700 font-semibold text-sm">EXCELLENCE TECHNOLOGIQUE</span>
             </div>
-            <h3 class="text-xl font-semibold mb-2">Sécurité Maximale</h3>
-            <p class="text-gray-600">Chiffrement avancé, authentification 2FA et conformité KYC pour protéger vos investissements.</p>
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Pourquoi choisir 
+                <span class="gradient-text">InvestCrypto Pro</span> ?
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Une infrastructure de niveau institutionnel pour optimiser vos investissements crypto
+            </p>
         </div>
 
-        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-            <div class="bg-accent text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-chart-line text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Rendements Garantis</h3>
-            <p class="text-gray-600">Plans ROI avec rendements quotidiens de 5% à 15% selon votre niveau d'investissement.</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-            <div class="bg-yellow-500 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-users text-2xl"></i>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Crowdfunding</h3>
-            <p class="text-gray-600">Participez à des projets innovants dans l'immobilier, l'énergie et l'agriculture.</p>
-        </div>
-    </div>
-</div>
-
-<!-- ROI Plans Preview -->
-<div class="bg-gray-100 py-16 -mx-4 px-4">
-    <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Plans d'Investissement ROI</h2>
-            <p class="text-lg text-gray-600">Choisissez le plan qui correspond à vos objectifs</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <div class="text-center">
-                    <h3 class="text-xl font-semibold mb-2">Plan Débutant</h3>
-                    <div class="text-3xl font-bold text-secondary mb-2">5%</div>
-                    <div class="text-sm text-gray-600 mb-4">par jour</div>
-                    <div class="text-sm text-gray-600 mb-4">Durée: 30 jours</div>
-                    <div class="text-sm text-gray-600">Min: 20 USDT</div>
-                    <div class="text-sm text-gray-600">Max: 1,000 USDT</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="professional-card group">
+                <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-shield-alt text-2xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Sécurité Institutionnelle</h3>
+                <p class="text-gray-600 text-center leading-relaxed">
+                    Chiffrement militaire AES-256, authentification multi-facteurs, et conformité KYC/AML pour une protection maximale de vos actifs.
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <div class="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
+                        <i class="fas fa-check-circle"></i>
+                        Certifié ISO 27001
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <div class="text-center">
-                    <h3 class="text-xl font-semibold mb-2">Plan Intermédiaire</h3>
-                    <div class="text-3xl font-bold text-secondary mb-2">8%</div>
-                    <div class="text-sm text-gray-600 mb-4">par jour</div>
-                    <div class="text-sm text-gray-600 mb-4">Durée: 45 jours</div>
-                    <div class="text-sm text-gray-600">Min: 20 USDT</div>
-                    <div class="text-sm text-gray-600">Max: 5,000 USDT</div>
+            <div class="professional-card group">
+                <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-chart-line text-2xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Rendements Optimisés</h3>
+                <p class="text-gray-600 text-center leading-relaxed">
+                    Algorithmes propriétaires d'IA pour des rendements quotidiens de 5% à 15% avec gestion automatisée des risques.
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <div class="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium">
+                        <i class="fas fa-trophy"></i>
+                        ROI Garanti
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-lg shadow-lg border-2 border-accent">
-                <div class="text-center">
-                    <div class="bg-accent text-white text-xs px-2 py-1 rounded mb-2">POPULAIRE</div>
-                    <h3 class="text-xl font-semibold mb-2">Plan Premium</h3>
-                    <div class="text-3xl font-bold text-accent mb-2">12%</div>
-                    <div class="text-sm text-gray-600 mb-4">par jour</div>
-                    <div class="text-sm text-gray-600 mb-4">Durée: 60 jours</div>
-                    <div class="text-sm text-gray-600">Min: 20 USDT</div>
-                    <div class="text-sm text-gray-600">Max: 10,000 USDT</div>
+            <div class="professional-card group">
+                <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl mb-6 mx-auto group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-rocket text-2xl text-white"></i>
                 </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <div class="text-center">
-                    <h3 class="text-xl font-semibold mb-2">Plan VIP</h3>
-                    <div class="text-3xl font-bold text-yellow-500 mb-2">15%</div>
-                    <div class="text-sm text-gray-600 mb-4">par jour</div>
-                    <div class="text-sm text-gray-600 mb-4">Durée: 90 jours</div>
-                    <div class="text-sm text-gray-600">Min: 20 USDT</div>
-                    <div class="text-sm text-gray-600">Max: 50,000 USDT</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-4 text-center">Innovation DeFi</h3>
+                <p class="text-gray-600 text-center leading-relaxed">
+                    Accès exclusif aux projets DeFi émergents, crowdfunding immobilier et opportunités d'investissement alternatives.
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <div class="inline-flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2 rounded-full text-sm font-medium">
+                        <i class="fas fa-star"></i>
+                        Projets Vérifiés
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Statistics -->
-<div class="py-16">
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-        <div>
-            <div class="text-3xl font-bold text-secondary mb-2">500+</div>
-            <div class="text-gray-600">Investisseurs actifs</div>
+<!-- Plans ROI Premium -->
+<div class="py-24 bg-gradient-to-br from-gray-50 to-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-20">
+            <div class="inline-flex items-center gap-2 bg-gold-50 border border-gold-200 rounded-full px-6 py-3 mb-6">
+                <i class="fas fa-gem text-yellow-600"></i>
+                <span class="text-yellow-700 font-semibold text-sm">PLANS PREMIUM</span>
+            </div>
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Plans d'Investissement 
+                <span class="gradient-text">Professionnels</span>
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Choisissez votre stratégie d'investissement selon vos objectifs de croissance
+            </p>
         </div>
-        <div>
-            <div class="text-3xl font-bold text-secondary mb-2">$2M+</div>
-            <div class="text-gray-600">Investis à ce jour</div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Plan Débutant -->
+            <div class="professional-card relative">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-seedling text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Plan Starter</h3>
+                    <div class="text-4xl font-bold text-gray-700 mb-2">5%</div>
+                    <div class="text-sm text-gray-500 mb-4">par jour pendant 30 jours</div>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Investissement:</span>
+                            <span class="font-semibold">20 - 1,000 USDT</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Retour total:</span>
+                            <span class="font-semibold text-green-600">150%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 text-xs text-gray-500 mb-6">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Support client standard</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Paiements automatiques</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan Intermédiaire -->
+            <div class="professional-card relative">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-chart-bar text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Plan Croissance</h3>
+                    <div class="text-4xl font-bold text-blue-600 mb-2">8%</div>
+                    <div class="text-sm text-gray-500 mb-4">par jour pendant 45 jours</div>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Investissement:</span>
+                            <span class="font-semibold">20 - 5,000 USDT</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Retour total:</span>
+                            <span class="font-semibold text-green-600">360%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 text-xs text-gray-500 mb-6">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Support prioritaire</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Analyse de marché</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan Premium -->
+            <div class="professional-card relative border-2 border-yellow-400">
+                <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-4 py-1 rounded-full">
+                        POPULAIRE
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-crown text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Plan Premium</h3>
+                    <div class="text-4xl font-bold text-yellow-600 mb-2">12%</div>
+                    <div class="text-sm text-gray-500 mb-4">par jour pendant 60 jours</div>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Investissement:</span>
+                            <span class="font-semibold">20 - 10,000 USDT</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Retour total:</span>
+                            <span class="font-semibold text-green-600">720%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 text-xs text-gray-500 mb-6">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Support VIP 24/7</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Conseiller personnel</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Signaux trading premium</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan VIP -->
+            <div class="professional-card relative bg-gradient-to-br from-purple-50 to-indigo-50">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-diamond text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Plan Elite</h3>
+                    <div class="text-4xl font-bold text-purple-600 mb-2">15%</div>
+                    <div class="text-sm text-gray-500 mb-4">par jour pendant 90 jours</div>
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Investissement:</span>
+                            <span class="font-semibold">20 - 50,000 USDT</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-600">Retour total:</span>
+                            <span class="font-semibold text-green-600">1,350%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 text-xs text-gray-500 mb-6">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Support concierge</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Gestionnaire de compte</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-check text-green-500"></i>
+                            <span>Accès projets exclusifs</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-            <div class="text-3xl font-bold text-secondary mb-2">15%</div>
-            <div class="text-gray-600">Rendement moyen</div>
-        </div>
-        <div>
-            <div class="text-3xl font-bold text-secondary mb-2">24/7</div>
-            <div class="text-gray-600">Support client</div>
+
+        <!-- CTA Section -->
+        <div class="text-center mt-12">
+            {% if not session.user_id %}
+                <a href="{{ url_for('register') }}" class="btn-primary px-8 py-4 text-lg">
+                    <i class="fas fa-rocket mr-3"></i>
+                    Commencer mon investissement
+                </a>
+            {% else %}
+                <a href="{{ url_for('roi_plans') }}" class="btn-primary px-8 py-4 text-lg">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Voir tous les plans
+                </a>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Call to Action -->
-<div class="bg-primary text-white py-16 -mx-4 px-4">
-    <div class="max-w-7xl mx-auto text-center">
-        <h2 class="text-3xl font-bold mb-4">Prêt à commencer votre aventure crypto ?</h2>
-        <p class="text-xl mb-8 text-gray-200">Rejoignez des milliers d'investisseurs qui font confiance à InvestCrypto Pro</p>
-        {% if not session.user_id %}
-            <a href="{{ url_for('register') }}" class="bg-accent hover:bg-green-600 text-white px-8 py-3 rounded-lg text-lg font-semibold inline-block">
-                Créer un compte gratuitement
-            </a>
-        {% endif %}
+<!-- Section Statistiques Avancées -->
+<div class="py-24 bg-gradient-to-r from-slate-900 to-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-white mb-4">Performance en Temps Réel</h2>
+            <p class="text-xl text-white/80">Des résultats qui parlent d'eux-mêmes</p>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="text-center">
+                <div class="stat-icon bg-gradient-to-br from-green-400 to-green-500 mb-4">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="text-3xl font-bold text-white mb-2" data-target="500">500+</div>
+                <div class="text-white/70">Investisseurs Actifs</div>
+                <div class="text-green-400 text-sm mt-1">↗ +15% ce mois</div>
+            </div>
+            
+            <div class="text-center">
+                <div class="stat-icon bg-gradient-to-br from-blue-400 to-blue-500 mb-4">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="text-3xl font-bold text-white mb-2">$2.5M+</div>
+                <div class="text-white/70">Volume Total</div>
+                <div class="text-green-400 text-sm mt-1">↗ +28% ce mois</div>
+            </div>
+            
+            <div class="text-center">
+                <div class="stat-icon bg-gradient-to-br from-purple-400 to-purple-500 mb-4">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="text-3xl font-bold text-white mb-2">15.8%</div>
+                <div class="text-white/70">ROI Moyen</div>
+                <div class="text-green-400 text-sm mt-1">Garanti quotidien</div>
+            </div>
+            
+            <div class="text-center">
+                <div class="stat-icon bg-gradient-to-br from-yellow-400 to-yellow-500 mb-4">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="text-3xl font-bold text-white mb-2">99.9%</div>
+                <div class="text-white/70">Uptime</div>
+                <div class="text-green-400 text-sm mt-1">24/7 Disponible</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section Témoignages -->
+<div class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-20">
+            <div class="inline-flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-6 py-3 mb-6">
+                <i class="fas fa-heart text-green-600"></i>
+                <span class="text-green-700 font-semibold text-sm">TÉMOIGNAGES</span>
+            </div>
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                Ce que disent nos 
+                <span class="gradient-text">investisseurs</span>
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="professional-card">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold">JD</span>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-gray-900">Jean Dupont</div>
+                        <div class="text-sm text-gray-500">Entrepreneur</div>
+                    </div>
+                </div>
+                <div class="flex text-yellow-400 mb-4">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 italic">
+                    "Plateforme exceptionnelle ! J'ai doublé mon investissement en 3 mois. L'interface est intuitive et le support client réactif."
+                </p>
+            </div>
+
+            <div class="professional-card">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold">MB</span>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-gray-900">Marie Bernard</div>
+                        <div class="text-sm text-gray-500">Investisseuse</div>
+                    </div>
+                </div>
+                <div class="flex text-yellow-400 mb-4">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 italic">
+                    "Les rendements sont exactement comme promis. Transparence totale et sécurité au top. Je recommande vivement !"
+                </p>
+            </div>
+
+            <div class="professional-card">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold">AL</span>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-gray-900">Alex Laurent</div>
+                        <div class="text-sm text-gray-500">Trader</div>
+                    </div>
+                </div>
+                <div class="flex text-yellow-400 mb-4">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <p class="text-gray-600 italic">
+                    "Enfin une plateforme crypto sérieuse ! Technologie de pointe et équipe professionnelle. Mes profits sont réguliers."
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Final -->
+<div class="py-24 bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 relative overflow-hidden">
+    <div class="absolute inset-0 bg-black/20"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20"></div>
+    
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-4xl md:text-6xl font-bold text-white mb-8">
+                Prêt à <span class="gradient-text bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">transformer</span> votre avenir financier ?
+            </h2>
+            <p class="text-xl md:text-2xl text-white/80 mb-12 leading-relaxed">
+                Rejoignez l'élite des investisseurs crypto et commencez à générer des revenus passifs dès aujourd'hui
+            </p>
+            
+            {% if not session.user_id %}
+                <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                    <a href="{{ url_for('register') }}" class="btn-primary px-12 py-5 text-xl font-bold">
+                        <i class="fas fa-rocket mr-3"></i>
+                        Créer mon compte VIP
+                    </a>
+                    <a href="#plans" class="btn-secondary px-12 py-5 text-xl font-bold bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/20">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        Voir les plans
+                    </a>
+                </div>
+                
+                <div class="mt-8 flex flex-col sm:flex-row gap-8 justify-center items-center text-white/70 text-sm">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                        <span>Inscription gratuite</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-shield-alt text-blue-400"></i>
+                        <span>100% sécurisé</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-clock text-purple-400"></i>
+                        <span>Activation immédiate</span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
