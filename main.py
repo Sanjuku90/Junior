@@ -1113,7 +1113,8 @@ def create_support_ticket():
     # Notifier l'admin via Telegram si disponible
     try:
         from telegram_investment_bot import notify_admin_new_support_ticket
-        notify_admin_new_support_ticket(ticket_id, subject, message, category, priority)
+        import asyncio
+        asyncio.create_task(notify_admin_new_support_ticket(ticket_id, subject, message, category, priority))
     except:
         pass  # Si le bot Telegram n'est pas disponible
     

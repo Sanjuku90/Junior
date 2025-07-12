@@ -56,7 +56,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
                                 <div class="flex items-center space-x-3 mb-2">
-                                    <h3 class="font-semibold text-gray-900">#{{{ ticket.id }}} - {{ ticket.subject }}</h3>
+                                    <h3 class="font-semibold text-gray-900">#{{ ticket.id }} - {{ ticket.subject }}</h3>
                                     <span class="status-indicator 
                                         {% if ticket.status == 'open' %}status-pending{% endif %}
                                         {% if ticket.status == 'admin_reply' %}status-active{% endif %}
