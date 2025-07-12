@@ -1268,131 +1268,31 @@ def get_support_messages(ticket_id):
         return jsonify({'error': 'Erreur serveur'}), 500
 
 @app.route('/admin')
-@admin_required
-def admin_dashboard():
-    conn = get_db_connection()
-
-    # Get stats
-    stats = {
-        'total_users': conn.execute('SELECT COUNT(*) as count FROM users').fetchone()['count'],
-        'total_investments': conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM user_investments').fetchone()['total'],
-        'total_projects': conn.execute('SELECT COUNT(*) as count FROM projects').fetchone()['count'],
-        'pending_kyc': conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "pending"').fetchone()['count'],
-        'open_tickets': conn.execute('SELECT COUNT(*) as count FROM support_tickets WHERE status IN ("open", "user_reply")').fetchone()['count']
-    }
-
-    # Get recent transactions
-    transactions = conn.execute('''
-        SELECT t.*, u.email, u.first_name, u.last_name
-        FROM transactions t
-        JOIN users u ON t.user_id = u.id
-        ORDER BY t.created_at DESC
-        LIMIT 10
-    ''').fetchall()
-
-    conn.close()
-
-    return render_template('admin_dashboard.html', stats=stats, transactions=transactions)
+def admin_info():
+    """Afficher les informations sur la nouvelle administration Telegram"""
+    return render_template('admin_info.html')
 
 @app.route('/admin/support')
-@admin_required
-def admin_support():
-    conn = get_db_connection()
-    
-    # Get all tickets
-    tickets = conn.execute('''
-        SELECT st.*, u.first_name, u.last_name, u.email,
-               (SELECT COUNT(*) FROM support_messages sm WHERE sm.ticket_id = st.id) as message_count
-        FROM support_tickets st
-        JOIN users u ON st.user_id = u.id
-        ORDER BY 
-            CASE st.status 
-                WHEN 'user_reply' THEN 1 
-                WHEN 'open' THEN 2 
-                ELSE 3 
-            END,
-            st.updated_at DESC
-    ''').fetchall()
-    
-    conn.close()
-    
-    return render_template('admin_support.html', tickets=tickets)
+def admin_support_redirect():
+    """Rediriger vers le bot Telegram pour la gestion du support"""
+    flash('La gestion du support se fait maintenant via le bot Telegram. Contactez @InvestCryptoProBot et utilisez la commande /admin', 'info')
+    return redirect(url_for('support'))
 
 @app.route('/admin/support/ticket/<int:ticket_id>')
-@admin_required
-def admin_support_ticket(ticket_id):
-    conn = get_db_connection()
-    
-    # Get ticket details
-    ticket = conn.execute('''
-        SELECT st.*, u.first_name, u.last_name, u.email
-        FROM support_tickets st
-        JOIN users u ON st.user_id = u.id
-        WHERE st.id = ?
-    ''', (ticket_id,)).fetchone()
-    
-    if not ticket:
-        flash('Ticket non trouvé', 'error')
-        return redirect(url_for('admin_support'))
-    
-    # Get messages
-    messages = conn.execute('''
-        SELECT sm.*, u.first_name, u.last_name
-        FROM support_messages sm
-        LEFT JOIN users u ON sm.user_id = u.id
-        WHERE sm.ticket_id = ?
-        ORDER BY sm.created_at ASC
-    ''', (ticket_id,)).fetchall()
-    
-    conn.close()
-    
-    return render_template('admin_support_ticket.html', ticket=ticket, messages=messages)
+def admin_support_ticket_redirect(ticket_id):
+    """Rediriger vers le bot Telegram"""
+    flash(f'La gestion du ticket #{ticket_id} se fait maintenant via le bot Telegram. Contactez @InvestCryptoProBot', 'info')
+    return redirect(url_for('support'))
 
 @app.route('/admin/support/reply', methods=['POST'])
-@admin_required
-def admin_support_reply():
-    data = request.get_json()
-    ticket_id = data.get('ticket_id')
-    message = data.get('message', '').strip()
-    
-    if not message:
-        return jsonify({'error': 'Message requis'}), 400
-    
-    conn = get_db_connection()
-    
-    # Add admin message
-    conn.execute('''
-        INSERT INTO support_messages (ticket_id, message, is_admin)
-        VALUES (?, ?, 1)
-    ''', (ticket_id, message))
-    
-    # Update ticket status
-    conn.execute('''
-        UPDATE support_tickets 
-        SET status = 'admin_reply', updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-    ''', (ticket_id,))
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'success': True})
+def admin_support_reply_disabled():
+    """API désactivée - utiliser Telegram"""
+    return jsonify({'error': 'Administration via Telegram uniquement. Utilisez @InvestCryptoProBot'}), 403
 
 @app.route('/admin/support/close/<int:ticket_id>', methods=['POST'])
-@admin_required
-def admin_close_ticket(ticket_id):
-    conn = get_db_connection()
-    
-    conn.execute('''
-        UPDATE support_tickets 
-        SET status = 'closed', updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
-    ''', (ticket_id,))
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({'success': True})
+def admin_close_ticket_disabled(ticket_id):
+    """API désactivée - utiliser Telegram"""
+    return jsonify({'error': 'Administration via Telegram uniquement. Utilisez @InvestCryptoProBot'}), 403
 
 if __name__ == '__main__':
     init_db()

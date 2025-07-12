@@ -33,8 +33,9 @@ if not TELEGRAM_BOT_TOKEN:
 
 DATABASE = 'investment_platform.db'
 
-# Liste des administrateurs (IDs Telegram)
-ADMIN_IDS = [123456789, 7474306991, 8186612060]  # IDs Telegram des administrateurs
+# Liste des administrateurs (IDs Telegram) - Configuration sécurisée
+ADMIN_IDS = [7474306991, 8186612060]  # IDs Telegram des administrateurs vérifiés
+ADMIN_EMAILS = ["admin@investcryptopro.com", "support@investcryptopro.com"]  # Emails admin autorisés
 
 # États de conversation
 REGISTER_EMAIL, REGISTER_PASSWORD, REGISTER_FIRSTNAME, REGISTER_LASTNAME, REGISTER_REFERRAL = range(5)
@@ -59,34 +60,90 @@ def generate_referral_code():
     return secrets.token_urlsafe(8).upper()
 
 def add_notification(user_id, title, message, type='info'):
-    conn = get_db_connection()
-    conn.execute('''
-        INSERT INTO notifications (user_id, title, message, type)
-        VALUES (?, ?, ?, ?)
-    ''', (user_id, title, message, type))
-    conn.commit()
-    conn.close()
+    try:
+        conn = get_db_connection()
+        conn.execute('''
+            INSERT INTO notifications (user_id, title, message, type)
+            VALUES (?, ?, ?, ?)
+        ''', (user_id, title, message, type))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"❌ Erreur ajout notification: {e}")
+
+def log_admin_action(admin_id, action, details=""):
+    """Enregistrer les actions administrateur pour audit de sécurité"""
+    try:
+        conn = get_db_connection()
+        
+        # Créer table de logs si elle n'existe pas
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS admin_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                admin_id INTEGER NOT NULL,
+                action TEXT NOT NULL,
+                details TEXT,
+                ip_address TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.execute('''
+            INSERT INTO admin_logs (admin_id, action, details)
+            VALUES (?, ?, ?)
+        ''', (admin_id, action, details))
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"🔐 Action admin loggée: {action} par {admin_id}")
+        
+    except Exception as e:
+        print(f"❌ Erreur log admin: {e}")
 
 def is_admin(user_id):
-    """Vérifier si l'utilisateur est administrateur"""
-    if user_id in ADMIN_IDS:
+    """Vérifier si l'utilisateur est administrateur avec sécurité renforcée"""
+    if user_id not in ADMIN_IDS:
+        return False
+    
+    try:
         # S'assurer que l'admin existe dans la base de données
         user = get_user_by_telegram_id(user_id)
         if not user:
-            # Créer automatiquement l'utilisateur admin
-            try:
-                conn = get_db_connection()
-                referral_code = generate_referral_code()
-                cursor = conn.execute('''
-                    INSERT INTO users (email, password_hash, first_name, last_name, referral_code, telegram_id, balance)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                ''', (f"admin_{user_id}@admin.local", 'admin_password', 'Administrateur', '', referral_code, user_id, 0.0))
-                conn.commit()
-                conn.close()
-                print(f"✅ Utilisateur admin créé pour ID: {user_id}")
-            except Exception as e:
-                print(f"❌ Erreur création admin: {e}")
-        return True
+            # Créer automatiquement l'utilisateur admin avec sécurité
+            conn = get_db_connection()
+            referral_code = generate_referral_code()
+            admin_email = f"admin_{user_id}@investcryptopro.secure"
+            admin_password_hash = generate_password_hash(f"SECURE_ADMIN_{user_id}_{secrets.token_hex(16)}")
+            
+            cursor = conn.execute('''
+                INSERT INTO users (email, password_hash, first_name, last_name, referral_code, telegram_id, balance, kyc_status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (admin_email, admin_password_hash, 'Administrateur', 'Système', referral_code, user_id, 0.0, 'verified'))
+            
+            admin_user_id = cursor.lastrowid
+            conn.commit()
+            conn.close()
+            
+            # Ajouter notification de sécurité
+            add_notification(
+                admin_user_id,
+                'Compte administrateur créé',
+                f'Compte admin créé automatiquement pour Telegram ID: {user_id}. Accès sécurisé activé.',
+                'success'
+            )
+            
+            print(f"🔐 Administrateur sécurisé créé pour ID: {user_id}")
+        
+        # Vérification supplémentaire de sécurité
+        admin_user = get_user_by_telegram_id(user_id)
+        if admin_user and admin_user['telegram_id'] == user_id:
+            return True
+        
+    except Exception as e:
+        print(f"❌ Erreur vérification admin: {e}")
+        return False
+    
     return False
 
 def get_pending_deposits():
@@ -246,102 +303,175 @@ Utilisez /admin pour gérer les tickets.
     except Exception as e:
         print(f"Erreur notification support: {e}")
 
-def approve_deposit(transaction_id):
-    """Approuver un dépôt"""
+def approve_deposit(transaction_id, admin_id=None):
+    """Approuver un dépôt avec logging sécurisé"""
     conn = get_db_connection()
 
-    # Récupérer la transaction
-    transaction = conn.execute('''
-        SELECT * FROM transactions WHERE id = ? AND type = 'deposit' AND status = 'pending'
-    ''', (transaction_id,)).fetchone()
+    try:
+        # Récupérer la transaction avec vérifications
+        transaction = conn.execute('''
+            SELECT t.*, u.email, u.first_name 
+            FROM transactions t 
+            JOIN users u ON t.user_id = u.id 
+            WHERE t.id = ? AND t.type = 'deposit' AND t.status = 'pending'
+        ''', (transaction_id,)).fetchone()
 
-    if not transaction:
+        if not transaction:
+            conn.close()
+            return False, "Transaction non trouvée ou déjà traitée"
+
+        # Vérifications de sécurité
+        if transaction['amount'] <= 0:
+            conn.close()
+            return False, "Montant invalide"
+
+        if transaction['amount'] > 100000:  # Limite de sécurité
+            log_admin_action(admin_id or 0, "DEPOSIT_APPROVAL_HIGH_AMOUNT", 
+                           f"Transaction #{transaction_id} - Montant élevé: {transaction['amount']} USDT")
+
+        # Mettre à jour le statut et créditer le solde
+        conn.execute('''
+            UPDATE transactions 
+            SET status = 'completed', updated_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
+        ''', (transaction_id,))
+
+        conn.execute('''
+            UPDATE users SET balance = balance + ? WHERE id = ?
+        ''', (transaction['amount'], transaction['user_id']))
+
+        conn.commit()
+
+        # Log de sécurité
+        if admin_id:
+            log_admin_action(admin_id, "DEPOSIT_APPROVED", 
+                           f"Transaction #{transaction_id} - {transaction['amount']} USDT pour {transaction['email']}")
+
+        # Ajouter notification
+        add_notification(
+            transaction['user_id'],
+            'Dépôt approuvé ✅',
+            f'Votre dépôt de {transaction["amount"]:.2f} USDT a été approuvé et crédité à votre compte.',
+            'success'
+        )
+
         conn.close()
-        return False, "Transaction non trouvée"
+        return True, f"Dépôt de {transaction['amount']:.2f} USDT approuvé avec succès"
 
-    # Mettre à jour le statut et créditer le solde
-    conn.execute('''
-        UPDATE transactions SET status = 'completed' WHERE id = ?
-    ''', (transaction_id,))
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        print(f"❌ Erreur approbation dépôt: {e}")
+        return False, f"Erreur lors de l'approbation: {str(e)}"
 
-    conn.execute('''
-        UPDATE users SET balance = balance + ? WHERE id = ?
-    ''', (transaction['amount'], transaction['user_id']))
-
-    conn.commit()
-    conn.close()
-
-    # Ajouter notification
-    add_notification(
-        transaction['user_id'],
-        'Dépôt approuvé',
-        f'Votre dépôt de {transaction["amount"]:.2f} USDT a été approuvé et crédité.',
-        'success'
-    )
-
-    return True, "Dépôt approuvé avec succès"
-
-def reject_deposit(transaction_id, reason=""):
-    """Rejeter un dépôt"""
+def reject_deposit(transaction_id, reason="", admin_id=None):
+    """Rejeter un dépôt avec logging sécurisé"""
     conn = get_db_connection()
 
-    # Récupérer la transaction
-    transaction = conn.execute('''
-        SELECT * FROM transactions WHERE id = ? AND type = 'deposit' AND status = 'pending'
-    ''', (transaction_id,)).fetchone()
+    try:
+        # Récupérer la transaction avec infos utilisateur
+        transaction = conn.execute('''
+            SELECT t.*, u.email, u.first_name 
+            FROM transactions t 
+            JOIN users u ON t.user_id = u.id 
+            WHERE t.id = ? AND t.type = 'deposit' AND t.status = 'pending'
+        ''', (transaction_id,)).fetchone()
 
-    if not transaction:
+        if not transaction:
+            conn.close()
+            return False, "Transaction non trouvée ou déjà traitée"
+
+        # Mettre à jour le statut avec raison
+        conn.execute('''
+            UPDATE transactions 
+            SET status = 'rejected', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (transaction_id,))
+
+        conn.commit()
+
+        # Log de sécurité
+        if admin_id:
+            log_admin_action(admin_id, "DEPOSIT_REJECTED", 
+                           f"Transaction #{transaction_id} - {transaction['amount']} USDT de {transaction['email']} - Raison: {reason}")
+
+        # Ajouter notification détaillée
+        add_notification(
+            transaction['user_id'],
+            'Dépôt rejeté ❌',
+            f'Votre dépôt de {transaction["amount"]:.2f} USDT a été rejeté.\n\nRaison: {reason or "Vérification échouée"}\n\nContactez le support pour plus d\'informations.',
+            'error'
+        )
+
         conn.close()
-        return False, "Transaction non trouvée"
+        return True, f"Dépôt de {transaction['amount']:.2f} USDT rejeté"
 
-    # Mettre à jour le statut
-    conn.execute('''
-        UPDATE transactions SET status = 'rejected' WHERE id = ?
-    ''', (transaction_id,))
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        print(f"❌ Erreur rejet dépôt: {e}")
+        return False, f"Erreur lors du rejet: {str(e)}"
 
-    conn.commit()
-    conn.close()
-
-    # Ajouter notification
-    add_notification(
-        transaction['user_id'],
-        'Dépôt rejeté',
-        f'Votre dépôt de {transaction["amount"]:.2f} USDT a été rejeté. Raison: {reason or "Non spécifiée"}',
-        'error'
-    )
-
-    return True, "Dépôt rejeté"
-
-def approve_withdrawal(transaction_id):
-    """Approuver un retrait"""
+def approve_withdrawal(transaction_id, admin_id=None):
+    """Approuver un retrait avec sécurité et vérifications"""
     conn = get_db_connection()
 
-    # Récupérer la transaction
-    transaction = conn.execute('''
-        SELECT * FROM transactions WHERE id = ? AND type = 'withdrawal' AND status = 'pending'
-    ''', (transaction_id,)).fetchone()
+    try:
+        # Récupérer la transaction avec infos complètes
+        transaction = conn.execute('''
+            SELECT t.*, u.email, u.first_name, u.balance 
+            FROM transactions t 
+            JOIN users u ON t.user_id = u.id 
+            WHERE t.id = ? AND t.type = 'withdrawal' AND t.status = 'pending'
+        ''', (transaction_id,)).fetchone()
 
-    if not transaction:
+        if not transaction:
+            conn.close()
+            return False, "Transaction non trouvée ou déjà traitée"
+
+        # Extraire l'adresse de retrait
+        withdrawal_info = transaction['transaction_hash']
+        if '|' in withdrawal_info:
+            address, amount_str = withdrawal_info.split('|')
+            withdrawal_address = address
+        else:
+            withdrawal_address = withdrawal_info[:20] + "..."
+
+        # Vérifications de sécurité
+        if transaction['amount'] > 50000:  # Limite haute
+            log_admin_action(admin_id or 0, "WITHDRAWAL_HIGH_AMOUNT", 
+                           f"Retrait #{transaction_id} - Montant élevé: {transaction['amount']} USDT")
+
+        # Mettre à jour le statut
+        conn.execute('''
+            UPDATE transactions 
+            SET status = 'completed', updated_at = CURRENT_TIMESTAMP 
+            WHERE id = ?
+        ''', (transaction_id,))
+
+        conn.commit()
+
+        # Log de sécurité
+        if admin_id:
+            log_admin_action(admin_id, "WITHDRAWAL_APPROVED", 
+                           f"Retrait #{transaction_id} - {transaction['amount']} USDT vers {withdrawal_address} pour {transaction['email']}")
+
+        # Ajouter notification détaillée
+        add_notification(
+            transaction['user_id'],
+            'Retrait traité ✅',
+            f'Votre retrait de {transaction["amount"]:.2f} USDT a été traité avec succès.\n\nAdresse: {withdrawal_address}\n\nLes fonds seront transférés sous 24h.',
+            'success'
+        )
+
         conn.close()
-        return False, "Transaction non trouvée"
+        return True, f"Retrait de {transaction['amount']:.2f} USDT approuvé"
 
-    # Mettre à jour le statut
-    conn.execute('''
-        UPDATE transactions SET status = 'completed' WHERE id = ?
-    ''', (transaction_id,))
-
-    conn.commit()
-    conn.close()
-
-    # Ajouter notification
-    add_notification(
-        transaction['user_id'],
-        'Retrait traité',
-        f'Votre retrait de {transaction["amount"]:.2f} USDT a été traité avec succès.',
-        'success'
-    )
-
-    return True, "Retrait approuvé avec succès"
+    except Exception as e:
+        conn.rollback()
+        conn.close()
+        print(f"❌ Erreur approbation retrait: {e}")
+        return False, f"Erreur lors de l'approbation: {str(e)}"
 
 def reject_withdrawal(transaction_id, reason=""):
     """Rejeter un retrait et rembourser"""
@@ -577,13 +707,27 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await show_admin_menu(update, context)
 
 async def show_admin_menu(update, context):
-    """Afficher le menu administrateur"""
-    # Récupérer les statistiques
-    pending_deposits = get_pending_deposits()
-    pending_withdrawals = get_pending_withdrawals()
-
-    # Récupérer les tickets de support en attente
-    pending_support_tickets = get_pending_support_tickets()
+    """Afficher le menu administrateur avec vérifications de sécurité"""
+    admin_user_id = update.effective_user.id
+    
+    # Vérification de sécurité supplémentaire
+    if not is_admin(admin_user_id):
+        await update.callback_query.edit_message_text("🚫 Accès refusé - Session admin expirée")
+        return
+    
+    # Log de l'accès admin
+    log_admin_action(admin_user_id, "ADMIN_MENU_ACCESS", "Accès au menu administrateur")
+    
+    # Récupérer les statistiques avec gestion d'erreur
+    try:
+        pending_deposits = get_pending_deposits()
+        pending_withdrawals = get_pending_withdrawals()
+        pending_support_tickets = get_pending_support_tickets()
+    except Exception as e:
+        print(f"❌ Erreur récupération stats admin: {e}")
+        pending_deposits = []
+        pending_withdrawals = []
+        pending_support_tickets = []
 
     keyboard = [
         [InlineKeyboardButton(f"💳 Dépôts en attente ({len(pending_deposits)})", callback_data="admin_deposits")],
@@ -591,6 +735,7 @@ async def show_admin_menu(update, context):
         [InlineKeyboardButton(f"🎫 Support en attente ({len(pending_support_tickets)})", callback_data="admin_support")],
         [InlineKeyboardButton("📊 Statistiques", callback_data="admin_stats")],
         [InlineKeyboardButton("👥 Utilisateurs", callback_data="admin_users")],
+        [InlineKeyboardButton("🔒 Logs sécurité", callback_data="admin_security_logs")],
         [InlineKeyboardButton("🔙 Menu utilisateur", callback_data="admin_to_user")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -1751,6 +1896,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await show_admin_users(update, context)
         elif data == "admin_support":
             await show_admin_support_tickets(update, context)
+        elif data == "admin_security_logs":
+            await show_admin_security_logs(update, context)
         elif data == "admin_to_user":
             # Passer en mode utilisateur
             user = get_user_by_telegram_id(update.effective_user.id)
@@ -1760,56 +1907,81 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.edit_message_text("❌ Utilisateur non trouvé.")
         return
 
-    # Actions de validation admin
+    # Actions de validation admin avec sécurité renforcée
     if data.startswith("approve_deposit_"):
-        if not is_admin(update.effective_user.id):
-            await query.edit_message_text("❌ Accès refusé.")
+        admin_user_id = update.effective_user.id
+        if not is_admin(admin_user_id):
+            await query.edit_message_text("🚫 Accès refusé - Privilèges administrateur requis")
+            log_admin_action(admin_user_id, "UNAUTHORIZED_ACCESS_ATTEMPT", "Tentative d'approbation de dépôt")
             return
 
-        transaction_id = int(data.split("_")[-1])
-        success, message = approve_deposit(transaction_id)
+        try:
+            transaction_id = int(data.split("_")[-1])
+            success, message = approve_deposit(transaction_id, admin_user_id)
 
-        if success:
-            await query.edit_message_text(f"✅ {message}")
-            # Retourner au menu des dépôts après 2 secondes
-            await asyncio.sleep(2)
-            await show_admin_deposits(update, context)
-        else:
-            await query.edit_message_text(f"❌ {message}")
+            if success:
+                await query.edit_message_text(f"✅ {message}")
+                # Retourner au menu des dépôts après 2 secondes
+                await asyncio.sleep(2)
+                await show_admin_deposits(update, context)
+            else:
+                await query.edit_message_text(f"❌ {message}")
+                
+        except ValueError:
+            await query.edit_message_text("❌ ID de transaction invalide")
+        except Exception as e:
+            await query.edit_message_text(f"❌ Erreur système: {str(e)}")
+            
         return
 
     elif data.startswith("reject_deposit_"):
-        if not is_admin(update.effective_user.id):
-            await query.edit_message_text("❌ Accès refusé.")
+        admin_user_id = update.effective_user.id
+        if not is_admin(admin_user_id):
+            await query.edit_message_text("🚫 Accès refusé - Privilèges administrateur requis")
+            log_admin_action(admin_user_id, "UNAUTHORIZED_ACCESS_ATTEMPT", "Tentative de rejet de dépôt")
             return
 
-        transaction_id = int(data.split("_")[-1])
-        success, message = reject_deposit(transaction_id, "Transaction invalide")
+        try:
+            transaction_id = int(data.split("_")[-1])
+            success, message = reject_deposit(transaction_id, "Vérification échouée - Hash invalide ou suspect", admin_user_id)
 
-        if success:
-            await query.edit_message_text(f"❌ {message}")
-            # Retourner au menu des dépôts après 2 secondes
-            await asyncio.sleep(2)
-            await show_admin_deposits(update, context)
-        else:
-            await query.edit_message_text(f"❌ {message}")
+            if success:
+                await query.edit_message_text(f"❌ {message}")
+                await asyncio.sleep(2)
+                await show_admin_deposits(update, context)
+            else:
+                await query.edit_message_text(f"❌ {message}")
+                
+        except ValueError:
+            await query.edit_message_text("❌ ID de transaction invalide")
+        except Exception as e:
+            await query.edit_message_text(f"❌ Erreur système: {str(e)}")
+            
         return
 
     elif data.startswith("approve_withdrawal_"):
-        if not is_admin(update.effective_user.id):
-            await query.edit_message_text("❌ Accès refusé.")
+        admin_user_id = update.effective_user.id
+        if not is_admin(admin_user_id):
+            await query.edit_message_text("🚫 Accès refusé - Privilèges administrateur requis")
+            log_admin_action(admin_user_id, "UNAUTHORIZED_ACCESS_ATTEMPT", "Tentative d'approbation de retrait")
             return
 
-        transaction_id = int(data.split("_")[-1])
-        success, message = approve_withdrawal(transaction_id)
+        try:
+            transaction_id = int(data.split("_")[-1])
+            success, message = approve_withdrawal(transaction_id, admin_user_id)
 
-        if success:
-            await query.edit_message_text(f"✅ {message}")
-            # Retourner au menu des retraits après 2 secondes
-            await asyncio.sleep(2)
-            await show_admin_withdrawals(update, context)
-        else:
-            await query.edit_message_text(f"❌ {message}")
+            if success:
+                await query.edit_message_text(f"✅ {message}")
+                await asyncio.sleep(2)
+                await show_admin_withdrawals(update, context)
+            else:
+                await query.edit_message_text(f"❌ {message}")
+                
+        except ValueError:
+            await query.edit_message_text("❌ ID de transaction invalide")
+        except Exception as e:
+            await query.edit_message_text(f"❌ Erreur système: {str(e)}")
+            
         return
 
     elif data.startswith("reject_withdrawal_"):
@@ -2732,10 +2904,17 @@ async def show_admin_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def show_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Afficher les utilisateurs récents"""
     await update.callback_query.answer()
+    
+    admin_user_id = update.effective_user.id
+    if not is_admin(admin_user_id):
+        await update.callback_query.edit_message_text("🚫 Accès refusé")
+        return
+    
+    log_admin_action(admin_user_id, "VIEW_USERS", "Consultation de la liste des utilisateurs")
 
     conn = get_db_connection()
     recent_users = conn.execute('''
-        SELECT first_name, last_name, balance, created_at
+        SELECT first_name, last_name, balance, created_at, kyc_status
         FROM users 
         ORDER BY created_at DESC 
         LIMIT 10
@@ -2753,8 +2932,64 @@ async def show_admin_users(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except:
             date_str = "N/A"
 
+        status_emoji = "✅" if user['kyc_status'] == 'verified' else "⏳" if user['kyc_status'] == 'pending' else "❌"
+        
         message += f"👤 {user['first_name']} {user['last_name'] or ''}\n"
-        message += f"💰 {user['balance']:.2f} USDT | 📅 {date_str}\n\n"
+        message += f"💰 {user['balance']:.2f} USDT | 📅 {date_str} | {status_emoji} {user['kyc_status']}\n\n"
+
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_admin_security_logs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Afficher les logs de sécurité"""
+    await update.callback_query.answer()
+    
+    admin_user_id = update.effective_user.id
+    if not is_admin(admin_user_id):
+        await update.callback_query.edit_message_text("🚫 Accès refusé")
+        return
+    
+    log_admin_action(admin_user_id, "VIEW_SECURITY_LOGS", "Consultation des logs de sécurité")
+
+    conn = get_db_connection()
+    
+    try:
+        logs = conn.execute('''
+            SELECT * FROM admin_logs 
+            ORDER BY timestamp DESC 
+            LIMIT 15
+        ''').fetchall()
+    except:
+        # Table n'existe pas encore
+        logs = []
+    
+    conn.close()
+
+    keyboard = [[InlineKeyboardButton("🔙 Retour admin", callback_data="admin_menu")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    message = "🔒 **LOGS DE SÉCURITÉ** (15 derniers)\n\n"
+
+    if logs:
+        for log in logs:
+            try:
+                date_str = datetime.fromisoformat(log['timestamp'].replace('Z', '+00:00')).strftime('%d/%m %H:%M')
+            except:
+                date_str = "N/A"
+
+            action_emoji = "🔓" if "APPROVED" in log['action'] else "🚫" if "REJECTED" in log['action'] else "👁️" if "VIEW" in log['action'] else "⚠️"
+            
+            message += f"{action_emoji} **{log['action']}**\n"
+            message += f"👤 Admin: {log['admin_id']}\n"
+            message += f"📅 {date_str}\n"
+            if log['details']:
+                message += f"📝 {log['details'][:50]}...\n"
+            message += "\n"
+    else:
+        message += "Aucun log disponible pour le moment."
+
+    # Limiter la taille du message
+    if len(message) > 4000:
+        message = message[:3900] + "\n\n✂️ Message tronqué..."
 
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 

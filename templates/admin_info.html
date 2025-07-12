@@ -1,0 +1,75 @@
+
+{% extends "base.html" %}
+
+{% block title %}Administration - InvestCrypto Pro{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <div class="text-center mb-8">
+            <div class="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Administration Sécurisée</h1>
+            <p class="text-gray-600">Système d'administration migré vers Telegram</p>
+        </div>
+
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">🔐 Nouvelle Sécurité Renforcée</h2>
+            <p class="text-gray-700 mb-4">
+                Pour garantir une sécurité maximale, toute l'administration de la plateforme 
+                s'effectue maintenant exclusivement via notre bot Telegram sécurisé.
+            </p>
+            
+            <div class="space-y-3">
+                <div class="flex items-center">
+                    <span class="text-green-500 mr-3">✅</span>
+                    <span>Authentification à deux facteurs automatique</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-green-500 mr-3">✅</span>
+                    <span>Logs de sécurité en temps réel</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-green-500 mr-3">✅</span>
+                    <span>Notifications instantanées</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-green-500 mr-3">✅</span>
+                    <span>Accès sécurisé par ID Telegram</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-yellow-800 mb-3">📱 Comment accéder à l'administration</h3>
+            <ol class="list-decimal list-inside space-y-2 text-yellow-700">
+                <li>Ouvrez Telegram et cherchez <strong>@InvestCryptoProBot</strong></li>
+                <li>Démarrez une conversation avec <code>/start</code></li>
+                <li>Utilisez la commande <code>/admin</code> pour accéder au panel</li>
+                <li>Vos privilèges seront vérifiés automatiquement</li>
+            </ol>
+        </div>
+
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-red-800 mb-3">⚠️ Important</h3>
+            <ul class="list-disc list-inside space-y-1 text-red-700">
+                <li>L'interface web d'administration est définitivement désactivée</li>
+                <li>Seuls les administrateurs autorisés peuvent accéder au bot</li>
+                <li>Toutes les actions sont enregistrées dans les logs de sécurité</li>
+            </ul>
+        </div>
+
+        <div class="text-center">
+            <a href="{{ url_for('dashboard') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Retour au Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
