@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}Plans Ultra-Rentables - InvestCrypto Pro{% endblock %}
@@ -61,7 +60,7 @@
                 border-3 border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 transform hover:scale-105
             {%- endif -%}
             transition-all duration-300" data-duration="{{ plan.duration_days }}">
-            
+
             <!-- Badge ultra-rentable -->
             <div class="absolute top-0 left-0 right-0 z-10">
                 {% if plan.daily_rate >= 0.35 %}
@@ -86,11 +85,11 @@
                 </div>
                 {% endif %}
             </div>
-            
+
             <div class="p-6 pt-16">
                 <div class="text-center">
                     <h3 class="text-2xl font-bold mb-3 text-gray-900">{{ plan.name }}</h3>
-                    
+
                     <!-- Taux de rendement spectaculaire -->
                     <div class="mb-4">
                         <div class="text-6xl font-extrabold mb-2
@@ -104,7 +103,7 @@
                             PROFIT QUOTIDIEN GARANTI
                         </div>
                     </div>
-                    
+
                     <!-- Détails du plan -->
                     <div class="bg-white bg-opacity-70 p-4 rounded-lg mb-4">
                         <div class="grid grid-cols-2 gap-4 text-sm">
@@ -128,7 +127,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Exemple de calcul -->
                     <div class="bg-green-50 p-4 rounded-lg mb-4 border-2 border-green-200">
                         <div class="text-sm text-green-700 font-bold mb-2">💰 Exemple avec 1,000 USDT :</div>
@@ -139,7 +138,7 @@
                             ({{ "%.0f"|format(plan.daily_rate * 1000) }} USDT/jour × {{ plan.duration_days }} jours)
                         </div>
                     </div>
-                    
+
                     <!-- Caractéristiques uniques -->
                     <div class="text-left mb-4">
                         <div class="text-sm font-bold text-gray-700 mb-2">🎯 Caractéristiques :</div>
@@ -159,7 +158,7 @@
                             {% endif %}
                         </ul>
                     </div>
-                    
+
                     <!-- Bouton d'investissement -->
                     <button onclick="showUltraInvestModal({{ plan.id }}, '{{ plan.name }}', {{ plan.min_amount }}, {{ plan.max_amount }}, {{ plan.daily_rate }}, {{ plan.duration_days }})" 
                             class="w-full py-3 px-6 text-lg font-bold text-white rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200
@@ -231,7 +230,7 @@
                 </button>
             </div>
         </div>
-        
+
         <div id="ultraResults" class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 hidden">
             <div class="bg-blue-50 p-4 rounded-lg text-center">
                 <div class="text-sm text-blue-600 mb-1">Profit quotidien</div>
@@ -263,7 +262,7 @@
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            
+
             <div class="space-y-4">
                 <div class="bg-gradient-to-r from-red-50 to-orange-50 p-4 rounded-lg border-2 border-red-200">
                     <div class="text-sm font-bold text-red-700 mb-2">Détails du plan ultra-rentable</div>
@@ -286,12 +285,12 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Montant à investir</label>
                     <input type="number" id="ultraInvestAmount" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Montant en USDT">
                 </div>
-                
+
                 <div class="bg-green-50 p-4 rounded-lg border-2 border-green-200">
                     <div class="text-sm text-green-700 mb-1">Estimation de gains</div>
                     <div class="grid grid-cols-2 gap-4">
@@ -305,7 +304,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
                     <div class="flex items-center">
                         <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
@@ -314,7 +313,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <button onclick="submitUltraInvestment()" class="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white py-3 px-4 rounded-md font-bold text-lg">
                     CONFIRMER L'INVESTISSEMENT ULTRA-RENTABLE
                 </button>
@@ -330,15 +329,15 @@ let currentUltraPlan = null;
 function filterPlans(duration) {
     const cards = document.querySelectorAll('.ultra-plan-card');
     const buttons = document.querySelectorAll('.filter-btn');
-    
+
     // Mettre à jour les boutons actifs
     buttons.forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
-    
+
     cards.forEach(card => {
         const planDuration = parseInt(card.dataset.duration);
         let show = false;
-        
+
         if (duration === 'all') {
             show = true;
         } else if (duration === '3') {
@@ -350,7 +349,7 @@ function filterPlans(duration) {
         } else if (duration === '10-14') {
             show = planDuration >= 10 && planDuration <= 14;
         }
-        
+
         if (show) {
             card.style.display = 'block';
             card.classList.add('animate-fadeIn');
@@ -365,26 +364,26 @@ function calculateUltraProfits() {
     const amount = parseFloat(document.getElementById('ultraCalcAmount').value) || 0;
     const planData = document.getElementById('ultraCalcPlan').value;
     const resultsDiv = document.getElementById('ultraResults');
-    
+
     if (!amount || !planData) {
         resultsDiv.classList.add('hidden');
         return;
     }
-    
+
     const [dailyRate, duration, planName] = planData.split(',');
     const dailyRateFloat = parseFloat(dailyRate);
     const durationInt = parseInt(duration);
-    
+
     const dailyProfit = amount * dailyRateFloat;
     const totalProfit = dailyProfit * durationInt;
     const finalAmount = amount + totalProfit;
     const totalROI = (totalProfit / amount) * 100;
-    
+
     document.getElementById('ultraDailyProfit').textContent = `${dailyProfit.toFixed(2)} USDT`;
     document.getElementById('ultraTotalProfit').textContent = `${totalProfit.toFixed(2)} USDT`;
     document.getElementById('ultraFinalAmount').textContent = `${finalAmount.toFixed(2)} USDT`;
     document.getElementById('ultraTotalROI').textContent = `${totalROI.toFixed(0)}%`;
-    
+
     resultsDiv.classList.remove('hidden');
 }
 
@@ -398,14 +397,14 @@ function showUltraInvestModal(planId, planName, minAmount, maxAmount, dailyRate,
         dailyRate: dailyRate,
         duration: duration
     };
-    
+
     document.getElementById('ultraModalTitle').textContent = planName;
     document.getElementById('ultraModalDailyRate').textContent = `${(dailyRate * 100).toFixed(0)}%`;
     document.getElementById('ultraModalDuration').textContent = `${duration} jours`;
     document.getElementById('ultraModalTotalROI').textContent = `${(dailyRate * duration * 100).toFixed(0)}%`;
     document.getElementById('ultraModalMinAmount').textContent = minAmount;
     document.getElementById('ultraModalMaxAmount').textContent = maxAmount.toLocaleString();
-    
+
     document.getElementById('ultraInvestModal').classList.remove('hidden');
 }
 
@@ -433,14 +432,14 @@ document.getElementById('ultraInvestAmount').addEventListener('input', function(
 // Soumettre l'investissement ultra-rentable
 async function submitUltraInvestment() {
     if (!currentUltraPlan) return;
-    
+
     const amount = parseFloat(document.getElementById('ultraInvestAmount').value);
-    
+
     if (!amount || amount < currentUltraPlan.minAmount || amount > currentUltraPlan.maxAmount) {
         showNotification(`Montant doit être entre ${currentUltraPlan.minAmount} et ${currentUltraPlan.maxAmount} USDT`, 'error');
         return;
     }
-    
+
     try {
         const response = await fetch('/invest-roi', {
             method: 'POST',
@@ -452,9 +451,9 @@ async function submitUltraInvestment() {
                 amount: amount
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             showNotification(`Investissement ultra-rentable de ${amount} USDT réalisé avec succès dans ${currentUltraPlan.name}!`, 'success');
             hideUltraInvestModal();
