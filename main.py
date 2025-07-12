@@ -579,8 +579,8 @@ def restore_critical_data():
     
     if plans_count == 0:
         # Insert clean ROI plans - ALL starting from 20 USDT minimum
-    cursor.execute('''
-        INSERT INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
+        cursor.execute('''
+            INSERT INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
         ('Starter Pro', '🚀 Parfait pour débuter ! 3% quotidien sur 30 jours. Idéal pour tester nos services avec un petit budget.', 0.03, 30, 20, 500),
         ('Rapid Growth', '⚡ Croissance rapide ! 4% par jour pendant 25 jours. Parfait équilibre temps/profit.', 0.04, 25, 20, 800),
