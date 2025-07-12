@@ -14,8 +14,31 @@
     <!-- Plans Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {% for plan in plans %}
-        <div class="bg-white rounded-lg shadow-lg p-6 relative {{ 'border-2 border-green-500' if plan.name == 'Plan Premium' else 'border border-gray-200' }} hover:shadow-xl transition-all duration-300">
-            {% if plan.name == 'Plan Premium' %}
+        <div class="bg-white rounded-lg shadow-lg p-6 relative 
+            {%- if plan.daily_rate >= 0.25 -%}
+                border-2 border-red-500 bg-gradient-to-br from-red-50 to-orange-50
+            {%- elif plan.daily_rate >= 0.20 -%}
+                border-2 border-orange-500 bg-gradient-to-br from-orange-50 to-yellow-50
+            {%- elif plan.name == 'Plan Premium' -%}
+                border-2 border-green-500
+            {%- else -%}
+                border border-gray-200
+            {%- endif -%}
+            hover:shadow-xl transition-all duration-300">
+            
+            {% if plan.daily_rate >= 0.30 %}
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <span class="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">🔥 ULTRA RENTABLE 🔥</span>
+            </div>
+            {% elif plan.daily_rate >= 0.25 %}
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <span class="bg-orange-600 text-white px-3 py-1 rounded-full text-xs font-bold">⚡ SUPER EXPRESS ⚡</span>
+            </div>
+            {% elif plan.daily_rate >= 0.20 %}
+            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                <span class="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold">💎 VIP EXCLUSIF 💎</span>
+            </div>
+            {% elif plan.name == 'Plan Premium' %}
             <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                 <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">⭐ POPULAIRE</span>
             </div>
@@ -32,10 +55,28 @@
                     </button>
                 </div>
                 
-                <div class="text-4xl font-bold text-blue-600 mb-2">
-                    {{ "%.0f"|format(plan.daily_rate * 100) }}%
+                <div class="mb-2">
+                    {% if plan.daily_rate >= 0.25 %}
+                        <div class="text-5xl font-extrabold text-red-600 mb-1 animate-pulse">
+                            {{ "%.0f"|format(plan.daily_rate * 100) }}%
+                        </div>
+                    {% elif plan.daily_rate >= 0.20 %}
+                        <div class="text-4xl font-bold text-orange-600 mb-1">
+                            {{ "%.0f"|format(plan.daily_rate * 100) }}%
+                        </div>
+                    {% else %}
+                        <div class="text-4xl font-bold text-blue-600 mb-1">
+                            {{ "%.0f"|format(plan.daily_rate * 100) }}%
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="text-sm text-gray-600 mb-4">profit quotidien</div>
+                <div class="text-sm text-gray-600 mb-4">
+                    {% if plan.duration_days <= 7 %}
+                        <span class="text-red-600 font-bold">profit ULTRA-RAPIDE quotidien</span>
+                    {% else %}
+                        profit quotidien
+                    {% endif %}
+                </div>
                 
                 <div class="space-y-2 mb-6">
                     <div class="text-sm text-gray-600">
@@ -103,8 +144,42 @@
         </div>
     </div>
 
+    <!-- Plans Ultra-Rentables Section -->
+    <div class="bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 rounded-lg shadow-2xl p-8 text-white mb-8">
+        <div class="text-center">
+            <h2 class="text-4xl font-extrabold mb-4 animate-pulse">🔥 PLANS ULTRA-RENTABLES 🔥</h2>
+            <p class="text-xl mb-6">Profits EXPLOSIFS garantis ! Durées ultra-courtes pour gains maximums !</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white bg-opacity-20 rounded-lg p-6 backdrop-blur-sm">
+                    <div class="text-3xl font-bold mb-2">35%</div>
+                    <div class="text-lg mb-2">par jour pendant 3 jours</div>
+                    <div class="text-sm opacity-90">= 105% de profit total !</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-6 backdrop-blur-sm">
+                    <div class="text-3xl font-bold mb-2">30%</div>
+                    <div class="text-lg mb-2">par jour pendant 5 jours</div>
+                    <div class="text-sm opacity-90">= 150% de profit total !</div>
+                </div>
+                <div class="bg-white bg-opacity-20 rounded-lg p-6 backdrop-blur-sm">
+                    <div class="text-3xl font-bold mb-2">25%</div>
+                    <div class="text-lg mb-2">par jour pendant 7 jours</div>
+                    <div class="text-sm opacity-90">= 175% de profit total !</div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <p class="text-lg font-bold">⚠️ OFFRE LIMITÉE ! Places limitées ! ⚠️</p>
+                <p class="text-sm opacity-90 mt-2">
+                    Technologie révolutionnaire d'IA prédictive + Trading algorithmique haute fréquence<br>
+                    Stratégies secrètes développées par nos experts quantitatifs
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Detailed Features -->
-    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg shadow-lg p-6">
+    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg shadow-lg p-6"></div>
         <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">🚀 Pourquoi nos plans ROI sont-ils si performants ?</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="bg-white rounded-lg p-4 shadow-md">
@@ -140,7 +215,7 @@
         <!-- Success Stories -->
         <div class="mt-8 bg-white rounded-lg p-6">
             <h3 class="text-xl font-semibold mb-4 text-center">📈 Témoignages de nos investisseurs</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="text-center">
                     <div class="text-2xl font-bold text-green-600">€127,450</div>
                     <div class="text-sm text-gray-600">Profits générés en 3 mois par Marie L.</div>
@@ -152,6 +227,35 @@
                 <div class="text-center">
                     <div class="text-2xl font-bold text-purple-600">€234,100</div>
                     <div class="text-sm text-gray-600">Total gagné par Jean-Marc S.</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-red-600">€75,000</div>
+                    <div class="text-sm text-gray-600">Gain en 1 semaine avec Super Express par Lucas M. !</div>
+                </div>
+            </div>
+            
+            <!-- Exemples de calculs Ultra-Rentables -->
+            <div class="mt-8 bg-gradient-to-r from-red-50 to-orange-50 p-6 rounded-lg border-2 border-red-200">
+                <h4 class="text-lg font-bold text-red-700 mb-4 text-center">🔥 Exemples de gains ULTRA-RENTABLES 🔥</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div class="bg-white p-4 rounded-lg border border-red-300">
+                        <div class="font-bold text-lg text-red-600">Plan Rocket Launch (35%/jour, 3 jours)</div>
+                        <div class="text-sm text-gray-600 mt-2">Investissement: 1,000 USDT</div>
+                        <div class="text-lg font-bold text-green-600 mt-1">Gain: 1,050 USDT</div>
+                        <div class="text-xs text-gray-500">Total récupéré: 2,050 USDT</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-orange-300">
+                        <div class="font-bold text-lg text-orange-600">Plan Mega Booster (30%/jour, 5 jours)</div>
+                        <div class="text-sm text-gray-600 mt-2">Investissement: 2,000 USDT</div>
+                        <div class="text-lg font-bold text-green-600 mt-1">Gain: 3,000 USDT</div>
+                        <div class="text-xs text-gray-500">Total récupéré: 5,000 USDT</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-yellow-300">
+                        <div class="font-bold text-lg text-yellow-600">Plan Super Express (25%/jour, 7 jours)</div>
+                        <div class="text-sm text-gray-600 mt-2">Investissement: 5,000 USDT</div>
+                        <div class="text-lg font-bold text-green-600 mt-1">Gain: 8,750 USDT</div>
+                        <div class="text-xs text-gray-500">Total récupéré: 13,750 USDT</div>
+                    </div>
                 </div>
             </div>
         </div>

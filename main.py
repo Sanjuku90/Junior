@@ -343,7 +343,12 @@ def init_db():
         ('VIP Supreme', '👑 VIP suprême ! 10% quotidien sur 50 jours. Pour les grands investisseurs.', 0.10, 50, 20, 8000),
         ('Royal Master', '🏆 Royal master ! 12% par jour pendant 60 jours. Retour royal garanti.', 0.12, 60, 20, 12000),
         ('Ultra Premium', '⭐ Ultra premium ! 15% quotidien sur 70 jours. Performance maximale.', 0.15, 70, 20, 20000),
-        ('Emperor Elite', '👨‍💼 Empereur elite ! 18% par jour pendant 80 jours. Le summum de l''investissement.', 0.18, 80, 20, 50000)
+        ('Emperor Elite', '👨‍💼 Empereur elite ! 18% par jour pendant 80 jours. Le summum de l''investissement.', 0.18, 80, 20, 50000),
+        ('Super Express', '🔥 NOUVEAU ! 25% quotidien pendant 7 jours ! Profits explosifs garantis ! IA révolutionnaire + algorithmes secrets.', 0.25, 7, 50, 10000),
+        ('Turbo Flash', '⚡ EXCLUSIF ! 20% par jour sur 14 jours ! Trading haute fréquence + arbitrage premium. Réservé aux VIP.', 0.20, 14, 100, 25000),
+        ('Mega Booster', '💥 LIMITE ! 30% quotidien pendant 5 jours ! Stratégie secrète révolutionnaire ! Places limitées !', 0.30, 5, 200, 15000),
+        ('Lightning Pro', '⚡ FLASH ! 22% par jour sur 10 jours ! Technologie quantum trading + IA prédictive avancée.', 0.22, 10, 150, 30000),
+        ('Rocket Launch', '🚀 METEORE ! 35% quotidien pendant 3 jours ! Stratégie ultra-secrète ! Rendement historique jamais vu !', 0.35, 3, 500, 20000)
     ''')
 
     # Insert top 10 staking plans - Starting from 20 USDT
