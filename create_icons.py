@@ -119,8 +119,8 @@ def create_icon(size, filename):
     
     # Effet de brillance générale
     highlight_size = size // 5
-    highlight_x = center_x - circle_radius // 2
-    highlight_y = center_y - circle_radius // 2
+    highlight_x = center_x - c_radius // 2
+    highlight_y = center_y - c_radius // 2
     highlight_gradient = Image.new('RGBA', (highlight_size, highlight_size), (0, 0, 0, 0))
     highlight_draw = ImageDraw.Draw(highlight_gradient)
     
