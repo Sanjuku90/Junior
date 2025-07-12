@@ -131,22 +131,50 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
-            <div class="text-center">
-                <h3 class="text-lg font-semibold mb-2">Tickets KYC</h3>
-                <div class="text-3xl font-bold text-yellow-500 mb-2">{{ stats.pending_kyc }}</div>
-                <p class="text-gray-600">En attente</p>
+                <div>
+                    <p class="text-2xl font-semibold text-gray-800">{{ stats.pending_kyc }}</p>
+                    <p class="text-gray-600">KYC en attente</p>
+                </div>
             </div>
         </div>
-        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-            <div class="bg-purple-600 text-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-headset text-2xl"></i>
+    </div>
+
+    <!-- Navigation Admin -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <a href="{{ url_for('admin_support') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+                    <i class="fas fa-headset text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Support</h3>
+                    <p class="text-gray-600">{{ stats.open_tickets }} tickets ouverts</p>
+                </div>
             </div>
-            <div class="text-center">
-                <h3 class="text-lg font-semibold mb-2">Support Tickets</h3>
-                <div class="text-3xl font-bold text-purple-600 mb-2">{{ stats.open_tickets if stats.open_tickets is defined else 0 }}</div>
-                <p class="text-gray-600">Tickets ouverts</p>
-                <a href="{{ url_for('admin_support') }}" class="mt-4 inline-block bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
-                    Gérer
-                </a>
+        </a>
+
+        <a href="{{ url_for('admin_transactions') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                    <i class="fas fa-credit-card text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Transactions</h3>
+                    <p class="text-gray-600">Gérer dépôts/retraits</p>
+                </div>
             </div>
+        </a>
+
+        <a href="{{ url_for('admin_deactivate') }}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
+                    <i class="fas fa-sign-out-alt text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Sécurité</h3>
+                    <p class="text-gray-600">Désactiver admin</p>
+                </div>
+            </div>
+        </a>
+    </div>
 {% endblock %}

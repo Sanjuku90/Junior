@@ -1,0 +1,233 @@
+
+{% extends "base.html" %}
+
+{% block title %}Gestion des Transactions - Admin{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-gray-900">💳 Gestion des Transactions</h1>
+            <div class="flex space-x-3">
+                <a href="{{ url_for('admin_dashboard') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    <i class="fas fa-arrow-left mr-2"></i>Retour Dashboard
+                </a>
+                <button onclick="refreshTransactions()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    <i class="fas fa-refresh mr-2"></i>Actualiser
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-semibold text-gray-800">{{ transactions|length }}</p>
+                    <p class="text-gray-600">En attente</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-semibold text-gray-800">
+                        {{ transactions|selectattr('type', 'equalto', 'deposit')|list|length }}
+                    </p>
+                    <p class="text-gray-600">Dépôts</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div>
+                    <p class="text-2xl font-semibold text-gray-800">
+                        {{ transactions|selectattr('type', 'equalto', 'withdrawal')|list|length }}
+                    </p>
+                    <p class="text-gray-600">Retraits</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions List -->
+    <div class="bg-white rounded-lg shadow-md">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800">📋 Transactions en attente</h2>
+        </div>
+        
+        {% if transactions %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hash/Adresse</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for transaction in transactions %}
+                    <tr id="transaction-{{ transaction.id }}">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="font-mono text-sm">#{{ transaction.id }}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ transaction.first_name }} {{ transaction.last_name }}</div>
+                            <div class="text-sm text-gray-500">{{ transaction.email }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if transaction.type == 'deposit' %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    <i class="fas fa-arrow-down mr-1"></i>Dépôt
+                                </span>
+                            {% else %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    <i class="fas fa-arrow-up mr-1"></i>Retrait
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                            {{ "%.2f"|format(transaction.amount) }} USDT
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-xs text-gray-600 max-w-xs truncate" title="{{ transaction.transaction_hash }}">
+                                {{ transaction.transaction_hash }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ transaction.created_at[:16] }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <button onclick="approveTransaction({{ transaction.id }})"
+                                        class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs">
+                                    <i class="fas fa-check mr-1"></i>Approuver
+                                </button>
+                                <button onclick="rejectTransaction({{ transaction.id }})"
+                                        class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">
+                                    <i class="fas fa-times mr-1"></i>Rejeter
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-8 text-center">
+            <div class="text-gray-400 text-6xl mb-4">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">Aucune transaction en attente</h3>
+            <p class="text-gray-500">Toutes les transactions ont été traitées.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de rejet -->
+<div id="rejectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white rounded-lg p-6 w-96">
+            <h3 class="text-lg font-semibold mb-4">Rejeter la transaction</h3>
+            <textarea id="rejectReason" rows="3" class="w-full p-2 border border-gray-300 rounded" 
+                      placeholder="Raison du rejet (optionnel)"></textarea>
+            <div class="flex justify-end space-x-2 mt-4">
+                <button onclick="closeRejectModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    Annuler
+                </button>
+                <button onclick="confirmReject()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Rejeter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentTransactionId = null;
+
+async function approveTransaction(transactionId) {
+    if (!confirm('Êtes-vous sûr de vouloir approuver cette transaction ?')) return;
+    
+    try {
+        const response = await fetch(`/admin/approve-transaction/${transactionId}`, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ ' + result.message);
+            document.getElementById(`transaction-${transactionId}`).remove();
+        } else {
+            alert('❌ ' + result.error);
+        }
+    } catch (error) {
+        alert('❌ Erreur de connexion');
+    }
+}
+
+function rejectTransaction(transactionId) {
+    currentTransactionId = transactionId;
+    document.getElementById('rejectModal').classList.remove('hidden');
+}
+
+function closeRejectModal() {
+    document.getElementById('rejectModal').classList.add('hidden');
+    document.getElementById('rejectReason').value = '';
+    currentTransactionId = null;
+}
+
+async function confirmReject() {
+    const reason = document.getElementById('rejectReason').value;
+    
+    try {
+        const response = await fetch(`/admin/reject-transaction/${currentTransactionId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                reason: reason || 'Transaction rejetée par l\'administrateur'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✅ ' + result.message);
+            document.getElementById(`transaction-${currentTransactionId}`).remove();
+            closeRejectModal();
+        } else {
+            alert('❌ ' + result.error);
+        }
+    } catch (error) {
+        alert('❌ Erreur de connexion');
+    }
+}
+
+function refreshTransactions() {
+    location.reload();
+}
+</script>
+{% endblock %}

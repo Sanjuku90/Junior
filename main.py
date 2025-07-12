@@ -1350,10 +1350,53 @@ def get_support_messages(ticket_id):
         return jsonify({'error': 'Erreur serveur'}), 500
 
 @app.route('/admin')
-def admin_info():
-    """Afficher les informations sur l'administration avec statut d'activation"""
+@login_required
+def admin_panel():
+    """Panneau d'administration principal"""
+    # Vérifier si l'utilisateur a les privilèges admin potentiels
+    if not session.get('is_potential_admin'):
+        flash('Vous n\'avez pas les privilèges administrateur.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    # Vérifier si l'accès admin est activé
     admin_status = get_admin_status()
-    return render_template('admin_info.html', admin_status=admin_status)
+    if not admin_status['enabled'] or not session.get('is_admin'):
+        return redirect(url_for('admin_activation_required'))
+    
+    # Accès admin confirmé - afficher le dashboard admin
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/dashboard')
+@admin_required
+def admin_dashboard():
+    """Dashboard administrateur avec statistiques"""
+    conn = get_db_connection()
+    
+    # Statistiques générales
+    stats = {}
+    stats['total_users'] = conn.execute('SELECT COUNT(*) as count FROM users').fetchone()['count']
+    stats['total_investments'] = conn.execute('SELECT COALESCE(SUM(amount), 0) as total FROM user_investments').fetchone()['total']
+    stats['total_projects'] = conn.execute('SELECT COUNT(*) as count FROM projects').fetchone()['count']
+    stats['pending_kyc'] = conn.execute('SELECT COUNT(*) as count FROM users WHERE kyc_status = "pending"').fetchone()['count']
+    
+    # Transactions récentes
+    transactions = conn.execute('''
+        SELECT t.*, u.first_name, u.last_name, u.email
+        FROM transactions t
+        JOIN users u ON t.user_id = u.id
+        ORDER BY t.created_at DESC
+        LIMIT 10
+    ''').fetchall()
+    
+    # Tickets de support ouverts
+    try:
+        stats['open_tickets'] = conn.execute('SELECT COUNT(*) as count FROM support_tickets WHERE status != "closed"').fetchone()['count']
+    except:
+        stats['open_tickets'] = 0
+    
+    conn.close()
+    
+    return render_template('admin_dashboard.html', stats=stats, transactions=transactions)
 
 @app.route('/admin-activation-required')
 @login_required
@@ -1447,27 +1490,285 @@ def admin_console_status():
     else:
         return "Admin DÉSACTIVÉ"
 
+@app.route('/admin/transactions')
+@admin_required
+def admin_transactions():
+    """Gestion des transactions (dépôts/retraits)"""
+    conn = get_db_connection()
+    
+    # Récupérer toutes les transactions en attente
+    pending_transactions = conn.execute('''
+        SELECT t.*, u.first_name, u.last_name, u.email
+        FROM transactions t
+        JOIN users u ON t.user_id = u.id
+        WHERE t.status = 'pending'
+        ORDER BY t.created_at DESC
+    ''').fetchall()
+    
+    conn.close()
+    
+    return render_template('admin_transactions.html', transactions=pending_transactions)
+
+@app.route('/admin/approve-transaction/<int:transaction_id>', methods=['POST'])
+@admin_required
+def approve_transaction(transaction_id):
+    """Approuver une transaction"""
+    conn = get_db_connection()
+    
+    try:
+        # Récupérer la transaction
+        transaction = conn.execute('''
+            SELECT t.*, u.email, u.first_name
+            FROM transactions t
+            JOIN users u ON t.user_id = u.id
+            WHERE t.id = ?
+        ''', (transaction_id,)).fetchone()
+        
+        if not transaction:
+            return jsonify({'error': 'Transaction non trouvée'}), 404
+        
+        if transaction['type'] == 'deposit':
+            # Approuver le dépôt - créditer le compte
+            conn.execute('''
+                UPDATE users 
+                SET balance = balance + ? 
+                WHERE id = ?
+            ''', (transaction['amount'], transaction['user_id']))
+            
+            # Ajouter notification
+            add_notification(
+                transaction['user_id'],
+                'Dépôt approuvé',
+                f'Votre dépôt de {transaction["amount"]} USDT a été approuvé et crédité',
+                'success'
+            )
+            
+        elif transaction['type'] == 'withdrawal':
+            # Le montant a déjà été débité lors de la demande
+            # Ajouter notification
+            add_notification(
+                transaction['user_id'],
+                'Retrait traité',
+                f'Votre retrait de {transaction["amount"]} USDT a été traité',
+                'success'
+            )
+        
+        # Marquer comme complété
+        conn.execute('''
+            UPDATE transactions 
+            SET status = 'completed' 
+            WHERE id = ?
+        ''', (transaction_id,))
+        
+        conn.commit()
+        
+        return jsonify({'success': True, 'message': 'Transaction approuvée'})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Erreur: {str(e)}'}), 500
+    finally:
+        conn.close()
+
+@app.route('/admin/reject-transaction/<int:transaction_id>', methods=['POST'])
+@admin_required
+def reject_transaction(transaction_id):
+    """Rejeter une transaction"""
+    data = request.get_json()
+    reason = data.get('reason', 'Transaction rejetée par l\'administrateur')
+    
+    conn = get_db_connection()
+    
+    try:
+        # Récupérer la transaction
+        transaction = conn.execute('''
+            SELECT t.*, u.email, u.first_name
+            FROM transactions t
+            JOIN users u ON t.user_id = u.id
+            WHERE t.id = ?
+        ''', (transaction_id,)).fetchone()
+        
+        if not transaction:
+            return jsonify({'error': 'Transaction non trouvée'}), 404
+        
+        if transaction['type'] == 'withdrawal':
+            # Rembourser le montant au solde utilisateur
+            conn.execute('''
+                UPDATE users 
+                SET balance = balance + ? 
+                WHERE id = ?
+            ''', (transaction['amount'], transaction['user_id']))
+        
+        # Marquer comme rejetée
+        conn.execute('''
+            UPDATE transactions 
+            SET status = 'failed' 
+            WHERE id = ?
+        ''', (transaction_id,))
+        
+        # Ajouter notification
+        add_notification(
+            transaction['user_id'],
+            'Transaction rejetée',
+            f'Votre {transaction["type"]} de {transaction["amount"]} USDT a été rejetée. Raison: {reason}',
+            'error'
+        )
+        
+        conn.commit()
+        
+        return jsonify({'success': True, 'message': 'Transaction rejetée'})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Erreur: {str(e)}'}), 500
+    finally:
+        conn.close()
+
 @app.route('/admin/support')
-def admin_support_redirect():
-    """Rediriger vers le bot Telegram pour la gestion du support"""
-    flash('La gestion du support se fait maintenant via le bot Telegram. Contactez @InvestCryptoProBot et utilisez la commande /admin', 'info')
-    return redirect(url_for('support'))
+@admin_required
+def admin_support():
+    """Gestion des tickets de support"""
+    conn = get_db_connection()
+    
+    try:
+        tickets = conn.execute('''
+            SELECT st.*, u.first_name, u.last_name, u.email,
+                   (SELECT COUNT(*) FROM support_messages sm WHERE sm.ticket_id = st.id) as message_count
+            FROM support_tickets st
+            JOIN users u ON st.user_id = u.id
+            ORDER BY st.created_at DESC
+        ''').fetchall()
+    except:
+        tickets = []
+    
+    conn.close()
+    
+    return render_template('admin_support.html', tickets=tickets)
 
 @app.route('/admin/support/ticket/<int:ticket_id>')
-def admin_support_ticket_redirect(ticket_id):
-    """Rediriger vers le bot Telegram"""
-    flash(f'La gestion du ticket #{ticket_id} se fait maintenant via le bot Telegram. Contactez @InvestCryptoProBot', 'info')
-    return redirect(url_for('support'))
+@admin_required
+def admin_support_ticket(ticket_id):
+    """Voir les détails d'un ticket de support"""
+    conn = get_db_connection()
+    
+    # Récupérer le ticket
+    ticket = conn.execute('''
+        SELECT st.*, u.first_name, u.last_name, u.email
+        FROM support_tickets st
+        JOIN users u ON st.user_id = u.id
+        WHERE st.id = ?
+    ''', (ticket_id,)).fetchone()
+    
+    if not ticket:
+        flash('Ticket non trouvé', 'error')
+        return redirect(url_for('admin_support'))
+    
+    # Récupérer les messages
+    messages = conn.execute('''
+        SELECT sm.*, u.first_name, u.last_name
+        FROM support_messages sm
+        LEFT JOIN users u ON sm.user_id = u.id
+        WHERE sm.ticket_id = ?
+        ORDER BY sm.created_at ASC
+    ''', (ticket_id,)).fetchall()
+    
+    conn.close()
+    
+    return render_template('admin_support_ticket.html', ticket=ticket, messages=messages)
 
 @app.route('/admin/support/reply', methods=['POST'])
-def admin_support_reply_disabled():
-    """API désactivée - utiliser Telegram"""
-    return jsonify({'error': 'Administration via Telegram uniquement. Utilisez @InvestCryptoProBot'}), 403
+@admin_required
+def admin_support_reply():
+    """Répondre à un ticket de support"""
+    data = request.get_json()
+    ticket_id = data.get('ticket_id')
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({'error': 'Message requis'}), 400
+    
+    conn = get_db_connection()
+    
+    try:
+        # Ajouter la réponse admin
+        conn.execute('''
+            INSERT INTO support_messages (ticket_id, message, is_admin)
+            VALUES (?, ?, 1)
+        ''', (ticket_id, message))
+        
+        # Mettre à jour le statut du ticket
+        conn.execute('''
+            UPDATE support_tickets 
+            SET status = 'admin_reply', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (ticket_id,))
+        
+        # Récupérer les infos du ticket pour notification
+        ticket = conn.execute('''
+            SELECT st.*, u.first_name, u.email
+            FROM support_tickets st
+            JOIN users u ON st.user_id = u.id
+            WHERE st.id = ?
+        ''', (ticket_id,)).fetchone()
+        
+        conn.commit()
+        
+        # Ajouter notification à l'utilisateur
+        if ticket:
+            add_notification(
+                ticket['user_id'],
+                'Réponse du support',
+                f'Vous avez reçu une réponse à votre ticket #{ticket_id}',
+                'info'
+            )
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Erreur: {str(e)}'}), 500
+    finally:
+        conn.close()
 
 @app.route('/admin/support/close/<int:ticket_id>', methods=['POST'])
-def admin_close_ticket_disabled(ticket_id):
-    """API désactivée - utiliser Telegram"""
-    return jsonify({'error': 'Administration via Telegram uniquement. Utilisez @InvestCryptoProBot'}), 403
+@admin_required
+def admin_close_ticket(ticket_id):
+    """Fermer un ticket de support"""
+    conn = get_db_connection()
+    
+    try:
+        # Récupérer les infos du ticket
+        ticket = conn.execute('''
+            SELECT user_id, subject FROM support_tickets WHERE id = ?
+        ''', (ticket_id,)).fetchone()
+        
+        if not ticket:
+            return jsonify({'error': 'Ticket non trouvé'}), 404
+        
+        # Fermer le ticket
+        conn.execute('''
+            UPDATE support_tickets 
+            SET status = 'closed', updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        ''', (ticket_id,))
+        
+        conn.commit()
+        
+        # Notification utilisateur
+        add_notification(
+            ticket['user_id'],
+            'Ticket fermé',
+            f'Votre ticket #{ticket_id} a été fermé par l\'équipe support',
+            'info'
+        )
+        
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Erreur: {str(e)}'}), 500
+    finally:
+        conn.close()
 
 # Security Routes
 @app.route('/security')
