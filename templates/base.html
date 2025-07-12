@@ -507,6 +507,186 @@
             }
         }
 
+        /* Menu Mobile Optimisé */
+        .mobile-menu-container {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .mobile-menu-container.active {
+            display: block;
+        }
+
+        .mobile-menu-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+        }
+
+        .mobile-menu-content {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 320px;
+            max-width: 85vw;
+            background: white;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-out;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mobile-menu-container.active .mobile-menu-content {
+            transform: translateX(0);
+        }
+
+        .mobile-menu-header {
+            padding: 1.5rem 1.25rem;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mobile-menu-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-menu-close:hover {
+            background: rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+        }
+
+        .mobile-menu-items {
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .mobile-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            text-decoration: none;
+            color: #374151;
+            gap: 1rem;
+            transition: all 0.2s ease;
+            position: relative;
+            border-left: 4px solid transparent;
+        }
+
+        .mobile-menu-item:hover {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            transform: translateX(4px);
+        }
+
+        .mobile-menu-item.active {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-left-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        .mobile-menu-item-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .mobile-menu-item-icon.dashboard { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .mobile-menu-item-icon.staking { background: linear-gradient(135deg, #10b981, #059669); }
+        .mobile-menu-item-icon.frozen { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .mobile-menu-item-icon.ultra { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .mobile-menu-item-icon.history { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .mobile-menu-item-icon.projects { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .mobile-menu-item-icon.trading { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .mobile-menu-item-icon.copy { background: linear-gradient(135deg, #ec4899, #db2777); }
+        .mobile-menu-item-icon.profile { background: linear-gradient(135deg, #64748b, #475569); }
+        .mobile-menu-item-icon.support { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+        .mobile-menu-item-icon.logout { background: linear-gradient(135deg, #f87171, #ef4444); }
+
+        .mobile-menu-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .mobile-menu-item-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.125rem;
+        }
+
+        .mobile-menu-item-subtitle {
+            font-size: 0.8rem;
+            color: #6b7280;
+            line-height: 1.2;
+        }
+
+        .mobile-menu-item.active .mobile-menu-item-title {
+            color: #1e40af;
+        }
+
+        .mobile-menu-item.active .mobile-menu-item-subtitle {
+            color: #3b82f6;
+        }
+
+        .mobile-menu-footer {
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-top: 1px solid #fecaca;
+        }
+
+        .mobile-menu-logout {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #dc2626;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-menu-logout:hover {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
         /* Mobile Optimizations */
         @media (max-width: 768px) {
             .nav-container {
@@ -985,54 +1165,146 @@
         </div>
 
         {% if session.user_id %}
-        <!-- Navigation Menu -->
-        <div id="mobile-menu" class="hidden bg-white border-t border-gray-100 px-4 py-4">
-            <div class="space-y-2">
-                <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }} w-full justify-start">
-                    <i class="nav-icon fas fa-home"></i>
-                    Dashboard
-                </a>
+        <!-- Navigation Menu Mobile Optimisé -->
+        <div id="mobile-menu" class="mobile-menu-container">
+            <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
+            <div class="mobile-menu-content">
+                <!-- Header du menu -->
+                <div class="mobile-menu-header">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-gray-900">{{ session.first_name or 'Utilisateur' }}</div>
+                            <div class="text-xs text-gray-500">{{ session.email or 'Email' }}</div>
+                        </div>
+                    </div>
+                    <button onclick="closeMobileMenu()" class="mobile-menu-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
 
-                <a href="{{ url_for('staking_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'staking_plans' }} w-full justify-start">
-                    <i class="nav-icon fas fa-lock"></i>
-                    Staking
-                </a>
-                <a href="{{ url_for('frozen_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'frozen_plans' }} w-full justify-start">
-                    <i class="nav-icon fas fa-snowflake"></i>
-                    Plans Gelés
-                </a>
-                <a href="{{ url_for('ultra_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'ultra_plans' }} w-full justify-start">
-                    <i class="nav-icon fas fa-rocket"></i>
-                    Plans Ultra-Rentables
-                </a>
-                 <a href="{{ url_for('investment_history') }}" class="nav-item {{ 'active' if request.endpoint == 'investment_history' }} w-full justify-start">
-                    <i class="nav-icon fas fa-history"></i>
-                    Historique
-                </a>
-                <a href="{{ url_for('projects') }}" class="nav-item {{ 'active' if request.endpoint == 'projects' }} w-full justify-start">
-                    <i class="nav-icon fas fa-rocket"></i>
-                    Projets
-                </a>
-                <a href="{{ url_for('auto_trading') }}" class="nav-item {{ 'active' if request.endpoint == 'auto_trading' }} w-full justify-start">
-                    <i class="nav-icon fas fa-robot"></i>
-                    Auto-Trading IA
-                </a>
-                <a href="{{ url_for('copy_trading') }}" class="nav-item {{ 'active' if request.endpoint == 'copy_trading' }} w-full justify-start">
-                    <i class="nav-icon fas fa-copy"></i>
-                    Copy Trading
-                </a>
-                <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }} w-full justify-start">
-                    <i class="nav-icon fas fa-user"></i>
-                    Profil
-                </a>
-                <a href="{{ url_for('support') }}" class="nav-item {{ 'active' if request.endpoint == 'support' }} w-full justify-start">
-                    <i class="nav-icon fas fa-headset"></i>
-                    Support
-                </a>
-                <div class="border-t border-gray-100 mt-4 pt-4">
-                    <a href="{{ url_for('logout') }}" class="nav-item w-full justify-start text-red-600">
-                        <i class="nav-icon fas fa-sign-out-alt"></i>
-                        Déconnexion
+                <!-- Menu items -->
+                <div class="mobile-menu-items">
+                    <a href="{{ url_for('dashboard') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'dashboard' }}">
+                        <div class="mobile-menu-item-icon dashboard">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Dashboard</div>
+                            <div class="mobile-menu-item-subtitle">Vue d'ensemble</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('staking_plans') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'staking_plans' }}">
+                        <div class="mobile-menu-item-icon staking">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Staking</div>
+                            <div class="mobile-menu-item-subtitle">Rendements garantis</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('frozen_plans') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'frozen_plans' }}">
+                        <div class="mobile-menu-item-icon frozen">
+                            <i class="fas fa-snowflake"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Plans Gelés</div>
+                            <div class="mobile-menu-item-subtitle">Investissement sécurisé</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('ultra_plans') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'ultra_plans' }}">
+                        <div class="mobile-menu-item-icon ultra">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Plans Ultra-Rentables</div>
+                            <div class="mobile-menu-item-subtitle">Rendements élevés</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('investment_history') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'investment_history' }}">
+                        <div class="mobile-menu-item-icon history">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Historique</div>
+                            <div class="mobile-menu-item-subtitle">Mes investissements</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('projects') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'projects' }}">
+                        <div class="mobile-menu-item-icon projects">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Projets</div>
+                            <div class="mobile-menu-item-subtitle">Opportunités DeFi</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('auto_trading') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'auto_trading' }}">
+                        <div class="mobile-menu-item-icon trading">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Auto-Trading IA</div>
+                            <div class="mobile-menu-item-subtitle">Bot intelligent</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('copy_trading') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'copy_trading' }}">
+                        <div class="mobile-menu-item-icon copy">
+                            <i class="fas fa-copy"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Copy Trading</div>
+                            <div class="mobile-menu-item-subtitle">Suivre les experts</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('profile') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'profile' }}">
+                        <div class="mobile-menu-item-icon profile">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Mon Profil</div>
+                            <div class="mobile-menu-item-subtitle">Paramètres compte</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+
+                    <a href="{{ url_for('support') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'support' }}">
+                        <div class="mobile-menu-item-icon support">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <div class="mobile-menu-item-content">
+                            <div class="mobile-menu-item-title">Support</div>
+                            <div class="mobile-menu-item-subtitle">Centre d'aide</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </a>
+                </div>
+
+                <!-- Footer du menu -->
+                <div class="mobile-menu-footer">
+                    <a href="{{ url_for('logout') }}" class="mobile-menu-logout">
+                        <div class="mobile-menu-item-icon logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span>Déconnexion</span>
                     </a>
                 </div>
             </div>
@@ -1113,15 +1385,45 @@
     </footer>
 
     <script>
-        // Mobile menu toggle
+        // Mobile menu toggle optimisé
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
 
             if (mobileMenuButton && mobileMenu) {
                 mobileMenuButton.addEventListener('click', function() {
-                    mobileMenu.classList.toggle('hidden');
+                    openMobileMenu();
                 });
+            }
+        });
+
+        function openMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu) {
+                mobileMenu.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu) {
+                mobileMenu.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Fermer le menu lors du clic sur un lien
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('mobile-menu-item')) {
+                setTimeout(closeMobileMenu, 200);
+            }
+        });
+
+        // Fermer avec la touche Échap
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeMobileMenu();
             }
         });
 
