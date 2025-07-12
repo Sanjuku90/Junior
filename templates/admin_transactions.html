@@ -169,21 +169,74 @@ let currentTransactionId = null;
 async function approveTransaction(transactionId) {
     if (!confirm('Êtes-vous sûr de vouloir approuver cette transaction ?')) return;
     
+    // Désactiver le bouton pendant le traitement
+    const approveBtn = document.querySelector(`#transaction-${transactionId} .bg-green-500`);
+    const rejectBtn = document.querySelector(`#transaction-${transactionId} .bg-red-500`);
+    
+    if (approveBtn) {
+        approveBtn.disabled = true;
+        approveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Traitement...';
+        approveBtn.classList.add('opacity-50');
+    }
+    if (rejectBtn) {
+        rejectBtn.disabled = true;
+        rejectBtn.classList.add('opacity-50');
+    }
+    
     try {
+        console.log(`Approbation transaction ${transactionId}...`);
+        
         const response = await fetch(`/admin/approve-transaction/${transactionId}`, {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
+        console.log(`Réponse reçue: ${response.status}`);
+        
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
         const result = await response.json();
+        console.log('Résultat:', result);
         
         if (result.success) {
             alert('✅ ' + result.message);
-            document.getElementById(`transaction-${transactionId}`).remove();
+            // Retirer la ligne du tableau
+            const row = document.getElementById(`transaction-${transactionId}`);
+            if (row) {
+                row.style.opacity = '0.5';
+                setTimeout(() => row.remove(), 500);
+            }
         } else {
-            alert('❌ ' + result.error);
+            alert('❌ ' + (result.error || 'Erreur inconnue'));
+            // Réactiver les boutons en cas d'erreur
+            if (approveBtn) {
+                approveBtn.disabled = false;
+                approveBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Approuver';
+                approveBtn.classList.remove('opacity-50');
+            }
+            if (rejectBtn) {
+                rejectBtn.disabled = false;
+                rejectBtn.classList.remove('opacity-50');
+            }
         }
     } catch (error) {
-        alert('❌ Erreur de connexion');
+        console.error('Erreur:', error);
+        alert('❌ Erreur de connexion: ' + error.message);
+        
+        // Réactiver les boutons en cas d'erreur
+        if (approveBtn) {
+            approveBtn.disabled = false;
+            approveBtn.innerHTML = '<i class="fas fa-check mr-1"></i>Approuver';
+            approveBtn.classList.remove('opacity-50');
+        }
+        if (rejectBtn) {
+            rejectBtn.disabled = false;
+            rejectBtn.classList.remove('opacity-50');
+        }
     }
 }
 

@@ -1568,7 +1568,9 @@ def admin_transactions():
 @admin_required
 def approve_transaction(transaction_id):
     """Approuver une transaction"""
+    conn = None
     max_retries = 3
+    
     for attempt in range(max_retries):
         try:
             conn = get_db_connection()
@@ -1582,63 +1584,104 @@ def approve_transaction(transaction_id):
             ''', (transaction_id,)).fetchone()
 
             if not transaction:
-                conn.close()
+                if conn:
+                    conn.close()
                 return jsonify({'error': 'Transaction non trouvée ou déjà traitée'}), 404
+
+            # Validation des données
+            if not transaction['amount'] or transaction['amount'] <= 0:
+                if conn:
+                    conn.close()
+                return jsonify({'error': 'Montant de transaction invalide'}), 400
 
             if transaction['type'] == 'deposit':
                 # Approuver le dépôt - créditer le compte
                 conn.execute('''
                     UPDATE users 
-                    SET balance = balance + ? 
+                    SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP 
                     WHERE id = ?
                 ''', (transaction['amount'], transaction['user_id']))
+
+                # Log de sécurité
+                log_security_action(
+                    session.get('user_id', 1), 
+                    'deposit_approved', 
+                    f'Dépôt #{transaction_id} approuvé: {transaction["amount"]} USDT pour {transaction["email"]}'
+                )
 
                 # Ajouter notification
                 add_notification(
                     transaction['user_id'],
-                    'Dépôt approuvé',
-                    f'Votre dépôt de {transaction["amount"]} USDT a été approuvé et crédité',
+                    'Dépôt approuvé ✅',
+                    f'Votre dépôt de {transaction["amount"]:.2f} USDT a été approuvé et crédité à votre compte.',
                     'success'
                 )
 
             elif transaction['type'] == 'withdrawal':
                 # Le montant a déjà été débité lors de la demande
+                # Log de sécurité
+                log_security_action(
+                    session.get('user_id', 1), 
+                    'withdrawal_approved', 
+                    f'Retrait #{transaction_id} approuvé: {transaction["amount"]} USDT pour {transaction["email"]}'
+                )
+
                 # Ajouter notification
                 add_notification(
                     transaction['user_id'],
-                    'Retrait traité',
-                    f'Votre retrait de {transaction["amount"]} USDT a été traité',
+                    'Retrait traité ✅',
+                    f'Votre retrait de {transaction["amount"]:.2f} USDT a été traité avec succès.',
                     'success'
                 )
 
             # Marquer comme complété
             conn.execute('''
                 UPDATE transactions 
-                SET status = 'completed' 
+                SET status = 'completed', updated_at = CURRENT_TIMESTAMP 
                 WHERE id = ?
             ''', (transaction_id,))
 
             conn.commit()
-            conn.close()
+            
+            if conn:
+                conn.close()
 
-            return jsonify({'success': True, 'message': 'Transaction approuvée'})
+            print(f"✅ Transaction #{transaction_id} approuvée avec succès")
+            return jsonify({
+                'success': True, 
+                'message': f'Transaction #{transaction_id} approuvée avec succès'
+            })
 
         except sqlite3.OperationalError as e:
+            print(f"❌ Erreur DB tentative {attempt + 1}: {e}")
             if conn:
-                conn.rollback()
-                conn.close()
+                try:
+                    conn.rollback()
+                    conn.close()
+                except:
+                    pass
+                conn = None
+                
             if "database is locked" in str(e) and attempt < max_retries - 1:
-                time.sleep(0.1 * (attempt + 1))
+                time.sleep(0.2 * (attempt + 1))  # Augmenter le délai
                 continue
             else:
-                return jsonify({'error': f'Erreur base de données: {str(e)}'}), 500
+                return jsonify({
+                    'error': f'Erreur base de données après {attempt + 1} tentatives: {str(e)}'
+                }), 500
+                
         except Exception as e:
+            print(f"❌ Erreur générale: {e}")
             if conn:
-                conn.rollback()
-                conn.close()
-            return jsonify({'error': f'Erreur: {str(e)}'}), 500
+                try:
+                    conn.rollback()
+                    conn.close()
+                except:
+                    pass
+                conn = None
+            return jsonify({'error': f'Erreur système: {str(e)}'}), 500
 
-    return jsonify({'error': 'Échec après plusieurs tentatives'}), 500
+    return jsonify({'error': 'Échec après plusieurs tentatives de base de données'}), 500
 
 @app.route('/admin/reject-transaction/<int:transaction_id>', methods=['POST'])
 @admin_required
