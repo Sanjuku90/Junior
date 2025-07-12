@@ -4,99 +4,143 @@ from PIL import Image, ImageDraw, ImageFont
 import math
 
 def create_icon(size, filename):
-    """Créer une icône avec logo crypto professionnel"""
-    # Créer une image avec fond dégradé
+    """Créer une icône avec logo crypto ultra-professionnel"""
+    # Créer une image avec fond transparent
     img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     
-    # Fond dégradé bleu foncé vers bleu clair
+    # Paramètres de design
+    center_x, center_y = size // 2, size // 2
+    margin = size // 12
+    circle_radius = (size - 2 * margin) // 2
+    
+    # Fond avec dégradé sophistiqué (bleu corporate moderne)
     for y in range(size):
-        alpha = int(255 * (1 - y / size * 0.3))
-        color = (59, 130, 246, alpha)  # Bleu avec transparence
+        progress = y / size
+        # Dégradé du bleu foncé au bleu clair avec effet sophistiqué
+        r = int(20 + (59 - 20) * progress)
+        g = int(30 + (130 - 30) * progress)
+        b = int(60 + (246 - 60) * progress)
+        alpha = 255
+        color = (r, g, b, alpha)
         draw.rectangle([(0, y), (size, y+1)], fill=color)
     
-    # Créer un cercle de fond
-    margin = size // 8
-    circle_size = size - 2 * margin
-    circle_pos = (margin, margin, margin + circle_size, margin + circle_size)
+    # Cercle principal avec effet de profondeur
+    shadow_offset = max(2, size // 64)
     
-    # Cercle principal avec bordure
-    draw.ellipse(circle_pos, fill=(15, 23, 42, 255), outline=(59, 130, 246, 255), width=max(1, size//64))
+    # Ombre portée
+    shadow_pos = (margin + shadow_offset, margin + shadow_offset, 
+                  margin + circle_radius * 2 + shadow_offset, margin + circle_radius * 2 + shadow_offset)
+    draw.ellipse(shadow_pos, fill=(0, 0, 0, 40))
     
-    # Symbole Bitcoin stylisé
-    center_x, center_y = size // 2, size // 2
-    symbol_size = size // 3
+    # Cercle principal avec bordure dorée
+    circle_pos = (margin, margin, margin + circle_radius * 2, margin + circle_radius * 2)
+    draw.ellipse(circle_pos, fill=(15, 23, 42, 255), outline=(255, 215, 0, 255), width=max(2, size//48))
     
-    # Dessiner le symbole ₿ stylisé
-    font_size = symbol_size
-    try:
-        # Essayer d'utiliser une police système
-        font = ImageFont.truetype("arial.ttf", font_size)
-    except:
-        try:
-            font = ImageFont.truetype("/System/Library/Fonts/Arial.ttf", font_size)
-        except:
-            try:
-                font = ImageFont.load_default()
-            except:
-                font = None
+    # Cercle intérieur avec dégradé subtil
+    inner_margin = margin + max(4, size // 32)
+    inner_circle_pos = (inner_margin, inner_margin, 
+                       size - inner_margin, size - inner_margin)
+    draw.ellipse(inner_circle_pos, fill=(25, 35, 55, 255))
     
-    # Dessiner le symbole Bitcoin ou ₿
-    if font:
-        symbol = "₿"
-        bbox = draw.textbbox((0, 0), symbol, font=font)
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-        
-        text_x = center_x - text_width // 2
-        text_y = center_y - text_height // 2
-        
-        # Ombre du texte
-        draw.text((text_x + 1, text_y + 1), symbol, font=font, fill=(0, 0, 0, 128))
-        # Texte principal
-        draw.text((text_x, text_y), symbol, font=font, fill=(255, 255, 255, 255))
-    else:
-        # Fallback: dessiner un B stylisé
-        line_width = max(2, size // 32)
-        
-        # Barres verticales du B
-        left_x = center_x - symbol_size // 3
-        right_x = center_x + symbol_size // 4
-        top_y = center_y - symbol_size // 2
-        bottom_y = center_y + symbol_size // 2
-        middle_y = center_y
-        
-        # Barre verticale gauche
-        draw.rectangle([left_x - line_width//2, top_y, left_x + line_width//2, bottom_y], 
-                      fill=(255, 255, 255, 255))
-        
-        # Barres horizontales
-        draw.rectangle([left_x, top_y - line_width//2, right_x, top_y + line_width//2], 
-                      fill=(255, 255, 255, 255))
-        draw.rectangle([left_x, middle_y - line_width//2, right_x - line_width, middle_y + line_width//2], 
-                      fill=(255, 255, 255, 255))
-        draw.rectangle([left_x, bottom_y - line_width//2, right_x, bottom_y + line_width//2], 
-                      fill=(255, 255, 255, 255))
-        
-        # Barres verticales droites (courbes du B)
-        draw.rectangle([right_x - line_width, top_y, right_x, middle_y], 
-                      fill=(255, 255, 255, 255))
-        draw.rectangle([right_x - line_width, middle_y, right_x, bottom_y], 
-                      fill=(255, 255, 255, 255))
+    # Symbole crypto moderne et sophistiqué
+    symbol_size = size // 2.5
     
-    # Effets de brillance
-    highlight_size = size // 6
-    highlight_x = center_x - symbol_size // 3
-    highlight_y = center_y - symbol_size // 3
-    draw.ellipse([highlight_x, highlight_y, highlight_x + highlight_size, highlight_y + highlight_size], 
-                fill=(255, 255, 255, 80))
+    # Dessiner un logo "C" stylisé pour Crypto
+    line_width = max(3, size // 24)
+    
+    # Calculer les positions pour le "C"
+    c_radius = symbol_size // 2
+    c_center_x, c_center_y = center_x, center_y
+    
+    # Créer le "C" avec des arcs élégants
+    # Arc extérieur
+    outer_bbox = (c_center_x - c_radius, c_center_y - c_radius,
+                  c_center_x + c_radius, c_center_y + c_radius)
+    
+    # Arc intérieur
+    inner_radius = c_radius - line_width
+    inner_bbox = (c_center_x - inner_radius, c_center_y - inner_radius,
+                  c_center_x + inner_radius, c_center_y + inner_radius)
+    
+    # Dessiner le "C" en or avec effet métallique
+    # Partie principale du C
+    angles = [180, 0]  # Ouverture à droite
+    
+    # Créer un masque pour le "C"
+    mask = Image.new('L', (size, size), 0)
+    mask_draw = ImageDraw.Draw(mask)
+    
+    # Dessiner le cercle complet puis soustraire l'intérieur et l'ouverture
+    mask_draw.ellipse(outer_bbox, fill=255)
+    mask_draw.ellipse(inner_bbox, fill=0)
+    
+    # Créer l'ouverture du "C" (côté droit)
+    opening_width = line_width * 1.5
+    opening_bbox = (c_center_x, c_center_y - opening_width // 2,
+                   c_center_x + c_radius + 5, c_center_y + opening_width // 2)
+    mask_draw.rectangle(opening_bbox, fill=0)
+    
+    # Appliquer le dégradé doré
+    for y in range(size):
+        for x in range(size):
+            if mask.getpixel((x, y)) > 0:
+                # Effet métallique doré
+                distance_from_top = y / size
+                gold_intensity = 1.0 - distance_from_top * 0.3
+                
+                r = int(255 * gold_intensity)
+                g = int(215 * gold_intensity)
+                b = int(0 * gold_intensity)
+                
+                # Ajouter un effet de brillance
+                distance_from_center = math.sqrt((x - center_x)**2 + (y - center_y)**2)
+                if distance_from_center < c_radius * 0.3:
+                    brightness = 1.2
+                    r = min(255, int(r * brightness))
+                    g = min(255, int(g * brightness))
+                    b = min(255, int(b * brightness))
+                
+                draw.point((x, y), fill=(r, g, b, 255))
+    
+    # Ajouter des détails de finition
+    # Points d'accent aux extrémités du "C"
+    accent_size = max(2, size // 32)
+    
+    # Point haut
+    top_y = center_y - c_radius + line_width // 2
+    draw.ellipse((center_x - accent_size, top_y - accent_size,
+                 center_x + accent_size, top_y + accent_size), 
+                fill=(255, 255, 255, 200))
+    
+    # Point bas
+    bottom_y = center_y + c_radius - line_width // 2
+    draw.ellipse((center_x - accent_size, bottom_y - accent_size,
+                 center_x + accent_size, bottom_y + accent_size), 
+                fill=(255, 255, 255, 200))
+    
+    # Effet de brillance générale
+    highlight_size = size // 5
+    highlight_x = center_x - c_radius // 2
+    highlight_y = center_y - c_radius // 2
+    highlight_gradient = Image.new('RGBA', (highlight_size, highlight_size), (0, 0, 0, 0))
+    highlight_draw = ImageDraw.Draw(highlight_gradient)
+    
+    for i in range(highlight_size):
+        for j in range(highlight_size):
+            distance = math.sqrt((i - highlight_size//2)**2 + (j - highlight_size//2)**2)
+            if distance < highlight_size // 2:
+                alpha = int(60 * (1 - distance / (highlight_size // 2)))
+                highlight_draw.point((i, j), fill=(255, 255, 255, alpha))
+    
+    img.paste(highlight_gradient, (highlight_x, highlight_y), highlight_gradient)
     
     # Sauvegarder l'icône
     img.save(filename, 'PNG')
     print(f"✅ Icône créée: {filename} ({size}x{size})")
 
 def create_favicon():
-    """Créer le favicon.ico"""
+    """Créer le favicon.ico avec design professionnel"""
     sizes = [16, 32, 48]
     images = []
     
@@ -104,33 +148,39 @@ def create_favicon():
         img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
         draw = ImageDraw.Draw(img)
         
-        # Fond bleu simple
-        draw.rectangle([0, 0, size, size], fill=(59, 130, 246, 255))
+        # Fond dégradé corporate
+        for y in range(size):
+            progress = y / size
+            r = int(15 + (59 - 15) * progress)
+            g = int(23 + (130 - 23) * progress)
+            b = int(42 + (246 - 42) * progress)
+            draw.rectangle([(0, y), (size, y+1)], fill=(r, g, b, 255))
         
-        # Symbole simplifié
+        # Symbole "C" simplifié pour favicon
         center = size // 2
         if size >= 32:
-            # Pour les grandes tailles, dessiner un B simple
-            line_width = max(1, size // 16)
-            b_width = size // 2
-            b_height = size // 2
+            # Version détaillée pour les grandes tailles
+            radius = size // 3
+            line_width = max(2, size // 16)
             
-            left = center - b_width // 2
-            top = center - b_height // 2
-            right = left + b_width
-            bottom = top + b_height
-            middle = (top + bottom) // 2
+            # Cercle de fond
+            draw.ellipse([center - radius, center - radius, center + radius, center + radius], 
+                        fill=(255, 215, 0, 255))
             
-            # Dessiner le B
-            draw.rectangle([left, top, left + line_width, bottom], fill=(255, 255, 255, 255))
-            draw.rectangle([left, top, right - line_width, top + line_width], fill=(255, 255, 255, 255))
-            draw.rectangle([left, middle - line_width//2, right - line_width, middle + line_width//2], fill=(255, 255, 255, 255))
-            draw.rectangle([left, bottom - line_width, right, bottom], fill=(255, 255, 255, 255))
-            draw.rectangle([right - line_width, top, right, middle], fill=(255, 255, 255, 255))
-            draw.rectangle([right - line_width, middle, right, bottom], fill=(255, 255, 255, 255))
+            # Créer l'ouverture du "C"
+            inner_radius = radius - line_width
+            draw.ellipse([center - inner_radius, center - inner_radius, 
+                         center + inner_radius, center + inner_radius], 
+                        fill=(0, 0, 0, 0))
+            
+            # Ouverture droite
+            draw.rectangle([center, center - line_width//2, size, center + line_width//2], 
+                          fill=(0, 0, 0, 0))
         else:
-            # Pour les petites tailles, juste un point blanc
-            draw.ellipse([center-2, center-2, center+2, center+2], fill=(255, 255, 255, 255))
+            # Version ultra-simplifiée pour 16x16
+            draw.ellipse([2, 2, size-2, size-2], fill=(255, 215, 0, 255))
+            draw.ellipse([4, 4, size-4, size-4], fill=(0, 0, 0, 0))
+            draw.rectangle([center, center-1, size, center+1], fill=(0, 0, 0, 0))
         
         images.append(img)
     
@@ -139,8 +189,8 @@ def create_favicon():
     print("✅ Favicon créé: static/favicon.ico")
 
 def main():
-    """Créer toutes les icônes PWA"""
-    print("🎨 Création des icônes PWA pour InvestCrypto Pro...")
+    """Créer toutes les icônes PWA avec design professionnel"""
+    print("🎨 Création des icônes PWA professionnelles pour InvestCrypto Pro...")
     
     # Créer le dossier icons s'il n'existe pas
     os.makedirs('static/icons', exist_ok=True)
@@ -155,8 +205,9 @@ def main():
     # Créer le favicon
     create_favicon()
     
-    print("\n🎉 Toutes les icônes PWA ont été créées avec succès!")
-    print("📱 Votre application a maintenant un look professionnel sur tous les appareils!")
+    print("\n🎉 Icônes PWA professionnelles créées avec succès!")
+    print("💼 Design corporate moderne avec logo 'C' doré sur fond dégradé bleu")
+    print("📱 Optimisées pour tous les appareils et tailles d'écran!")
 
 if __name__ == "__main__":
     main()
