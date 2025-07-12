@@ -63,43 +63,73 @@
         </form>
 
         <div class="text-center">
-            <a href="{{ url_for('dashboard') }}" class="text-gray-600 hover:text-gray-800">
-                ← Retour au tableau de bord
+            <a href="/" class="text-gray-600 hover:text-gray-800">
+                ← Retour à l'accueil
             </a>
         </div>
+        {% endif %}
     </div>
 </div>
 
 <script>
-document.getElementById('activationForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    const activationForm = document.getElementById('activationForm');
+    if (activationForm) {
+        activationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-    const formData = new FormData(this);
-    const data = {
-        activation_code: formData.get('activation_code'),
-        duration: parseInt(formData.get('duration'))
-    };
+            const formData = new FormData(this);
+            const data = {
+                activation_code: formData.get('activation_code'),
+                duration: parseInt(formData.get('duration'))
+            };
 
-    fetch('/admin/activate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Accès admin activé avec succès!');
-            window.location.href = '/admin';
-        } else {
-            alert('Erreur: ' + (data.error || 'Code d\'activation invalide'));
-        }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        alert('Erreur de communication');
-    });
+            fetch('/admin/activate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Accès admin activé avec succès!');
+                    window.location.href = '/admin';
+                } else {
+                    alert('Erreur: ' + (data.error || 'Code d\'activation invalide'));
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur de communication');
+            });
+        });
+    }
 });
+
+function deactivateAdmin() {
+    if (confirm('Êtes-vous sûr de vouloir désactiver l\'accès administrateur ?')) {
+        fetch('/admin/deactivate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Accès administrateur désactivé');
+                window.location.href = '/';
+            } else {
+                alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            alert('Erreur de communication');
+        });
+    }
+}
 </script>
 {% endblock %}

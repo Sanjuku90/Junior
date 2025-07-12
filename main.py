@@ -1350,13 +1350,15 @@ def get_support_messages(ticket_id):
         return jsonify({'error': 'Erreur serveur'}), 500
 
 @app.route('/admin')
-@login_required
 def admin_panel():
-    """Panneau d'administration principal"""
-    # Vérifier si l'utilisateur a les privilèges admin potentiels
-    if not session.get('is_potential_admin'):
-        flash('Vous n\'avez pas les privilèges administrateur.', 'error')
-        return redirect(url_for('dashboard'))
+    """Panneau d'administration principal - ACCÈS LIBRE"""
+    # Créer une session temporaire admin si elle n'existe pas
+    if 'user_id' not in session:
+        session['user_id'] = 1  # ID admin temporaire
+        session['email'] = 'admin@temp.local'
+        session['first_name'] = 'Admin'
+        session['is_potential_admin'] = True
+        session['is_admin'] = False
     
     # Vérifier si l'accès admin est activé
     admin_status = get_admin_status()
@@ -1399,22 +1401,29 @@ def admin_dashboard():
     return render_template('admin_dashboard.html', stats=stats, transactions=transactions)
 
 @app.route('/admin-activation-required')
-@login_required
 def admin_activation_required():
-    """Page d'activation admin requis"""
-    if not session.get('is_potential_admin'):
-        flash('Vous n\'avez pas les privilèges administrateur.', 'error')
-        return redirect(url_for('dashboard'))
+    """Page d'activation admin requis - ACCÈS LIBRE"""
+    # Créer une session temporaire admin si elle n'existe pas
+    if 'user_id' not in session:
+        session['user_id'] = 1  # ID admin temporaire
+        session['email'] = 'admin@temp.local'
+        session['first_name'] = 'Admin'
+        session['is_potential_admin'] = True
+        session['is_admin'] = False
     
     admin_status = get_admin_status()
     return render_template('admin_activation.html', admin_status=admin_status)
 
 @app.route('/admin/activate', methods=['POST'])
-@login_required
 def activate_admin_access():
-    """Active l'accès admin avec code de sécurité"""
-    if not session.get('is_potential_admin'):
-        return jsonify({'error': 'Privilèges insuffisants'}), 403
+    """Active l'accès admin avec code de sécurité - ACCÈS LIBRE"""
+    # Créer une session temporaire admin si elle n'existe pas
+    if 'user_id' not in session:
+        session['user_id'] = 1  # ID admin temporaire
+        session['email'] = 'admin@temp.local'
+        session['first_name'] = 'Admin'
+        session['is_potential_admin'] = True
+        session['is_admin'] = False
     
     data = request.get_json()
     activation_code = data.get('activation_code')
@@ -1445,9 +1454,12 @@ def activate_admin_access():
     })
 
 @app.route('/admin/deactivate', methods=['POST'])
-@login_required
 def deactivate_admin_access():
-    """Désactive immédiatement l'accès admin"""
+    """Désactive immédiatement l'accès admin - ACCÈS LIBRE"""
+    # Créer une session temporaire si elle n'existe pas
+    if 'user_id' not in session:
+        session['user_id'] = 1
+    
     if not session.get('is_admin'):
         return jsonify({'error': 'Accès admin non actif'}), 403
     
@@ -1459,12 +1471,17 @@ def deactivate_admin_access():
     return jsonify({'success': True, 'message': 'Accès admin désactivé'})
 
 @app.route('/admin/status')
-@login_required
 def admin_status():
-    """Retourne le statut de l'accès admin"""
+    """Retourne le statut de l'accès admin - ACCÈS LIBRE"""
+    # Créer une session temporaire si elle n'existe pas
+    if 'user_id' not in session:
+        session['user_id'] = 1
+        session['is_potential_admin'] = True
+        session['is_admin'] = False
+    
     status = get_admin_status()
     return jsonify({
-        'is_potential_admin': session.get('is_potential_admin', False),
+        'is_potential_admin': session.get('is_potential_admin', True),
         'is_admin_active': session.get('is_admin', False),
         'access_enabled': status['enabled'],
         'expiry': status['expiry'].isoformat() if status['expiry'] else None,
