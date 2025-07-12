@@ -22,52 +22,52 @@
                 <span class="text-white/90 font-medium text-sm">🔒 Plateforme Sécurisée & Régulée</span>
             </div>
             
-            <h1 class="text-5xl md:text-7xl font-bold text-white mb-8 leading-tight">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-6 md:mb-8 leading-tight">
                 <span class="block">L'Avenir de</span>
                 <span class="gradient-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                     l'Investissement Crypto
                 </span>
             </h1>
             
-            <p class="text-xl md:text-2xl text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed">
+            <p class="text-lg sm:text-xl md:text-2xl text-white/80 mb-8 md:mb-12 max-w-4xl mx-auto leading-relaxed px-4">
                 Plateforme d'investissement institutionnelle avec <strong>rendements garantis</strong>, 
                 <strong>sécurité maximale</strong> et <strong>transparence totale</strong>
             </p>
             
             <!-- Stats Rapides -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 max-w-4xl mx-auto">
-                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4">
-                    <div class="text-2xl font-bold text-white">500+</div>
-                    <div class="text-white/70 text-sm">Investisseurs</div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-12 max-w-4xl mx-auto px-4">
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-center">
+                    <div class="text-xl md:text-2xl font-bold text-white">500+</div>
+                    <div class="text-white/70 text-xs md:text-sm">Investisseurs</div>
                 </div>
-                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4">
-                    <div class="text-2xl font-bold text-white">$2M+</div>
-                    <div class="text-white/70 text-sm">Volume</div>
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-center">
+                    <div class="text-xl md:text-2xl font-bold text-white">$2M+</div>
+                    <div class="text-white/70 text-xs md:text-sm">Volume</div>
                 </div>
-                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4">
-                    <div class="text-2xl font-bold text-white">15%</div>
-                    <div class="text-white/70 text-sm">ROI Moyen</div>
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-center">
+                    <div class="text-xl md:text-2xl font-bold text-white">15%</div>
+                    <div class="text-white/70 text-xs md:text-sm">ROI Moyen</div>
                 </div>
-                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4">
-                    <div class="text-2xl font-bold text-white">24/7</div>
-                    <div class="text-white/70 text-sm">Support</div>
+                <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl md:rounded-2xl p-3 md:p-4 text-center">
+                    <div class="text-xl md:text-2xl font-bold text-white">24/7</div>
+                    <div class="text-white/70 text-xs md:text-sm">Support</div>
                 </div>
             </div>
             
             <!-- CTA Buttons -->
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center px-4">
                 {% if not session.user_id %}
-                    <a href="{{ url_for('register') }}" class="btn-primary px-10 py-4 text-lg font-bold">
-                        <i class="fas fa-rocket mr-3"></i>
+                    <a href="{{ url_for('register') }}" class="btn-primary w-full sm:w-auto px-8 md:px-10 py-3 md:py-4 text-base md:text-lg font-bold touch-target">
+                        <i class="fas fa-rocket mr-2 md:mr-3"></i>
                         Commencer maintenant
                     </a>
-                    <a href="{{ url_for('login') }}" class="btn-secondary px-10 py-4 text-lg font-bold bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/20">
-                        <i class="fas fa-sign-in-alt mr-3"></i>
+                    <a href="{{ url_for('login') }}" class="btn-secondary w-full sm:w-auto px-8 md:px-10 py-3 md:py-4 text-base md:text-lg font-bold bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white/20 touch-target">
+                        <i class="fas fa-sign-in-alt mr-2 md:mr-3"></i>
                         Se connecter
                     </a>
                 {% else %}
-                    <a href="{{ url_for('dashboard') }}" class="btn-primary px-10 py-4 text-lg font-bold">
-                        <i class="fas fa-chart-line mr-3"></i>
+                    <a href="{{ url_for('dashboard') }}" class="btn-primary w-full sm:w-auto px-8 md:px-10 py-3 md:py-4 text-base md:text-lg font-bold touch-target">
+                        <i class="fas fa-chart-line mr-2 md:mr-3"></i>
                         Accéder au Dashboard
                     </a>
                 {% endif %}

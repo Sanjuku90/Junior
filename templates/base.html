@@ -500,49 +500,205 @@
 
         /* Mobile Optimizations */
         @media (max-width: 768px) {
+            body {
+                font-size: 14px;
+            }
+
             .nav-container {
                 padding: 0 1rem;
                 height: 64px;
             }
 
             .nav-logo-text {
-                font-size: 1.25rem;
+                font-size: 1.1rem;
+                display: none;
+            }
+
+            .nav-logo-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
             }
 
             .nav-item {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.85rem;
+                padding: 0.5rem;
+                font-size: 0.75rem;
                 flex-direction: column;
                 gap: 0.25rem;
+                min-width: 60px;
+                text-align: center;
             }
 
             .nav-icon {
-                font-size: 1.1rem;
+                font-size: 1.2rem;
             }
 
             .professional-card {
+                padding: 1rem;
+                border-radius: 16px;
+                margin-bottom: 1rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+                border-radius: 20px;
+                margin: 0.5rem;
+                max-height: 95vh;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+                margin-bottom: 0.75rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .btn-primary, .btn-secondary, .btn-success {
+                padding: 1rem 1.5rem;
+                font-size: 0.9rem;
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .professional-input, .professional-select {
+                padding: 1rem;
+                font-size: 16px; /* Prevents zoom on iOS */
+                border-radius: 8px;
+            }
+
+            .professional-table {
+                font-size: 0.8rem;
+            }
+
+            .professional-table th,
+            .professional-table td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .balance-card {
+                padding: 1rem;
+                border-radius: 12px;
+            }
+
+            .quick-action-card {
                 padding: 1.5rem;
                 border-radius: 16px;
             }
 
-            .modal-content {
-                padding: 2rem;
-                border-radius: 20px;
-                margin: 1rem;
-            }
-
-            .stat-card {
-                padding: 1.5rem;
-            }
-
-            .stat-icon {
+            .quick-action-icon {
                 width: 48px;
                 height: 48px;
-                font-size: 20px;
+                font-size: 24px;
+                margin-bottom: 1rem;
+            }
+
+            /* Mobile-specific utilities */
+            .mobile-hidden {
+                display: none !important;
+            }
+
+            .mobile-full-width {
+                width: 100% !important;
+            }
+
+            .mobile-text-center {
+                text-align: center !important;
+            }
+
+            .mobile-flex-col {
+                flex-direction: column !important;
+            }
+
+            .mobile-gap-2 {
+                gap: 0.5rem !important;
+            }
+
+            /* Touch-friendly spacing */
+            .touch-target {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* Improved text readability */
+            .text-heading {
+                font-size: 1.75rem;
+                line-height: 1.3;
+            }
+
+            .text-subheading {
+                font-size: 1.25rem;
+                line-height: 1.4;
+            }
+        }
+
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .nav-container {
+                padding: 0 0.75rem;
+            }
+
+            .professional-card {
+                padding: 0.75rem;
+                border-radius: 12px;
+            }
+
+            .modal-content {
+                padding: 1rem;
+                margin: 0.25rem;
+            }
+
+            .btn-primary, .btn-secondary, .btn-success {
+                padding: 0.875rem 1rem;
+                font-size: 0.85rem;
             }
 
             .stat-value {
-                font-size: 1.75rem;
+                font-size: 1.25rem;
+            }
+
+            .text-heading {
+                font-size: 1.5rem;
+            }
+
+            .text-subheading {
+                font-size: 1.125rem;
+            }
+
+            /* Stack elements vertically on very small screens */
+            .grid {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+        }
+
+        /* Tablet optimizations */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .nav-container {
+                padding: 0 1.5rem;
+            }
+
+            .professional-card {
+                padding: 1.75rem;
+            }
+
+            .grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid-cols-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -772,39 +928,71 @@
         </div>
 
         {% if session.user_id %}
-        <!-- Navigation Menu -->
-        <div id="mobile-menu" class="hidden bg-white border-t border-gray-100 px-4 py-4">
-            <div class="space-y-2">
-                <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }} w-full justify-start">
+        <!-- Desktop Navigation (hidden on mobile) -->
+        <div class="hidden md:flex nav-menu">
+            <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }}">
+                <i class="nav-icon fas fa-home"></i>
+                Dashboard
+            </a>
+            <a href="{{ url_for('roi_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'roi_plans' }}">
+                <i class="nav-icon fas fa-percentage"></i>
+                Plans ROI
+            </a>
+            <a href="{{ url_for('staking_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'staking_plans' }}">
+                <i class="nav-icon fas fa-lock"></i>
+                Staking
+            </a>
+            <a href="{{ url_for('frozen_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'frozen_plans' }}">
+                <i class="nav-icon fas fa-snowflake"></i>
+                Plans Gelés
+            </a>
+            <a href="{{ url_for('projects') }}" class="nav-item {{ 'active' if request.endpoint == 'projects' }}">
+                <i class="nav-icon fas fa-rocket"></i>
+                Projets
+            </a>
+            <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }}">
+                <i class="nav-icon fas fa-user"></i>
+                Profil
+            </a>
+            <a href="{{ url_for('support') }}" class="nav-item {{ 'active' if request.endpoint == 'support' }}">
+                <i class="nav-icon fas fa-headset"></i>
+                Support
+            </a>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-100">
+            <div class="px-4 py-4 space-y-2">
+                <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint == 'dashboard' }} w-full justify-start touch-target">
                     <i class="nav-icon fas fa-home"></i>
                     Dashboard
                 </a>
-                <a href="{{ url_for('roi_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'roi_plans' }} w-full justify-start">
+                <a href="{{ url_for('roi_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'roi_plans' }} w-full justify-start touch-target">
                     <i class="nav-icon fas fa-percentage"></i>
                     Plans ROI
                 </a>
-                <a href="{{ url_for('staking_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'staking_plans' }} w-full justify-start">
+                <a href="{{ url_for('staking_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'staking_plans' }} w-full justify-start touch-target">
                     <i class="nav-icon fas fa-lock"></i>
                     Staking
                 </a>
-                <a href="{{ url_for('frozen_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'frozen_plans' }} w-full justify-start">
+                <a href="{{ url_for('frozen_plans') }}" class="nav-item {{ 'active' if request.endpoint == 'frozen_plans' }} w-full justify-start touch-target">
                     <i class="nav-icon fas fa-snowflake"></i>
                     Plans Gelés
                 </a>
-                <a href="{{ url_for('projects') }}" class="nav-item {{ 'active' if request.endpoint == 'projects' }} w-full justify-start">
+                <a href="{{ url_for('projects') }}" class="nav-item {{ 'active' if request.endpoint == 'projects' }} w-full justify-start touch-target">
                     <i class="nav-icon fas fa-rocket"></i>
                     Projets
                 </a>
-                <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }} w-full justify-start">
+                <a href="{{ url_for('profile') }}" class="nav-item {{ 'active' if request.endpoint == 'profile' }} w-full justify-start touch-target">
                     <i class="nav-icon fas fa-user"></i>
                     Profil
                 </a>
-                <a href="{{ url_for('support') }}" class="nav-item {{ 'active' if request.endpoint == 'support' }} w-full justify-start">
+                <a href="{{ url_for('support') }}" class="nav-item {{ 'active' if request.endpoint == 'support' }} w-full justify-start touch-target">
                     <i class="nav-icon fas fa-headset"></i>
                     Support
                 </a>
                 <div class="border-t border-gray-100 mt-4 pt-4">
-                    <a href="{{ url_for('logout') }}" class="nav-item w-full justify-start text-red-600">
+                    <a href="{{ url_for('logout') }}" class="nav-item w-full justify-start text-red-600 touch-target">
                         <i class="nav-icon fas fa-sign-out-alt"></i>
                         Déconnexion
                     </a>
@@ -887,16 +1075,52 @@
     </footer>
 
     <script>
-        // Mobile menu toggle
+        // Mobile menu toggle with touch support
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');
 
             if (mobileMenuButton && mobileMenu) {
-                mobileMenuButton.addEventListener('click', function() {
+                // Handle both click and touch events
+                mobileMenuButton.addEventListener('click', function(e) {
+                    e.preventDefault();
                     mobileMenu.classList.toggle('hidden');
                 });
+
+                mobileMenuButton.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    mobileMenu.classList.toggle('hidden');
+                });
+
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!mobileMenuButton.contains(e.target) && !mobileMenu.contains(e.target)) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+
+                // Close menu when scrolling
+                window.addEventListener('scroll', function() {
+                    mobileMenu.classList.add('hidden');
+                });
             }
+
+            // Prevent zoom on double tap for iOS
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function (event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+
+            // Optimize touch interactions
+            const touchElements = document.querySelectorAll('.btn-primary, .btn-secondary, .btn-success, .nav-item, .professional-card');
+            touchElements.forEach(element => {
+                element.style.webkitTapHighlightColor = 'transparent';
+                element.style.touchAction = 'manipulation';
+            });
         });
 
         // Professional notification system
@@ -1038,15 +1262,15 @@
     <style>
         .support-widget {
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            bottom: 20px;
+            right: 20px;
             z-index: 1000;
             font-family: 'Inter', sans-serif;
         }
 
         .support-button {
-            width: 64px;
-            height: 64px;
+            width: 60px;
+            height: 60px;
             border-radius: 20px;
             background: var(--primary-gradient);
             border: none;
@@ -1056,8 +1280,9 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 24px;
+            font-size: 22px;
             transition: all 0.3s ease;
+            touch-action: manipulation;
         }
 
         .support-button:hover {
@@ -1065,14 +1290,18 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
         }
 
+        .support-button:active {
+            transform: scale(0.95);
+        }
+
         .support-chat {
             position: absolute;
-            bottom: 80px;
+            bottom: 70px;
             right: 0;
-            width: 380px;
-            height: 500px;
+            width: 360px;
+            height: 480px;
             background: var(--bg-card);
-            border-radius: 24px;
+            border-radius: 20px;
             box-shadow: var(--shadow-xl);
             display: none;
             flex-direction: column;
@@ -1183,17 +1412,56 @@
         }
 
         @media (max-width: 768px) {
+            .support-widget {
+                bottom: 16px;
+                right: 16px;
+            }
+
             .support-chat {
-                width: 320px;
-                height: 450px;
+                width: calc(100vw - 32px);
+                height: 70vh;
+                max-width: 340px;
                 bottom: 70px;
-                right: -10px;
+                right: 0;
+                border-radius: 16px;
             }
 
             .support-button {
-                width: 56px;
-                height: 56px;
-                font-size: 20px;
+                width: 52px;
+                height: 52px;
+                font-size: 18px;
+                border-radius: 16px;
+            }
+
+            .chat-body {
+                padding: 1rem;
+            }
+
+            .chat-header {
+                padding: 1rem;
+            }
+
+            .professional-input {
+                font-size: 16px;
+            }
+
+            .faq-item {
+                padding: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .support-chat {
+                width: calc(100vw - 16px);
+                height: 75vh;
+                bottom: 60px;
+                right: -8px;
+            }
+
+            .support-button {
+                width: 48px;
+                height: 48px;
+                font-size: 16px;
             }
         }
     </style>
