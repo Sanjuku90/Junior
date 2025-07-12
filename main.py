@@ -1713,6 +1713,29 @@ def disable_2fa():
     
     return jsonify({'success': True, 'message': 'Authentification 2FA désactivée'})
 
+def update_admin_password(email, new_password):
+    """Mettre à jour le mot de passe d'un administrateur existant"""
+    try:
+        conn = get_db_connection()
+        
+        # Vérifier si l'admin existe
+        existing_admin = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
+        if existing_admin:
+            password_hash = generate_password_hash(new_password)
+            conn.execute('UPDATE users SET password_hash = ? WHERE email = ?', (password_hash, email))
+            conn.commit()
+            conn.close()
+            print(f"✅ Mot de passe mis à jour pour {email}")
+            return True
+        else:
+            print(f"❌ Administrateur {email} non trouvé")
+            conn.close()
+            return False
+            
+    except Exception as e:
+        print(f"❌ Erreur mise à jour mot de passe: {e}")
+        return False
+
 def create_secure_admin(email, password, first_name="Admin", last_name="System"):
     """Créer un compte administrateur sécurisé"""
     try:
@@ -1722,6 +1745,8 @@ def create_secure_admin(email, password, first_name="Admin", last_name="System")
         existing_admin = conn.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
         if existing_admin:
             print(f"⚠️ Administrateur {email} existe déjà")
+            # Mettre à jour le mot de passe si différent
+            update_admin_password(email, password)
             conn.close()
             return False
         
@@ -1793,7 +1818,10 @@ if __name__ == '__main__':
     create_secure_admin('admin@investcryptopro.com', 'AdminSecure2024!', 'Admin', 'Principal')
     create_secure_admin('support@investcryptopro.com', 'SupportSecure2024!', 'Support', 'Team')
     create_secure_admin('security@investcryptopro.com', 'SecuritySecure2024!', 'Security', 'Team')
-    create_secure_admin('a@gmail.com', 'AdminSecure2024!', 'Admin', 'User')
+    create_secure_admin('a@gmail.com', 'aaaaaa', 'Admin', 'User')
+    
+    # Mettre à jour le mot de passe du compte a@gmail.com
+    update_admin_password('a@gmail.com', 'aaaaaa')
 
     # Setup scheduler for daily profit calculation
     scheduler = BackgroundScheduler()
