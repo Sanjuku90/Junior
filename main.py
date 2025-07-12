@@ -2248,10 +2248,31 @@ if __name__ == '__main__':
     )
     scheduler.start()
 
-    # Setup du bot utilisateur uniquement - Désactivé temporairement pour éviter les conflits
-    print("⚠️ Bot Telegram temporairement désactivé pour éviter les conflits")
-    print("💡 Utilisez standalone_telegram_bot.py pour démarrer le bot séparément")
-    TELEGRAM_USER_BOT_ENABLED = False
+    # Setup du bot utilisateur - Réactivé
+    if TELEGRAM_USER_BOT_ENABLED and setup_user_telegram_bot:
+        try:
+            print("🚀 Démarrage du bot Telegram utilisateur...")
+            
+            # Démarrer le bot dans un thread séparé pour éviter de bloquer Flask
+            import threading
+            import asyncio
+            
+            def run_telegram_bot():
+                try:
+                    from telegram_investment_bot import start_user_bot
+                    asyncio.run(start_user_bot())
+                except Exception as e:
+                    print(f"❌ Erreur bot Telegram: {e}")
+            
+            bot_thread = threading.Thread(target=run_telegram_bot, daemon=True)
+            bot_thread.start()
+            print("✅ Bot Telegram démarré en arrière-plan")
+            
+        except Exception as e:
+            print(f"❌ Erreur démarrage bot: {e}")
+            TELEGRAM_USER_BOT_ENABLED = False
+    else:
+        print("⚠️ Bot Telegram non disponible - Vérifiez la configuration")
 
     # Shutdown scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
