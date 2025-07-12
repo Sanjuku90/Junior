@@ -1083,7 +1083,13 @@ def submit_deposit():
     conn.commit()
     conn.close()
 
-    # Notification admin supprimée - traitement manuel requis
+    # Notification admin pour nouveau dépôt
+    add_notification(
+        1,  # ID admin par défaut
+        'Nouveau dépôt à vérifier',
+        f'Nouvelle demande de dépôt: {amount} USDT de {session.get("email", "Utilisateur")} - Hash: {transaction_hash[:16]}...',
+        'info'
+    )
 
     # Ajouter une notification à l'utilisateur
     add_notification(
@@ -1137,7 +1143,13 @@ def submit_withdrawal():
     conn.commit()
     conn.close()
 
-    # Notification admin supprimée - traitement manuel requis
+    # Notification admin pour nouveau retrait
+    add_notification(
+        1,  # ID admin par défaut
+        'Nouveau retrait à traiter',
+        f'Nouvelle demande de retrait: {amount} USDT de {session.get("email", "Utilisateur")} vers {withdrawal_address[:20]}...',
+        'info'
+    )
 
     # Ajouter une notification à l'utilisateur
     add_notification(
