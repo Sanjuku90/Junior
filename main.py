@@ -377,6 +377,10 @@ def init_db():
     conn.commit()
     conn.close()
 
+# État global pour l'activation admin
+ADMIN_ACCESS_ENABLED = False
+ADMIN_ACCESS_EXPIRY = None
+
 # Authentication decorator
 def login_required(f):
     @wraps(f)
@@ -386,15 +390,55 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# Admin decorator
+# Admin decorator avec vérification d'activation
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        global ADMIN_ACCESS_ENABLED, ADMIN_ACCESS_EXPIRY
+        
+        # Vérifier si l'accès admin est expiré
+        if ADMIN_ACCESS_EXPIRY and datetime.now() > ADMIN_ACCESS_EXPIRY:
+            ADMIN_ACCESS_ENABLED = False
+            ADMIN_ACCESS_EXPIRY = None
+        
         if 'user_id' not in session or session.get('is_admin') != True:
             flash('Accès refusé. Privilèges administrateur requis.', 'error')
             return redirect(url_for('dashboard'))
+        
+        if not ADMIN_ACCESS_ENABLED:
+            flash('Accès administrateur désactivé. Activez d\'abord l\'accès avec la commande appropriée.', 'warning')
+            return redirect(url_for('admin_activation_required'))
+        
         return f(*args, **kwargs)
     return decorated_function
+
+def enable_admin_access(duration_minutes=30):
+    """Active l'accès admin pour une durée limitée"""
+    global ADMIN_ACCESS_ENABLED, ADMIN_ACCESS_EXPIRY
+    ADMIN_ACCESS_ENABLED = True
+    ADMIN_ACCESS_EXPIRY = datetime.now() + timedelta(minutes=duration_minutes)
+    print(f"🔓 Accès admin activé pour {duration_minutes} minutes jusqu'à {ADMIN_ACCESS_EXPIRY.strftime('%H:%M:%S')}")
+
+def disable_admin_access():
+    """Désactive immédiatement l'accès admin"""
+    global ADMIN_ACCESS_ENABLED, ADMIN_ACCESS_EXPIRY
+    ADMIN_ACCESS_ENABLED = False
+    ADMIN_ACCESS_EXPIRY = None
+    print("🔒 Accès admin désactivé")
+
+def get_admin_status():
+    """Retourne le statut de l'accès admin"""
+    global ADMIN_ACCESS_ENABLED, ADMIN_ACCESS_EXPIRY
+    
+    if ADMIN_ACCESS_EXPIRY and datetime.now() > ADMIN_ACCESS_EXPIRY:
+        ADMIN_ACCESS_ENABLED = False
+        ADMIN_ACCESS_EXPIRY = None
+    
+    return {
+        'enabled': ADMIN_ACCESS_ENABLED,
+        'expiry': ADMIN_ACCESS_EXPIRY,
+        'remaining_minutes': (ADMIN_ACCESS_EXPIRY - datetime.now()).total_seconds() / 60 if ADMIN_ACCESS_EXPIRY else 0
+    }
 
 # Utility functions
 def get_db_connection():
@@ -561,12 +605,15 @@ def login():
                 'security@investcryptopro.com'
             ]
             
-            # Vérification admin sécurisée
-            session['is_admin'] = (user['email'] in ADMIN_EMAILS and user['kyc_status'] == 'verified')
+            # Vérification admin sécurisée - DÉSACTIVÉ PAR DÉFAUT
+            # L'utilisateur doit d'abord activer l'accès admin via commande
+            is_potential_admin = (user['email'] in ADMIN_EMAILS and user['kyc_status'] == 'verified')
+            session['is_admin'] = False  # Toujours False par défaut
+            session['is_potential_admin'] = is_potential_admin
             
-            # Log de connexion admin
-            if session['is_admin']:
-                log_security_action(user['id'], 'admin_login', f'Connexion administrateur depuis {request.remote_addr}')
+            # Log de connexion admin potentiel
+            if is_potential_admin:
+                log_security_action(user['id'], 'potential_admin_login', f'Connexion utilisateur avec privilèges admin potentiels depuis {request.remote_addr}')
 
             return jsonify({'success': True, 'redirect': url_for('dashboard')})
 
@@ -1303,8 +1350,101 @@ def get_support_messages(ticket_id):
 
 @app.route('/admin')
 def admin_info():
-    """Afficher les informations sur la nouvelle administration Telegram"""
-    return render_template('admin_info.html')
+    """Afficher les informations sur l'administration avec statut d'activation"""
+    admin_status = get_admin_status()
+    return render_template('admin_info.html', admin_status=admin_status)
+
+@app.route('/admin-activation-required')
+@login_required
+def admin_activation_required():
+    """Page d'activation admin requis"""
+    if not session.get('is_potential_admin'):
+        flash('Vous n\'avez pas les privilèges administrateur.', 'error')
+        return redirect(url_for('dashboard'))
+    
+    admin_status = get_admin_status()
+    return render_template('admin_activation.html', admin_status=admin_status)
+
+@app.route('/admin/activate', methods=['POST'])
+@login_required
+def activate_admin_access():
+    """Active l'accès admin avec code de sécurité"""
+    if not session.get('is_potential_admin'):
+        return jsonify({'error': 'Privilèges insuffisants'}), 403
+    
+    data = request.get_json()
+    activation_code = data.get('activation_code')
+    duration = int(data.get('duration', 30))  # Durée en minutes
+    
+    # Codes d'activation sécurisés (peuvent être changés périodiquement)
+    VALID_CODES = [
+        'ADMIN2024!',
+        'SECURE_ACCESS_' + datetime.now().strftime('%Y%m%d'),
+        'EMERGENCY_' + str(datetime.now().hour * 100 + datetime.now().minute)
+    ]
+    
+    if activation_code not in VALID_CODES:
+        log_security_action(session['user_id'], 'admin_activation_failed', f'Code d\'activation invalide: {activation_code}')
+        return jsonify({'error': 'Code d\'activation invalide'}), 401
+    
+    # Activer l'accès admin
+    enable_admin_access(duration)
+    session['is_admin'] = True
+    session['admin_activated_at'] = datetime.now().isoformat()
+    
+    log_security_action(session['user_id'], 'admin_access_activated', f'Accès admin activé pour {duration} minutes')
+    
+    return jsonify({
+        'success': True, 
+        'message': f'Accès admin activé pour {duration} minutes',
+        'expiry': ADMIN_ACCESS_EXPIRY.isoformat() if ADMIN_ACCESS_EXPIRY else None
+    })
+
+@app.route('/admin/deactivate', methods=['POST'])
+@login_required
+def deactivate_admin_access():
+    """Désactive immédiatement l'accès admin"""
+    if not session.get('is_admin'):
+        return jsonify({'error': 'Accès admin non actif'}), 403
+    
+    disable_admin_access()
+    session['is_admin'] = False
+    
+    log_security_action(session['user_id'], 'admin_access_deactivated', 'Accès admin désactivé manuellement')
+    
+    return jsonify({'success': True, 'message': 'Accès admin désactivé'})
+
+@app.route('/admin/status')
+@login_required
+def admin_status():
+    """Retourne le statut de l'accès admin"""
+    status = get_admin_status()
+    return jsonify({
+        'is_potential_admin': session.get('is_potential_admin', False),
+        'is_admin_active': session.get('is_admin', False),
+        'access_enabled': status['enabled'],
+        'expiry': status['expiry'].isoformat() if status['expiry'] else None,
+        'remaining_minutes': round(status['remaining_minutes'], 1)
+    })
+
+# Commande console pour activer admin (pour les développeurs)
+def admin_console_activate(duration=30):
+    """Fonction console pour activer l'accès admin"""
+    enable_admin_access(duration)
+    return f"Accès admin activé pour {duration} minutes"
+
+def admin_console_deactivate():
+    """Fonction console pour désactiver l'accès admin"""
+    disable_admin_access()
+    return "Accès admin désactivé"
+
+def admin_console_status():
+    """Fonction console pour voir le statut admin"""
+    status = get_admin_status()
+    if status['enabled']:
+        return f"Admin ACTIVÉ - Expire dans {status['remaining_minutes']:.1f} minutes ({status['expiry']})"
+    else:
+        return "Admin DÉSACTIVÉ"
 
 @app.route('/admin/support')
 def admin_support_redirect():
