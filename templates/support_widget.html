@@ -1,338 +1,303 @@
+<div class="support-widget" id="supportWidget">
+    <div class="support-toggle" onclick="toggleSupportWidget()">
+        <i class="fas fa-headset"></i>
+        <span>Support</span>
+    </div>
 
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Support Widget</title>
-    <style>
-        /* Widget de support flottant */
-        .support-widget {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            font-family: Arial, sans-serif;
-        }
+    <div class="support-content" id="supportContent">
+        <div class="support-header">
+            <h3>💬 Support Client</h3>
+            <button onclick="toggleSupportWidget()" class="close-btn">&times;</button>
+        </div>
 
-        .support-button {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 24px;
-            transition: all 0.3s ease;
-        }
-
-        .support-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-        }
-
-        .support-chat {
-            position: absolute;
-            bottom: 80px;
-            right: 0;
-            width: 350px;
-            height: 450px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .support-chat.active {
-            display: flex;
-        }
-
-        .chat-header {
-            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .chat-title {
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .close-chat {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .chat-body {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background: #f8f9fa;
-        }
-
-        .support-form {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #333;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-
-        .form-group textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .submit-btn {
-            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: opacity 0.3s ease;
-        }
-
-        .submit-btn:hover {
-            opacity: 0.9;
-        }
-
-        .submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            border: 1px solid #f5c6cb;
-        }
-
-        .faq-section {
-            margin-top: 20px;
-        }
-
-        .faq-title {
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .faq-item {
-            margin-bottom: 15px;
-            padding: 10px;
-            background: white;
-            border-radius: 5px;
-            border: 1px solid #eee;
-        }
-
-        .faq-question {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-
-        .faq-answer {
-            color: #666;
-            font-size: 14px;
-        }
-
-        @media (max-width: 768px) {
-            .support-chat {
-                width: 300px;
-                height: 400px;
-                bottom: 70px;
-                right: -10px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="support-widget">
-        <button class="support-button" onclick="toggleSupportChat()">
-            💬
-        </button>
-        
-        <div class="support-chat" id="supportChat">
-            <div class="chat-header">
-                <div class="chat-title">💬 Support Client</div>
-                <button class="close-chat" onclick="closeSupportChat()">&times;</button>
+        <div class="support-body">
+            <div class="quick-actions">
+                <button onclick="showContactForm()" class="action-btn">
+                    <i class="fas fa-envelope"></i>
+                    Contactez-nous
+                </button>
+                <button onclick="showFAQ()" class="action-btn">
+                    <i class="fas fa-question-circle"></i>
+                    FAQ
+                </button>
             </div>
-            
-            <div class="chat-body">
-                <div id="messageArea"></div>
-                
-                <form class="support-form" id="supportForm">
+
+            <div id="contactForm" class="contact-form" style="display: none;">
+                <h4>📝 Nouveau Ticket</h4>
+                <form id="supportTicketForm">
                     <div class="form-group">
                         <label for="subject">Sujet</label>
-                        <input type="text" id="subject" name="subject" required placeholder="Décrivez votre problème en quelques mots">
+                        <input type="text" id="subject" name="subject" required placeholder="Résumez votre problème">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="category">Catégorie</label>
-                        <select id="category" name="category" required>
-                            <option value="">Sélectionnez une catégorie</option>
-                            <option value="wallet">Portefeuille & Transactions</option>
-                            <option value="investment">Investissements</option>
-                            <option value="technical">Problème technique</option>
-                            <option value="account">Compte & Sécurité</option>
-                            <option value="general">Question générale</option>
+                        <select id="category" name="category">
+                            <option value="general">Général</option>
+                            <option value="wallet">Portefeuille</option>
+                            <option value="investment">Investissement</option>
+                            <option value="technical">Technique</option>
+                            <option value="account">Compte</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="priority">Priorité</label>
-                        <select id="priority" name="priority" required>
+                        <select id="priority" name="priority">
                             <option value="normal">Normale</option>
                             <option value="high">Haute</option>
                             <option value="urgent">Urgente</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="message">Message</label>
                         <textarea id="message" name="message" required placeholder="Décrivez votre problème en détail..."></textarea>
                     </div>
-                    
+
                     <button type="submit" class="submit-btn">Envoyer</button>
                 </form>
-                
+
                 <div class="faq-section">
                     <div class="faq-title">❓ Questions Fréquentes</div>
-                    
+
                     <div class="faq-item">
                         <div class="faq-question">Comment effectuer un dépôt ?</div>
                         <div class="faq-answer">Rendez-vous dans votre portefeuille et cliquez sur "Déposer". Envoyez vos USDT à l'adresse TRC20 fournie.</div>
                     </div>
-                    
+
                     <div class="faq-item">
                         <div class="faq-question">Quand reçois-je mes profits ?</div>
                         <div class="faq-answer">Les profits quotidiens sont crédités automatiquement chaque jour à minuit UTC.</div>
                     </div>
-                    
+
                     <div class="faq-item">
-                        <div class="faq-question">Comment retirer mes fonds ?</div>
+                        <div class="faq-question">Comment effectuer un retrait ?</div>
                         <div class="faq-answer">Allez dans votre portefeuille, cliquez sur "Retirer" et entrez votre adresse USDT TRC20.</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        function toggleSupportChat() {
-            const chat = document.getElementById('supportChat');
-            chat.classList.toggle('active');
-        }
+<style>
+.support-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
 
-        function closeSupportChat() {
-            const chat = document.getElementById('supportChat');
-            chat.classList.remove('active');
-        }
+.support-toggle {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
 
-        function showMessage(message, type = 'success') {
-            const messageArea = document.getElementById('messageArea');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
-            messageDiv.textContent = message;
-            messageArea.appendChild(messageDiv);
-            
-            setTimeout(() => {
-                messageDiv.remove();
-            }, 5000);
-        }
+.support-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
 
-        document.getElementById('supportForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = this.querySelector('.submit-btn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Envoi en cours...';
-            
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData);
-            
-            try {
-                const response = await fetch('/support/create-ticket', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showMessage('Votre demande de support a été envoyée avec succès ! Nous vous répondrons dans les plus brefs délais.', 'success');
-                    this.reset();
-                } else {
-                    showMessage(result.error || 'Une erreur s\'est produite. Veuillez réessayer.', 'error');
-                }
-            } catch (error) {
-                showMessage('Erreur de connexion. Veuillez réessayer.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Envoyer';
-            }
+.support-content {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    width: 350px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: none;
+    overflow: hidden;
+}
+
+.support-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.support-body {
+    padding: 20px;
+}
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.action-btn {
+    padding: 15px 10px;
+    border: 2px solid #e2e8f0;
+    background: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.action-btn:hover {
+    border-color: #667eea;
+    background: #f8fafc;
+}
+
+.contact-form {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.form-group textarea {
+    height: 80px;
+    resize: vertical;
+}
+
+.submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    transform: translateY(-1px);
+}
+
+.faq-section {
+    margin-top: 20px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 15px;
+}
+
+.faq-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #374151;
+}
+
+.faq-item {
+    margin-bottom: 10px;
+}
+
+.faq-question {
+    font-weight: 600;
+    color: #667eea;
+    cursor: pointer;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.faq-answer {
+    display: none;
+    padding: 8px 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .support-content {
+        width: 300px;
+        right: -10px;
+    }
+}
+</style>
+
+<script>
+function toggleSupportWidget() {
+    const content = document.getElementById('supportContent');
+    content.style.display = content.style.display === 'block' ? 'none' : 'block';
+}
+
+function showContactForm() {
+    document.getElementById('contactForm').style.display = 'block';
+}
+
+function showFAQ() {
+    const faqItems = document.querySelectorAll('.faq-question');
+    faqItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const answer = this.nextElementSibling;
+            answer.style.display = answer.style.display === 'block' ? 'none' : 'block';
+        });
+    });
+}
+
+// Handle form submission
+document.getElementById('supportTicketForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+
+    try {
+        const response = await fetch('/support/create-ticket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
         });
 
-        // Auto-fermer le widget après soumission réussie
-        document.addEventListener('DOMContentLoaded', function() {
-            const originalShowMessage = showMessage;
-            window.showMessage = function(message, type) {
-                originalShowMessage(message, type);
-                if (type === 'success') {
-                    setTimeout(() => {
-                        closeSupportChat();
-                    }, 3000);
-                }
-            };
-        });
-    </script>
-</body>
-</html>
+        const result = await response.json();
+
+        if (result.success) {
+            alert('Ticket créé avec succès ! Nous vous répondrons bientôt.');
+            this.reset();
+            toggleSupportWidget();
+        } else {
+            alert('Erreur: ' + result.error);
+        }
+    } catch (error) {
+        alert('Erreur de connexion. Veuillez réessayer.');
+    }
+});
+</script>

@@ -28,8 +28,10 @@ try:
 except ImportError as e:
     print(f"⚠️ Bot Telegram non disponible: {e}")
     print("💡 Installez python-telegram-bot pour activer le bot")
+    setup_user_telegram_bot = None
 except Exception as e:
     print(f"❌ Erreur configuration bot: {e}")
+    setup_user_telegram_bot = None
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
@@ -458,7 +460,11 @@ def get_db_connection():
                 time.sleep(0.1 * (attempt + 1))  # Progressive backoff
                 continue
             else:
+                print(f"❌ Database connection failed after {max_retries} attempts: {e}")
                 raise e
+        except Exception as e:
+            print(f"❌ Unexpected database error: {e}")
+            raise e
     return conn
 
 def generate_transaction_hash():
@@ -2264,4 +2270,4 @@ if __name__ == '__main__':
     # Shutdown scheduler when exiting the app
     atexit.register(lambda: scheduler.shutdown())
 
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)
