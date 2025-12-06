@@ -2173,9 +2173,7 @@ def activate_admin_access():
 
     # Codes d'activation sécurisés (peuvent être changés périodiquement)
     VALID_CODES = [
-        'ADMIN2024!',
-        'SECURE_ACCESS_' + datetime.now().strftime('%Y%m%d'),
-        'EMERGENCY_' + str(datetime.now().hour * 100 + datetime.now().minute)
+        'AAAA'
     ]
 
     if activation_code not in VALID_CODES:
