@@ -1,55 +1,63 @@
-
 {% extends "base.html" %}
 
 {% block title %}Connexion - Ttrust{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-4 sm:p-8 m-4">
-    <div class="text-center mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Connexion</h1>
-        <p class="text-gray-600">Accédez à votre compte Ttrust</p>
-    </div>
-
-    <form id="loginForm" class="space-y-6">
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input type="email" id="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-            <input type="password" id="password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                <input type="checkbox" id="remember" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                <label for="remember" class="ml-2 block text-sm text-gray-700">Se souvenir de moi</label>
+<div class="min-h-[80vh] flex items-center justify-center py-12 px-4">
+    <div class="glass-card p-8 w-full max-w-md animate-fade-in-up">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background: var(--gradient-primary); box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);">
+                <i class="fas fa-lock text-2xl text-white"></i>
             </div>
-            <a href="#" class="text-sm text-blue-600 hover:text-blue-500">Mot de passe oublié?</a>
+            <h1 class="text-2xl font-bold mb-2">Connexion</h1>
+            <p style="color: var(--text-secondary);">Accédez à votre compte Ttrust</p>
         </div>
 
-        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-medium">
-            Se connecter
-        </button>
-    </form>
-
-    <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600">
-            Pas encore de compte? 
-            <a href="{{ url_for('register') }}" class="text-blue-600 hover:text-blue-500">Créer un compte</a>
-        </p>
-    </div>
-
-    <!-- Demo Login -->
-    <div class="mt-8 p-4 bg-gray-50 rounded-lg">
-        <h3 class="text-sm font-medium text-gray-700 mb-2">Comptes de démonstration:</h3>
-        <div class="space-y-2 text-sm">
-            <div>
-                <strong>Admin:</strong> admin@example.com / admin123
+        <form id="loginForm" class="space-y-5">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="email" required class="input-modern" placeholder="votre@email.com">
             </div>
-            <div>
-                <strong>Utilisateur:</strong> user@example.com / user123
+
+            <div class="form-group">
+                <label class="form-label">Mot de passe</label>
+                <input type="password" id="password" required class="input-modern" placeholder="Votre mot de passe">
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center gap-2 cursor-pointer" style="color: var(--text-secondary);">
+                    <input type="checkbox" id="remember" class="w-4 h-4 rounded" style="accent-color: var(--accent-primary);">
+                    <span>Se souvenir de moi</span>
+                </label>
+                <a href="#" style="color: var(--accent-primary);" class="hover:underline">Mot de passe oublié?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full py-3 text-base">
+                <i class="fas fa-sign-in-alt"></i>
+                Se connecter
+            </button>
+        </form>
+
+        <div class="mt-8 pt-6" style="border-top: 1px solid var(--border-subtle);">
+            <p class="text-center text-sm" style="color: var(--text-secondary);">
+                Pas encore de compte? 
+                <a href="{{ url_for('register') }}" class="font-semibold hover:underline" style="color: var(--accent-primary);">Créer un compte</a>
+            </p>
+        </div>
+
+        <div class="mt-6 p-4 rounded-xl" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2);">
+            <h3 class="text-sm font-semibold mb-3" style="color: var(--accent-primary);">
+                <i class="fas fa-info-circle mr-2"></i>Comptes de démonstration
+            </h3>
+            <div class="space-y-2 text-sm" style="color: var(--text-secondary);">
+                <div class="flex justify-between">
+                    <span>Admin:</span>
+                    <code class="px-2 py-0.5 rounded" style="background: var(--glass-bg);">admin@example.com / admin123</code>
+                </div>
+                <div class="flex justify-between">
+                    <span>Utilisateur:</span>
+                    <code class="px-2 py-0.5 rounded" style="background: var(--glass-bg);">user@example.com / user123</code>
+                </div>
             </div>
         </div>
     </div>
@@ -58,6 +66,11 @@
 <script>
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+    
+    const btn = this.querySelector('button[type="submit"]');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+    btn.disabled = true;
     
     const formData = {
         email: document.getElementById('email').value,
@@ -76,15 +89,19 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         const data = await response.json();
         
         if (data.success) {
-            showNotification('Connexion réussie!', 'success');
+            showToast('Connexion réussie!', 'success');
             setTimeout(() => {
                 window.location.href = data.redirect;
-            }, 1500);
+            }, 1000);
         } else {
-            showNotification(data.error || 'Erreur lors de la connexion', 'error');
+            showToast(data.error || 'Erreur lors de la connexion', 'error');
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
         }
     } catch (error) {
-        showNotification('Erreur de connexion', 'error');
+        showToast('Erreur de connexion au serveur', 'error');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
     }
 });
 </script>

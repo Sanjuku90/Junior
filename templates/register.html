@@ -1,64 +1,69 @@
-
 {% extends "base.html" %}
 
-{% block title %}Inscription - InvestCrypto Pro{% endblock %}
+{% block title %}Inscription - Ttrust{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-4 sm:p-8 m-4">
-    <div class="text-center mb-8">
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Créer un compte</h1>
-        <p class="text-gray-600">Rejoignez InvestCrypto Pro aujourd'hui</p>
-    </div>
-
-    <form id="registerForm" class="space-y-6">
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
-                <input type="text" id="first_name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+<div class="min-h-[80vh] flex items-center justify-center py-12 px-4">
+    <div class="glass-card p-8 w-full max-w-md animate-fade-in-up">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center" style="background: var(--gradient-primary); box-shadow: 0 8px 30px rgba(99, 102, 241, 0.3);">
+                <i class="fas fa-user-plus text-2xl text-white"></i>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
-                <input type="text" id="last_name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <h1 class="text-2xl font-bold mb-2">Créer un compte</h1>
+            <p style="color: var(--text-secondary);">Rejoignez la plateforme Ttrust</p>
+        </div>
+
+        <form id="registerForm" class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="form-group mb-0">
+                    <label class="form-label">Prénom</label>
+                    <input type="text" id="first_name" required class="input-modern" placeholder="Votre prénom">
+                </div>
+                <div class="form-group mb-0">
+                    <label class="form-label">Nom</label>
+                    <input type="text" id="last_name" required class="input-modern" placeholder="Votre nom">
+                </div>
             </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="email" required class="input-modern" placeholder="votre@email.com">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Mot de passe</label>
+                <input type="password" id="password" required class="input-modern" placeholder="Minimum 6 caractères">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirmer le mot de passe</label>
+                <input type="password" id="confirm_password" required class="input-modern" placeholder="Confirmez votre mot de passe">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Code de parrainage (optionnel)</label>
+                <input type="text" id="referral_code" class="input-modern" placeholder="Code parrain">
+            </div>
+
+            <div class="flex items-start gap-3">
+                <input type="checkbox" id="terms" required class="mt-1" style="accent-color: var(--accent-primary);">
+                <label for="terms" class="text-sm" style="color: var(--text-secondary);">
+                    J'accepte les <a href="#" style="color: var(--accent-primary);" class="hover:underline">conditions d'utilisation</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full py-3 text-base">
+                <i class="fas fa-rocket"></i>
+                Créer mon compte
+            </button>
+        </form>
+
+        <div class="mt-8 pt-6" style="border-top: 1px solid var(--border-subtle);">
+            <p class="text-center text-sm" style="color: var(--text-secondary);">
+                Déjà un compte? 
+                <a href="{{ url_for('login') }}" class="font-semibold hover:underline" style="color: var(--accent-primary);">Se connecter</a>
+            </p>
         </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input type="email" id="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-            <input type="password" id="password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe</label>
-            <input type="password" id="confirm_password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Code de parrainage (optionnel)</label>
-            <input type="text" id="referral_code" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div class="flex items-center">
-            <input type="checkbox" id="terms" required class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-            <label for="terms" class="ml-2 block text-sm text-gray-700">
-                J'accepte les <a href="#" class="text-blue-600 hover:text-blue-500">conditions d'utilisation</a>
-            </label>
-        </div>
-
-        <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md font-medium">
-            Créer mon compte
-        </button>
-    </form>
-
-    <div class="mt-6 text-center">
-        <p class="text-sm text-gray-600">
-            Déjà un compte? 
-            <a href="{{ url_for('login') }}" class="text-blue-600 hover:text-blue-500">Se connecter</a>
-        </p>
     </div>
 </div>
 
@@ -66,47 +71,55 @@
 document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    if (password !== confirmPassword) {
+        showToast('Les mots de passe ne correspondent pas', 'error');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showToast('Le mot de passe doit contenir au moins 6 caractères', 'error');
+        return;
+    }
+    
+    const btn = this.querySelector('button[type="submit"]');
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création...';
+    btn.disabled = true;
+    
     const formData = {
         first_name: document.getElementById('first_name').value,
         last_name: document.getElementById('last_name').value,
         email: document.getElementById('email').value,
-        password: document.getElementById('password').value,
+        password: password,
         referral_code: document.getElementById('referral_code').value
     };
-    
-    const confirmPassword = document.getElementById('confirm_password').value;
-    
-    if (formData.password !== confirmPassword) {
-        showNotification('Les mots de passe ne correspondent pas', 'error');
-        return;
-    }
-    
-    if (formData.password.length < 6) {
-        showNotification('Le mot de passe doit contenir au moins 6 caractères', 'error');
-        return;
-    }
     
     try {
         const response = await fetch('/register', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
         
         const data = await response.json();
         
         if (data.success) {
-            showNotification('Compte créé avec succès!', 'success');
+            showToast('Compte créé avec succès!', 'success');
             setTimeout(() => {
                 window.location.href = data.redirect;
             }, 1500);
         } else {
-            showNotification(data.error || 'Erreur lors de la création du compte', 'error');
+            showToast(data.error || 'Erreur lors de la création du compte', 'error');
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
         }
     } catch (error) {
-        showNotification('Erreur de connexion', 'error');
+        showToast('Erreur de connexion', 'error');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
     }
 });
 </script>
