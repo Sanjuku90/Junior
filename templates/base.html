@@ -655,7 +655,6 @@
 
         .mobile-menu-item-icon.dashboard { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
         .mobile-menu-item-icon.staking { background: linear-gradient(135deg, #10b981, #059669); }
-        .mobile-menu-item-icon.frozen { background: linear-gradient(135deg, #06b6d4, #0891b2); }
         .mobile-menu-item-icon.ultra { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
         .mobile-menu-item-icon.history { background: linear-gradient(135deg, #f59e0b, #d97706); }
         .mobile-menu-item-icon.projects { background: linear-gradient(135deg, #ef4444, #dc2626); }
@@ -1272,17 +1271,6 @@
                         <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
 
-                    <a href="{{ url_for('frozen_plans') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'frozen_plans' }}">
-                        <div class="mobile-menu-item-icon frozen">
-                            <i class="fas fa-snowflake"></i>
-                        </div>
-                        <div class="mobile-menu-item-content">
-                            <div class="mobile-menu-item-title">Plans Gelés</div>
-                            <div class="mobile-menu-item-subtitle">Investissement sécurisé</div>
-                        </div>
-                        <i class="fas fa-chevron-right text-gray-400"></i>
-                    </a>
-
                     <a href="{{ url_for('ultra_plans') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'ultra_plans' }}">
                         <div class="mobile-menu-item-icon ultra">
                             <i class="fas fa-rocket"></i>
@@ -1312,28 +1300,6 @@
                         <div class="mobile-menu-item-content">
                             <div class="mobile-menu-item-title">Projets</div>
                             <div class="mobile-menu-item-subtitle">Opportunités DeFi</div>
-                        </div>
-                        <i class="fas fa-chevron-right text-gray-400"></i>
-                    </a>
-
-                    <a href="{{ url_for('auto_trading') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'auto_trading' }}">
-                        <div class="mobile-menu-item-icon trading">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <div class="mobile-menu-item-content">
-                            <div class="mobile-menu-item-title">Auto-Trading IA</div>
-                            <div class="mobile-menu-item-subtitle">Bot intelligent</div>
-                        </div>
-                        <i class="fas fa-chevron-right text-gray-400"></i>
-                    </a>
-
-                    <a href="{{ url_for('copy_trading') }}" class="mobile-menu-item {{ 'active' if request.endpoint == 'copy_trading' }}">
-                        <div class="mobile-menu-item-icon copy">
-                            <i class="fas fa-copy"></i>
-                        </div>
-                        <div class="mobile-menu-item-content">
-                            <div class="mobile-menu-item-title">Copy Trading</div>
-                            <div class="mobile-menu-item-subtitle">Suivre les experts</div>
                         </div>
                         <i class="fas fa-chevron-right text-gray-400"></i>
                     </a>
