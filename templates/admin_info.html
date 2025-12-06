@@ -1,90 +1,134 @@
 {% extends "base.html" %}
 
-{% block title %}Administration - InvestCrypto Pro{% endblock %}
+{% block title %}Administration - Ttrust{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
-        <div class="text-center mb-8">
-            <div class="bg-blue-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
+<!-- Hero Section -->
+<div class="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-16 lg:py-24 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-blue-600/10 to-transparent"></div>
+    
+    <div class="relative max-w-2xl mx-auto">
+        <div class="glass-card p-8">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                    <i class="fas fa-shield-alt text-3xl text-white"></i>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold mb-2" style="color: var(--text-primary);">Administration Sécurisée</h1>
+                <p style="color: var(--text-secondary);">Système d'administration migré vers Telegram</p>
             </div>
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Administration Sécurisée</h1>
-            <p class="text-gray-600">Système d'administration migré vers Telegram</p>
-        </div>
 
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">🔐 Nouvelle Sécurité Renforcée</h2>
-            <p class="text-gray-700 mb-4">
-                Pour garantir une sécurité maximale, toute l'administration de la plateforme 
-                s'effectue maintenant exclusivement via notre bot Telegram sécurisé.
-            </p>
-
-            <div class="space-y-3">
-                <div class="flex items-center">
-                    <span class="text-green-500 mr-3">✅</span>
-                    <span>Authentification à deux facteurs automatique</span>
-                </div>
-                <div class="flex items-center">
-                    <span class="text-green-500 mr-3">✅</span>
-                    <span>Logs de sécurité en temps réel</span>
-                </div>
-                <div class="flex items-center">
-                    <span class="text-green-500 mr-3">✅</span>
-                    <span>Notifications instantanées</span>
-                </div>
-                <div class="flex items-center">
-                    <span class="text-green-500 mr-3">✅</span>
-                    <span>Accès sécurisé par ID Telegram</span>
+            <!-- Security Features -->
+            <div class="p-6 rounded-xl mb-6" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(99, 102, 241, 0.2);">
+                <h2 class="text-lg font-bold mb-4 flex items-center" style="color: var(--text-primary);">
+                    <i class="fas fa-lock mr-2" style="color: var(--accent-primary);"></i>
+                    Nouvelle Sécurité Renforcée
+                </h2>
+                <p class="mb-4" style="color: var(--text-secondary);">
+                    Pour garantir une sécurité maximale, toute l'administration de la plateforme 
+                    s'effectue maintenant exclusivement via notre bot Telegram sécurisé.
+                </p>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(34, 197, 94, 0.15);">
+                            <i class="fas fa-check text-sm" style="color: #4ade80;"></i>
+                        </div>
+                        <span style="color: var(--text-primary);">Authentification à deux facteurs automatique</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(34, 197, 94, 0.15);">
+                            <i class="fas fa-check text-sm" style="color: #4ade80;"></i>
+                        </div>
+                        <span style="color: var(--text-primary);">Logs de sécurité en temps réel</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(34, 197, 94, 0.15);">
+                            <i class="fas fa-check text-sm" style="color: #4ade80;"></i>
+                        </div>
+                        <span style="color: var(--text-primary);">Notifications instantanées</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: rgba(34, 197, 94, 0.15);">
+                            <i class="fas fa-check text-sm" style="color: #4ade80;"></i>
+                        </div>
+                        <span style="color: var(--text-primary);">Accès sécurisé par ID Telegram</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-yellow-800 mb-3">🔑 Activation de l'Administration</h3>
-            <ol class="list-decimal list-inside space-y-2 text-yellow-700">
-                <li>Cliquez sur "Activer Admin" ci-dessous</li>
-                <li>Entrez le code d'activation sécurisé</li>
-                <li>Choisissez la durée d'activation</li>
-                <li>Accédez aux fonctionnalités admin</li>
-                <li>Alternative: Utilisez <code>/admin</code> sur Telegram</li>
-            </ol>
+            <!-- Activation Instructions -->
+            <div class="p-6 rounded-xl mb-6" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2);">
+                <h3 class="text-lg font-bold mb-4 flex items-center" style="color: #fbbf24;">
+                    <i class="fas fa-key mr-2"></i>
+                    Activation de l'Administration
+                </h3>
+                <ol class="space-y-2 mb-4" style="color: var(--text-secondary);">
+                    <li class="flex items-start gap-2">
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">1</span>
+                        <span>Cliquez sur "Activer Admin" ci-dessous</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">2</span>
+                        <span>Entrez le code d'activation sécurisé</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">3</span>
+                        <span>Choisissez la durée d'activation</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">4</span>
+                        <span>Accédez aux fonctionnalités admin</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">5</span>
+                        <span>Alternative: Utilisez <code class="px-2 py-0.5 rounded" style="background: var(--glass-bg);">/admin</code> sur Telegram</span>
+                    </li>
+                </ol>
 
-            <div class="mt-4 space-x-3">
-                {% if not admin_status.enabled %}
-                <a href="/admin-activation-required" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
-                    🔑 Activer Admin
-                </a>
-                {% else %}
-                <a href="/admin-activation-required" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                    ⚙️ Gérer Admin
-                </a>
-                {% endif %}
+                <div class="flex flex-wrap gap-3">
+                    {% if not admin_status.enabled %}
+                    <a href="/admin-activation-required" class="btn py-2 px-4 font-semibold text-sm" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                        <i class="fas fa-key mr-2"></i>Activer Admin
+                    </a>
+                    {% else %}
+                    <a href="/admin-activation-required" class="btn btn-success py-2 px-4 text-sm">
+                        <i class="fas fa-cog mr-2"></i>Gérer Admin
+                    </a>
+                    {% endif %}
 
-                <a href="https://t.me/InvestCryptoProBot" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    📱 Bot Telegram
+                    <a href="https://t.me/InvestCryptoProBot" target="_blank" class="btn btn-primary py-2 px-4 text-sm">
+                        <i class="fab fa-telegram mr-2"></i>Bot Telegram
+                    </a>
+                </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="p-6 rounded-xl mb-6" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);">
+                <h3 class="text-lg font-bold mb-3 flex items-center" style="color: #f87171;">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Important
+                </h3>
+                <ul class="space-y-2" style="color: var(--text-secondary);">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-circle text-xs mt-1.5" style="color: #f87171;"></i>
+                        <span>L'interface web d'administration est définitivement désactivée</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-circle text-xs mt-1.5" style="color: #f87171;"></i>
+                        <span>Seuls les administrateurs autorisés peuvent accéder au bot</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-circle text-xs mt-1.5" style="color: #f87171;"></i>
+                        <span>Toutes les actions sont enregistrées dans les logs de sécurité</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="text-center">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Retour au Dashboard
                 </a>
             </div>
-        </div>
-
-        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-red-800 mb-3">⚠️ Important</h3>
-            <ul class="list-disc list-inside space-y-1 text-red-700">
-                <li>L'interface web d'administration est définitivement désactivée</li>
-                <li>Seuls les administrateurs autorisés peuvent accéder au bot</li>
-                <li>Toutes les actions sont enregistrées dans les logs de sécurité</li>
-            </ul>
-        </div>
-
-        <div class="text-center">
-            <a href="{{ url_for('dashboard') }}" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-                Retour au Dashboard
-            </a>
         </div>
     </div>
 </div>

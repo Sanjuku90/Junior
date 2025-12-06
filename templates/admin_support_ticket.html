@@ -1,149 +1,170 @@
-
 {% extends "base.html" %}
 
+{% block title %}Ticket #{{ ticket.id }} - Admin Support{% endblock %}
+
 {% block content %}
-<div class="max-w-6xl mx-auto space-y-6">
-    <!-- Header -->
-    <div class="messenger-card">
-        <div class="flex items-center justify-between">
+<!-- Hero Section -->
+<div class="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-8 lg:py-12 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-indigo-600/10 to-transparent"></div>
+    
+    <div class="relative max-w-6xl mx-auto">
+        <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">
-                    🎫 Ticket #{{ ticket.id }} - {{ ticket.subject }}
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="font-mono text-lg" style="color: var(--text-muted);">#{{ ticket.id }}</span>
+                    {% if ticket.status == 'open' %}
+                    <span class="badge badge-warning">Open</span>
+                    {% elif ticket.status == 'admin_reply' %}
+                    <span class="badge badge-info">Admin Reply</span>
+                    {% elif ticket.status == 'user_reply' %}
+                    <span class="badge badge-danger">User Reply</span>
+                    {% elif ticket.status == 'closed' %}
+                    <span class="badge badge-success">Closed</span>
+                    {% endif %}
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold mb-2" style="color: var(--text-primary);">
+                    {{ ticket.subject }}
                 </h1>
-                <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                <div class="flex flex-wrap items-center gap-4 text-sm" style="color: var(--text-secondary);">
                     <span><i class="fas fa-user mr-1"></i>{{ ticket.first_name }} {{ ticket.last_name }}</span>
                     <span><i class="fas fa-envelope mr-1"></i>{{ ticket.email }}</span>
                     <span><i class="fas fa-tag mr-1"></i>{{ ticket.category.title() }}</span>
                     <span><i class="fas fa-calendar mr-1"></i>{{ ticket.created_at[:10] }}</span>
-                    <span class="status-indicator 
-                        {% if ticket.status == 'open' %}status-pending{% endif %}
-                        {% if ticket.status == 'admin_reply' %}status-active{% endif %}
-                        {% if ticket.status == 'user_reply' %}bg-red-100 text-red-800{% endif %}
-                        {% if ticket.status == 'closed' %}status-completed{% endif %}">
-                        {{ ticket.status.replace('_', ' ').title() }}
-                    </span>
                 </div>
             </div>
-            <div class="flex space-x-3">
-                <a href="{{ url_for('admin_support') }}" class="messenger-btn-outline">
-                    <i class="fas fa-arrow-left mr-2"></i>Retour
+            <div class="flex gap-3">
+                <a href="{{ url_for('admin_support') }}" class="btn btn-ghost">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="hidden sm:inline">Retour</span>
                 </a>
                 {% if ticket.status != 'closed' %}
-                    <button onclick="closeTicket()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
-                        <i class="fas fa-times mr-2"></i>Fermer le ticket
-                    </button>
+                <button onclick="closeTicket()" class="px-4 py-2 rounded-xl font-semibold transition-all" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white;">
+                    <i class="fas fa-times mr-2"></i>
+                    <span class="hidden sm:inline">Fermer</span>
+                </button>
                 {% endif %}
             </div>
         </div>
     </div>
+</div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Messages -->
-        <div class="lg:col-span-2 messenger-card">
-            <h2 class="text-lg font-semibold mb-4">💬 Conversation</h2>
-            
-            <div id="messagesContainer" class="space-y-4 max-h-96 overflow-y-auto mb-6">
-                {% for message in messages %}
-                    <div class="{% if message.is_admin %}flex{% else %}flex justify-end{% endif %}">
-                        <div class="max-w-md {% if message.is_admin %}bg-blue-100 border-l-4 border-blue-500{% else %}bg-gray-100{% endif %} rounded-lg p-4">
-                            <div class="text-xs text-gray-600 mb-1">
-                                {% if message.is_admin %}
-                                    💼 Support Admin
-                                {% else %}
-                                    👤 {{ message.first_name }} {{ message.last_name }}
-                                {% endif %}
-                                • {{ message.created_at[:16] }}
-                            </div>
-                            <div class="text-sm">{{ message.message }}</div>
-                        </div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Messages -->
+    <div class="lg:col-span-2 glass-card p-6">
+        <h2 class="text-lg font-bold mb-4 flex items-center" style="color: var(--text-primary);">
+            <i class="fas fa-comments mr-2" style="color: var(--accent-primary);"></i>
+            Conversation
+        </h2>
+        
+        <div id="messagesContainer" class="space-y-4 max-h-96 overflow-y-auto mb-6 pr-2" style="scrollbar-width: thin;">
+            {% for message in messages %}
+            <div class="{% if message.is_admin %}flex{% else %}flex justify-end{% endif %}">
+                <div class="max-w-md p-4 rounded-xl {% if message.is_admin %}" style="background: rgba(99, 102, 241, 0.15); border-left: 4px solid var(--accent-primary);">
+                    {% else %}" style="background: var(--bg-card); border: 1px solid var(--border-subtle);">
+                    {% endif %}
+                    <div class="text-xs mb-2" style="color: var(--text-muted);">
+                        {% if message.is_admin %}
+                        <i class="fas fa-user-tie mr-1"></i> Support Admin
+                        {% else %}
+                        <i class="fas fa-user mr-1"></i> {{ message.first_name }} {{ message.last_name }}
+                        {% endif %}
+                        <span class="ml-2">{{ message.created_at[:16] }}</span>
                     </div>
-                {% endfor %}
-            </div>
-            
-            {% if ticket.status != 'closed' %}
-                <!-- Admin Reply Form -->
-                <div class="pt-4 border-t border-gray-200">
-                    <form id="adminReplyForm" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Réponse de l'équipe support</label>
-                            <textarea id="adminReplyMessage" class="messenger-input h-24" placeholder="Tapez votre réponse..." required></textarea>
-                        </div>
-                        <div class="flex space-x-3">
-                            <button type="submit" class="messenger-btn">
-                                <i class="fas fa-paper-plane mr-2"></i>Envoyer la réponse
-                            </button>
-                            <button type="button" onclick="sendQuickReply('Merci pour votre message. Nous examinons votre demande et vous répondrons dans les plus brefs délais.')" 
-                                    class="messenger-btn-outline">
-                                <i class="fas fa-bolt mr-2"></i>Réponse rapide
-                            </button>
-                        </div>
-                    </form>
+                    <div class="text-sm" style="color: var(--text-primary);">{{ message.message }}</div>
                 </div>
-            {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if ticket.status != 'closed' %}
+        <!-- Admin Reply Form -->
+        <div class="pt-4" style="border-top: 1px solid var(--border-subtle);">
+            <form id="adminReplyForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Réponse de l'équipe support</label>
+                    <textarea id="adminReplyMessage" class="input-modern w-full" rows="4" placeholder="Tapez votre réponse..." required></textarea>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane mr-2"></i>Envoyer
+                    </button>
+                    <button type="button" onclick="sendQuickReply('Merci pour votre message. Nous examinons votre demande et vous répondrons dans les plus brefs délais.')" class="btn btn-ghost">
+                        <i class="fas fa-bolt mr-2"></i>Réponse rapide
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- User Info -->
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-bold mb-4 flex items-center" style="color: var(--text-primary);">
+                <i class="fas fa-user mr-2" style="color: var(--accent-secondary);"></i>
+                Informations Utilisateur
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-medium" style="color: var(--text-muted);">Nom complet</label>
+                    <div class="font-medium" style="color: var(--text-primary);">{{ ticket.first_name }} {{ ticket.last_name }}</div>
+                </div>
+                <div>
+                    <label class="text-xs font-medium" style="color: var(--text-muted);">Email</label>
+                    <div class="font-medium" style="color: var(--text-primary);">{{ ticket.email }}</div>
+                </div>
+                <div>
+                    <label class="text-xs font-medium" style="color: var(--text-muted);">Statut KYC</label>
+                    <div><span class="badge badge-warning">En attente</span></div>
+                </div>
+            </div>
         </div>
 
-        <!-- Sidebar -->
-        <div class="space-y-6">
-            <!-- User Info -->
-            <div class="messenger-card">
-                <h3 class="text-lg font-semibold mb-4">👤 Informations Utilisateur</h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Nom complet</label>
-                        <div class="text-sm">{{ ticket.first_name }} {{ ticket.last_name }}</div>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Email</label>
-                        <div class="text-sm">{{ ticket.email }}</div>
-                    </div>
-                    <div>
-                        <label class="text-sm font-medium text-gray-500">Statut KYC</label>
-                        <div class="text-sm">
-                            <span class="status-indicator status-pending">En attente</span>
-                        </div>
-                    </div>
-                </div>
+        <!-- Quick Actions -->
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-bold mb-4 flex items-center" style="color: var(--text-primary);">
+                <i class="fas fa-bolt mr-2" style="color: var(--accent-warning);"></i>
+                Actions Rapides
+            </h3>
+            <div class="space-y-2">
+                <button onclick="sendQuickReply('Votre demande a bien été prise en compte. Un membre de notre équipe technique va examiner votre problème.')" 
+                        class="w-full text-left text-sm p-3 rounded-xl transition-all hover:scale-[1.01]" style="background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary);">
+                    <i class="fas fa-clipboard-check mr-2" style="color: var(--accent-primary);"></i>Demande prise en compte
+                </button>
+                <button onclick="sendQuickReply('Nous avons besoin de plus d\'informations pour traiter votre demande. Pouvez-vous nous fournir plus de détails ?')" 
+                        class="w-full text-left text-sm p-3 rounded-xl transition-all hover:scale-[1.01]" style="background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary);">
+                    <i class="fas fa-question-circle mr-2" style="color: var(--accent-warning);"></i>Demander plus d'infos
+                </button>
+                <button onclick="sendQuickReply('Votre problème a été résolu. Si vous avez d\'autres questions, n\'hésitez pas à nous contacter.')" 
+                        class="w-full text-left text-sm p-3 rounded-xl transition-all hover:scale-[1.01]" style="background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary);">
+                    <i class="fas fa-check-circle mr-2" style="color: var(--accent-success);"></i>Problème résolu
+                </button>
+                <button onclick="sendQuickReply('Nous vous remercions pour votre patience. Notre équipe technique travaille activement sur votre demande.')" 
+                        class="w-full text-left text-sm p-3 rounded-xl transition-all hover:scale-[1.01]" style="background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary);">
+                    <i class="fas fa-hourglass-half mr-2" style="color: var(--accent-secondary);"></i>En cours de traitement
+                </button>
             </div>
+        </div>
 
-            <!-- Quick Actions -->
-            <div class="messenger-card">
-                <h3 class="text-lg font-semibold mb-4">⚡ Actions Rapides</h3>
-                <div class="space-y-2">
-                    <button onclick="sendQuickReply('Votre demande a bien été prise en compte. Un membre de notre équipe technique va examiner votre problème.')" 
-                            class="w-full text-left text-sm p-2 bg-gray-50 rounded hover:bg-gray-100">
-                        📝 Demande prise en compte
-                    </button>
-                    <button onclick="sendQuickReply('Nous avons besoin de plus d\'informations pour traiter votre demande. Pouvez-vous nous fournir plus de détails ?')" 
-                            class="w-full text-left text-sm p-2 bg-gray-50 rounded hover:bg-gray-100">
-                        ❓ Demander plus d'infos
-                    </button>
-                    <button onclick="sendQuickReply('Votre problème a été résolu. Si vous avez d\'autres questions, n\'hésitez pas à nous contacter.')" 
-                            class="w-full text-left text-sm p-2 bg-gray-50 rounded hover:bg-gray-100">
-                        ✅ Problème résolu
-                    </button>
-                    <button onclick="sendQuickReply('Nous vous remercions pour votre patience. Notre équipe technique travaille activement sur votre demande.')" 
-                            class="w-full text-left text-sm p-2 bg-gray-50 rounded hover:bg-gray-100">
-                        ⏳ En cours de traitement
-                    </button>
+        <!-- Ticket History -->
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-bold mb-4 flex items-center" style="color: var(--text-primary);">
+                <i class="fas fa-history mr-2" style="color: var(--accent-primary);"></i>
+                Historique
+            </h3>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between">
+                    <span style="color: var(--text-muted);">Créé le:</span>
+                    <span style="color: var(--text-primary);">{{ ticket.created_at[:10] }}</span>
                 </div>
-            </div>
-
-            <!-- Ticket History -->
-            <div class="messenger-card">
-                <h3 class="text-lg font-semibold mb-4">📊 Historique</h3>
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span>Créé le:</span>
-                        <span>{{ ticket.created_at[:10] }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Dernière MAJ:</span>
-                        <span>{{ ticket.updated_at[:10] }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Messages:</span>
-                        <span>{{ messages|length }}</span>
-                    </div>
+                <div class="flex justify-between">
+                    <span style="color: var(--text-muted);">Dernière MAJ:</span>
+                    <span style="color: var(--text-primary);">{{ ticket.updated_at[:10] }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span style="color: var(--text-muted);">Messages:</span>
+                    <span class="badge badge-info">{{ messages|length }}</span>
                 </div>
             </div>
         </div>
@@ -151,7 +172,6 @@
 </div>
 
 <script>
-// Handle admin reply form
 document.getElementById('adminReplyForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -165,9 +185,7 @@ async function sendReply(message) {
     try {
         const response = await fetch('/admin/support/reply', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 ticket_id: {{ ticket.id }},
                 message: message
@@ -177,30 +195,35 @@ async function sendReply(message) {
         const result = await response.json();
         
         if (result.success) {
-            // Add message to UI
             const messagesContainer = document.getElementById('messagesContainer');
             const newMessage = document.createElement('div');
             newMessage.className = 'flex';
             newMessage.innerHTML = `
-                <div class="max-w-md bg-blue-100 border-l-4 border-blue-500 rounded-lg p-4">
-                    <div class="text-xs text-gray-600 mb-1">
-                        💼 Support Admin • À l'instant
+                <div class="max-w-md p-4 rounded-xl" style="background: rgba(99, 102, 241, 0.15); border-left: 4px solid var(--accent-primary);">
+                    <div class="text-xs mb-2" style="color: var(--text-muted);">
+                        <i class="fas fa-user-tie mr-1"></i> Support Admin
+                        <span class="ml-2">À l'instant</span>
                     </div>
-                    <div class="text-sm">${message}</div>
+                    <div class="text-sm" style="color: var(--text-primary);">${message}</div>
                 </div>
             `;
             messagesContainer.appendChild(newMessage);
             
-            // Clear form and scroll
             document.getElementById('adminReplyMessage').value = '';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
-            showNotification('Réponse envoyée!', 'success');
+            if (typeof showNotification === 'function') {
+                showNotification('Réponse envoyée!', 'success');
+            }
         } else {
-            showNotification(result.error || 'Erreur lors de l\'envoi', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification(result.error || 'Erreur lors de l\'envoi', 'error');
+            }
         }
     } catch (error) {
-        showNotification('Erreur de connexion', 'error');
+        if (typeof showNotification === 'function') {
+            showNotification('Erreur de connexion', 'error');
+        }
     }
 }
 
@@ -219,13 +242,19 @@ async function closeTicket() {
         const result = await response.json();
         
         if (result.success) {
-            showNotification('Ticket fermé avec succès', 'success');
+            if (typeof showNotification === 'function') {
+                showNotification('Ticket fermé avec succès', 'success');
+            }
             setTimeout(() => window.location.href = '{{ url_for("admin_support") }}', 1000);
         } else {
-            showNotification('Erreur lors de la fermeture', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification('Erreur lors de la fermeture', 'error');
+            }
         }
     } catch (error) {
-        showNotification('Erreur de connexion', 'error');
+        if (typeof showNotification === 'function') {
+            showNotification('Erreur de connexion', 'error');
+        }
     }
 }
 </script>

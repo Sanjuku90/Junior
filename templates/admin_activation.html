@@ -1,77 +1,88 @@
 {% extends "base.html" %}
 
-{% block title %}Activation Admin - InvestCrypto Pro{% endblock %}
+{% block title %}Activation Admin - Ttrust{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8">
-        <div class="text-center mb-8">
-            <div class="bg-yellow-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                <svg class="w-10 h-10 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
+<!-- Hero Section -->
+<div class="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-16 lg:py-24 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-yellow-600/20 via-orange-600/10 to-transparent"></div>
+    
+    <div class="relative max-w-md mx-auto">
+        <div class="glass-card p-8">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="fas fa-lock text-3xl text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold mb-2" style="color: var(--text-primary);">Activation Admin Requise</h1>
+                <p style="color: var(--text-secondary);">Entrez le code d'activation pour accéder à l'administration</p>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800 mb-2">Activation Admin Requise</h1>
-            <p class="text-gray-600">Entrez le code d'activation pour accéder à l'administration</p>
-        </div>
 
-        {% if admin_status.enabled %}
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <div class="flex items-center">
-                <span class="text-green-500 mr-2">✅</span>
-                <div>
-                    <p class="text-green-800 font-semibold">Accès Admin Actif</p>
-                    <p class="text-green-700 text-sm">
-                        Expire dans {{ "%.1f"|format(admin_status.remaining_minutes) }} minutes
-                    </p>
+            {% if admin_status.enabled %}
+            <div class="p-4 rounded-xl mb-6" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2);">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(34, 197, 94, 0.2);">
+                        <i class="fas fa-check-circle" style="color: #4ade80;"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-1" style="color: #4ade80;">Accès Admin Actif</h4>
+                        <p class="text-sm" style="color: var(--text-secondary);">
+                            Expire dans {{ "%.1f"|format(admin_status.remaining_minutes) }} minutes
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <button onclick="deactivateAdmin()" class="px-4 py-2 rounded-xl font-semibold text-sm transition-all" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2);">
+                        Désactiver Admin
+                    </button>
+                    <a href="/admin" class="btn btn-primary text-sm">
+                        Accéder à l'Admin
+                    </a>
                 </div>
             </div>
-            <div class="mt-4">
-                <button onclick="deactivateAdmin()" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
-                    Désactiver Admin
-                </button>
-                <a href="/admin" class="ml-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
-                    Accéder à l'Admin
-                </a>
+            {% else %}
+            <div class="text-center mb-6">
+                <p style="color: var(--text-secondary);">
+                    L'accès administrateur est actuellement désactivé pour des raisons de sécurité.
+                    Utilisez le code d'activation pour activer l'accès temporaire.
+                </p>
             </div>
-        </div>
-        {% else %}
-<div class="text-center">
-            <p class="text-gray-600 mb-6">
-                L'accès administrateur est actuellement désactivé pour des raisons de sécurité.
-                Utilisez le code d'activation pour activer l'accès temporaire.
-            </p>
 
             <!-- Activation Form -->
             <form id="activationForm" class="space-y-4">
                 <div>
-                    <label for="activationCode" class="block text-sm font-medium text-gray-700 mb-2">
+                    <label for="activationCode" class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">
                         Code d'activation
                     </label>
                     <input type="password" id="activationCode" name="activationCode" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                           class="input-modern w-full"
                            placeholder="Entrez le code d'activation" required>
                 </div>
 
                 <div>
-                    <label for="duration" class="block text-sm font-medium text-gray-700 mb-2">
-                        Durée d'activation (minutes)
+                    <label for="duration" class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">
+                        Durée d'activation
                     </label>
-                    <select id="duration" name="duration" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="duration" name="duration" class="input-modern w-full">
                         <option value="30">30 minutes</option>
                         <option value="60">1 heure</option>
                         <option value="120">2 heures</option>
                     </select>
                 </div>
 
-                <button type="submit" 
-                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+                <button type="submit" class="btn btn-primary w-full py-3">
+                    <i class="fas fa-unlock mr-2"></i>
                     Activer l'accès admin
                 </button>
             </form>
+            {% endif %}
+
+            <div class="mt-6 text-center">
+                <a href="{{ url_for('dashboard') }}" class="text-sm font-medium" style="color: var(--accent-primary);">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Retour au Dashboard
+                </a>
+            </div>
         </div>
-        {% endif %}
     </div>
 </div>
 
@@ -90,23 +101,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
             fetch('/admin/activate', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Accès admin activé avec succès!');
-                    window.location.href = '/admin';
+                    if (typeof showNotification === 'function') {
+                        showNotification('Accès admin activé avec succès!', 'success');
+                    }
+                    setTimeout(() => window.location.href = '/admin', 1000);
                 } else {
-                    alert('Erreur: ' + (data.error || 'Code d\'activation invalide'));
+                    if (typeof showNotification === 'function') {
+                        showNotification(data.error || 'Code d\'activation invalide', 'error');
+                    }
                 }
             })
             .catch(error => {
-                console.error('Erreur:', error);
-                alert('Erreur de communication');
+                if (typeof showNotification === 'function') {
+                    showNotification('Erreur de communication', 'error');
+                }
             });
         });
     }
@@ -116,22 +130,25 @@ function deactivateAdmin() {
     if (confirm('Êtes-vous sûr de vouloir désactiver l\'accès administrateur ?')) {
         fetch('/admin/deactivate', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            headers: { 'Content-Type': 'application/json' }
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Accès administrateur désactivé');
-                window.location.href = '/';
+                if (typeof showNotification === 'function') {
+                    showNotification('Accès administrateur désactivé', 'success');
+                }
+                setTimeout(() => window.location.href = '/', 1000);
             } else {
-                alert('Erreur: ' + (data.error || 'Erreur inconnue'));
+                if (typeof showNotification === 'function') {
+                    showNotification(data.error || 'Erreur inconnue', 'error');
+                }
             }
         })
         .catch(error => {
-            console.error('Erreur:', error);
-            alert('Erreur de communication');
+            if (typeof showNotification === 'function') {
+                showNotification('Erreur de communication', 'error');
+            }
         });
     }
 }

@@ -1,71 +1,103 @@
-
 {% extends "base.html" %}
 
+{% block title %}Gestion du Support - Admin{% endblock %}
+
 {% block content %}
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="messenger-card">
-        <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-900">🎫 Gestion du Support</h1>
-            <div class="flex space-x-3">
-                <a href="{{ url_for('admin_dashboard') }}" class="messenger-btn-outline">
-                    <i class="fas fa-arrow-left mr-2"></i>Retour Admin
+<!-- Hero Section -->
+<div class="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-12 lg:py-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 via-indigo-600/10 to-transparent"></div>
+    
+    <div class="relative max-w-6xl mx-auto">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h1 class="text-3xl sm:text-4xl font-bold mb-2" style="color: var(--text-primary);">
+                    <i class="fas fa-headset mr-3" style="color: var(--accent-secondary);"></i>
+                    Gestion du Support
+                </h1>
+                <p style="color: var(--text-secondary);">Gérer les tickets de support client</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-ghost">
+                    <i class="fas fa-arrow-left"></i>
+                    <span class="hidden sm:inline">Retour Admin</span>
                 </a>
-                <button onclick="refreshTickets()" class="messenger-btn">
-                    <i class="fas fa-refresh mr-2"></i>Actualiser
+                <button onclick="refreshTickets()" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i>
+                    <span class="hidden sm:inline">Actualiser</span>
                 </button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="stat-card">
-            <div class="stat-icon bg-gradient-to-r from-red-500 to-red-600">
-                <i class="fas fa-exclamation-circle"></i>
+<!-- Stats Cards -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="glass-card p-5">
+        <div class="flex items-center">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style="background: rgba(239, 68, 68, 0.15);">
+                <i class="fas fa-exclamation-circle text-lg" style="color: #f87171;"></i>
             </div>
-            <h3 class="text-lg font-semibold mb-2">Tickets Ouverts</h3>
-            <div class="text-2xl font-bold text-red-600">
-                {{ tickets|selectattr('status', 'in', ['open', 'user_reply'])|list|length }}
+            <div>
+                <div class="text-2xl font-bold" style="color: var(--text-primary);">
+                    {{ tickets|selectattr('status', 'in', ['open', 'user_reply'])|list|length }}
+                </div>
+                <div class="text-sm" style="color: var(--text-muted);">Tickets Ouverts</div>
             </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon bg-gradient-to-r from-blue-500 to-blue-600">
-                <i class="fas fa-reply"></i>
-            </div>
-            <h3 class="text-lg font-semibold mb-2">En Attente</h3>
-            <div class="text-2xl font-bold text-blue-600">
-                {{ tickets|selectattr('status', 'equalto', 'user_reply')|list|length }}
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon bg-gradient-to-r from-green-500 to-green-600">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <h3 class="text-lg font-semibold mb-2">Fermés</h3>
-            <div class="text-2xl font-bold text-green-600">
-                {{ tickets|selectattr('status', 'equalto', 'closed')|list|length }}
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon bg-gradient-to-r from-purple-500 to-purple-600">
-                <i class="fas fa-ticket-alt"></i>
-            </div>
-            <h3 class="text-lg font-semibold mb-2">Total</h3>
-            <div class="text-2xl font-bold text-purple-600">{{ tickets|length }}</div>
         </div>
     </div>
 
-    <!-- Tickets List -->
-    <div class="messenger-card">
-        <h2 class="text-xl font-semibold mb-6">📋 Liste des Tickets</h2>
+    <div class="glass-card p-5">
+        <div class="flex items-center">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style="background: rgba(99, 102, 241, 0.15);">
+                <i class="fas fa-reply text-lg" style="color: #818cf8;"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold" style="color: var(--text-primary);">
+                    {{ tickets|selectattr('status', 'equalto', 'user_reply')|list|length }}
+                </div>
+                <div class="text-sm" style="color: var(--text-muted);">En Attente</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card p-5">
+        <div class="flex items-center">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style="background: rgba(34, 197, 94, 0.15);">
+                <i class="fas fa-check-circle text-lg" style="color: #4ade80;"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold" style="color: var(--text-primary);">
+                    {{ tickets|selectattr('status', 'equalto', 'closed')|list|length }}
+                </div>
+                <div class="text-sm" style="color: var(--text-muted);">Fermés</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card p-5">
+        <div class="flex items-center">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-4" style="background: rgba(139, 92, 246, 0.15);">
+                <i class="fas fa-ticket-alt text-lg" style="color: #a78bfa;"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold" style="color: var(--text-primary);">{{ tickets|length }}</div>
+                <div class="text-sm" style="color: var(--text-muted);">Total</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tickets List -->
+<div class="glass-card overflow-hidden">
+    <div class="p-6" style="border-bottom: 1px solid var(--border-subtle);">
+        <h2 class="text-xl font-bold mb-4 flex items-center" style="color: var(--text-primary);">
+            <i class="fas fa-list mr-2" style="color: var(--accent-primary);"></i>
+            Liste des Tickets
+        </h2>
         
         <!-- Filters -->
-        <div class="flex space-x-4 mb-6">
-            <select id="statusFilter" onchange="filterTickets()" class="messenger-input">
+        <div class="flex flex-wrap gap-4">
+            <select id="statusFilter" onchange="filterTickets()" class="input-modern" style="max-width: 200px;">
                 <option value="">Tous les statuts</option>
                 <option value="open">Ouverts</option>
                 <option value="user_reply">Réponse utilisateur</option>
@@ -73,7 +105,7 @@
                 <option value="closed">Fermés</option>
             </select>
             
-            <select id="categoryFilter" onchange="filterTickets()" class="messenger-input">
+            <select id="categoryFilter" onchange="filterTickets()" class="input-modern" style="max-width: 200px;">
                 <option value="">Toutes les catégories</option>
                 <option value="general">Général</option>
                 <option value="wallet">Portefeuille</option>
@@ -82,85 +114,86 @@
                 <option value="technical">Technique</option>
             </select>
         </div>
-        
-        <div class="overflow-x-auto">
-            <table class="messenger-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Utilisateur</th>
-                        <th>Sujet</th>
-                        <th>Catégorie</th>
-                        <th>Statut</th>
-                        <th>Messages</th>
-                        <th>Créé</th>
-                        <th>Dernière MAJ</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="ticketsTableBody">
-                    {% for ticket in tickets %}
-                        <tr class="ticket-row" 
-                            data-status="{{ ticket.status }}" 
-                            data-category="{{ ticket.category }}">
-                            <td>
-                                <span class="font-mono text-sm">#{{ ticket.id }}</span>
-                            </td>
-                            <td>
-                                <div>
-                                    <div class="font-medium">{{ ticket.first_name }} {{ ticket.last_name }}</div>
-                                    <div class="text-xs text-gray-500">{{ ticket.email }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="max-w-xs truncate" title="{{ ticket.subject }}">
-                                    {{ ticket.subject }}
-                                </div>
-                            </td>
-                            <td>
-                                <span class="status-indicator bg-gray-100 text-gray-800">
-                                    {{ ticket.category.title() }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="status-indicator 
-                                    {% if ticket.status == 'open' %}status-pending{% endif %}
-                                    {% if ticket.status == 'admin_reply' %}status-active{% endif %}
-                                    {% if ticket.status == 'user_reply' %}bg-red-100 text-red-800{% endif %}
-                                    {% if ticket.status == 'closed' %}status-completed{% endif %}">
-                                    {{ ticket.status.replace('_', ' ').title() }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                                    {{ ticket.message_count }}
-                                </span>
-                            </td>
-                            <td class="text-sm text-gray-600">
-                                {{ ticket.created_at[:10] }}
-                            </td>
-                            <td class="text-sm text-gray-600">
-                                {{ ticket.updated_at[:10] }}
-                            </td>
-                            <td>
-                                <div class="flex space-x-1">
-                                    <a href="{{ url_for('admin_support_ticket', ticket_id=ticket.id) }}" 
-                                       class="messenger-btn text-xs px-2 py-1">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    {% if ticket.status != 'closed' %}
-                                        <button onclick="closeTicket({{ ticket.id }})" 
-                                                class="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="table-modern w-full">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Utilisateur</th>
+                    <th>Sujet</th>
+                    <th>Catégorie</th>
+                    <th>Statut</th>
+                    <th>Messages</th>
+                    <th>Créé</th>
+                    <th>MAJ</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ticketsTableBody">
+                {% for ticket in tickets %}
+                <tr class="ticket-row" data-status="{{ ticket.status }}" data-category="{{ ticket.category }}">
+                    <td>
+                        <span class="font-mono text-sm" style="color: var(--text-secondary);">#{{ ticket.id }}</span>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white" style="background: linear-gradient(135deg, #8b5cf6, #a855f7);">
+                                {{ ticket.first_name[0] }}{{ ticket.last_name[0] }}
+                            </div>
+                            <div>
+                                <div class="font-medium" style="color: var(--text-primary);">{{ ticket.first_name }} {{ ticket.last_name }}</div>
+                                <div class="text-xs" style="color: var(--text-muted);">{{ ticket.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="max-w-xs truncate" style="color: var(--text-primary);" title="{{ ticket.subject }}">
+                            {{ ticket.subject }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge badge-info">{{ ticket.category.title() }}</span>
+                    </td>
+                    <td>
+                        {% if ticket.status == 'open' %}
+                        <span class="badge badge-warning">Open</span>
+                        {% elif ticket.status == 'admin_reply' %}
+                        <span class="badge badge-info">Admin Reply</span>
+                        {% elif ticket.status == 'user_reply' %}
+                        <span class="badge badge-danger">User Reply</span>
+                        {% elif ticket.status == 'closed' %}
+                        <span class="badge badge-success">Closed</span>
+                        {% else %}
+                        <span class="badge">{{ ticket.status.replace('_', ' ').title() }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-info">{{ ticket.message_count }}</span>
+                    </td>
+                    <td>
+                        <span class="text-sm" style="color: var(--text-secondary);">{{ ticket.created_at[:10] }}</span>
+                    </td>
+                    <td>
+                        <span class="text-sm" style="color: var(--text-secondary);">{{ ticket.updated_at[:10] }}</span>
+                    </td>
+                    <td>
+                        <div class="flex gap-2">
+                            <a href="{{ url_for('admin_support_ticket', ticket_id=ticket.id) }}" class="btn btn-primary py-1 px-3 text-xs">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if ticket.status != 'closed' %}
+                            <button onclick="closeTicket({{ ticket.id }})" class="px-3 py-1 rounded-lg text-xs font-medium transition-all" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2);">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -177,11 +210,7 @@ function filterTickets() {
         const statusMatch = !statusFilter || status === statusFilter;
         const categoryMatch = !categoryFilter || category === categoryFilter;
         
-        if (statusMatch && categoryMatch) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+        row.style.display = (statusMatch && categoryMatch) ? '' : 'none';
     });
 }
 
@@ -196,13 +225,19 @@ async function closeTicket(ticketId) {
         const result = await response.json();
         
         if (result.success) {
-            showNotification('Ticket fermé avec succès', 'success');
+            if (typeof showNotification === 'function') {
+                showNotification('Ticket fermé avec succès', 'success');
+            }
             setTimeout(() => location.reload(), 1000);
         } else {
-            showNotification('Erreur lors de la fermeture', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification('Erreur lors de la fermeture', 'error');
+            }
         }
     } catch (error) {
-        showNotification('Erreur de connexion', 'error');
+        if (typeof showNotification === 'function') {
+            showNotification('Erreur de connexion', 'error');
+        }
     }
 }
 
