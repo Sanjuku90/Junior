@@ -3108,13 +3108,13 @@ if __name__ == '__main__':
 
     # Créer les comptes administrateur sécurisés
     print("🔐 Initialisation des comptes administrateur...")
-    create_secure_admin('admin@ttrust.com', 'AdminSecure2024!', 'Admin', 'Principal')
-    create_secure_admin('support@ttrust.com', 'SupportSecure2024!', 'Support', 'Team')
-    create_secure_admin('security@ttrust.com', 'SecuritySecure2024!', 'Security', 'Team')
-    create_secure_admin('a@gmail.com', 'aaaaaa', 'Admin', 'User')
+    create_secure_admin('admin@ttrust.com', 'AAAA', 'Admin', 'Principal')
+    create_secure_admin('support@ttrust.com', 'AAAA', 'Support', 'Team')
+    create_secure_admin('security@ttrust.com', 'AAAA', 'Security', 'Team')
+    create_secure_admin('a@gmail.com', 'AAAA', 'Admin', 'User')
 
     # Mettre à jour le mot de passe du compte a@gmail.com
-    update_admin_password('a@gmail.com', 'aaaaaa')
+    update_admin_password('a@gmail.com', 'AAAA')
 
     # Setup scheduler for daily profit calculation and backup
     scheduler = BackgroundScheduler()
