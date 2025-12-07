@@ -708,10 +708,6 @@ def restore_critical_data():
         cursor.execute('''
             INSERT INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
-        ('Rocket Launch', '🚀 Plan meteore ultra-rentable ! 35% quotidien pendant 3 jours.', 0.35, 3, 20, 2000),
-        ('Mega Booster', '💥 Plan mega booster ! 30% quotidien pendant 5 jours.', 0.30, 5, 20, 3000),
-        ('Super Express', '⚡ Plan super express ! 25% quotidien pendant 7 jours.', 0.25, 7, 20, 4000),
-        ('Lightning Pro', '⚡ Plan lightning pro ! 22% quotidien pendant 10 jours.', 0.22, 10, 20, 5000),
         ('Turbo Flash', '🔥 Plan turbo flash ! 20% quotidien pendant 14 jours.', 0.20, 14, 20, 8000)
     ''')
 
