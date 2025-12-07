@@ -708,7 +708,9 @@ def restore_critical_data():
         cursor.execute('''
             INSERT INTO roi_plans (name, description, daily_rate, duration_days, min_amount, max_amount)
         VALUES 
-        ('Turbo Flash', '🔥 Plan turbo flash ! 20% quotidien pendant 14 jours.', 0.20, 14, 20, 8000)
+        ('Turbo Flash', '🔥 Plan turbo flash ! 20% quotidien pendant 14 jours.', 0.20, 14, 20, 8000),
+        ('Mega Profit', '💎 Plan mega profit ! 45% quotidien pendant 5 jours.', 0.45, 5, 50, 5000),
+        ('Ultra Boost', '🚀 Plan ultra boost ! 75% quotidien pendant 2 jours.', 0.75, 2, 50, 3000)
     ''')
 
     # Insert top 10 staking plans - Starting from 20 USDT (only if not exist)
