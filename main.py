@@ -732,6 +732,66 @@ def restore_critical_data():
         ('Ultimate Stake', '🚀 Staking ultimate 365 jours ! 80% annuel. Performance ultime.', 365, 0.80, 20, 50000, 0.12)
     ''')
 
+    # Quiz questions table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS quiz_questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            question TEXT NOT NULL,
+            option_a TEXT NOT NULL,
+            option_b TEXT NOT NULL,
+            option_c TEXT NOT NULL,
+            option_d TEXT NOT NULL,
+            correct_answer TEXT NOT NULL,
+            category TEXT DEFAULT 'crypto',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Quiz games table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS quiz_games (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            bet_amount REAL NOT NULL,
+            questions_answered INTEGER DEFAULT 0,
+            correct_answers INTEGER DEFAULT 0,
+            result TEXT,
+            profit_loss REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            completed_at TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+
+    # Insert quiz questions (only if not exist)
+    quiz_count = cursor.execute('SELECT COUNT(*) as count FROM quiz_questions').fetchone()['count']
+    
+    if quiz_count == 0:
+        cursor.execute('''
+            INSERT INTO quiz_questions (question, option_a, option_b, option_c, option_d, correct_answer, category)
+            VALUES 
+            ('Quel est le créateur du Bitcoin ?', 'Vitalik Buterin', 'Satoshi Nakamoto', 'Elon Musk', 'Charlie Lee', 'B', 'crypto'),
+            ('En quelle année le Bitcoin a-t-il été créé ?', '2007', '2009', '2011', '2013', 'B', 'crypto'),
+            ('Quelle blockchain utilise Ethereum ?', 'Proof of Work', 'Proof of Stake', 'Proof of Authority', 'Delegated PoS', 'B', 'crypto'),
+            ('Quel est le symbole du Bitcoin ?', 'ETH', 'BTC', 'LTC', 'XRP', 'B', 'crypto'),
+            ('Combien de Bitcoin peuvent exister au maximum ?', '18 millions', '21 millions', '25 millions', 'Illimité', 'B', 'crypto'),
+            ('Quest-ce quun wallet crypto ?', 'Un exchange', 'Un portefeuille numérique', 'Une banque', 'Un token', 'B', 'crypto'),
+            ('Quel est le deuxième plus grand crypto par capitalisation ?', 'Ripple', 'Cardano', 'Ethereum', 'Solana', 'C', 'crypto'),
+            ('Quest-ce que le halving du Bitcoin ?', 'Division par 2 de la récompense', 'Doublement du prix', 'Fermeture du réseau', 'Mise à jour logicielle', 'A', 'crypto'),
+            ('Quelle crypto est connue pour les smart contracts ?', 'Bitcoin', 'Ethereum', 'Dogecoin', 'Litecoin', 'B', 'crypto'),
+            ('Quest-ce quun NFT ?', 'Une crypto monnaie', 'Un token non-fongible', 'Un exchange', 'Un wallet', 'B', 'crypto'),
+            ('Quel est le consensus utilisé par Bitcoin ?', 'Proof of Stake', 'Proof of Work', 'Proof of History', 'Proof of Burn', 'B', 'crypto'),
+            ('Quest-ce que DeFi ?', 'Finance décentralisée', 'Digital Finance', 'Default Finance', 'Debt Finance', 'A', 'crypto'),
+            ('Quelle crypto utilise le symbole SOL ?', 'Solana', 'Stellar', 'Cardano', 'Polkadot', 'A', 'crypto'),
+            ('Quest-ce quun stablecoin ?', 'Crypto volatile', 'Crypto à prix stable', 'Crypto de jeu', 'Crypto privée', 'B', 'crypto'),
+            ('Quel est le réseau Layer 2 populaire pour Ethereum ?', 'Polygon', 'Bitcoin', 'Cardano', 'Ripple', 'A', 'crypto'),
+            ('Quest-ce que le gas sur Ethereum ?', 'Frais de transaction', 'Un token', 'Un wallet', 'Un exchange', 'A', 'crypto'),
+            ('Combien de satoshis dans 1 Bitcoin ?', '1 million', '10 millions', '100 millions', '1 milliard', 'C', 'crypto'),
+            ('Quest-ce quun airdrop en crypto ?', 'Distribution gratuite de tokens', 'Vente de tokens', 'Brûlage de tokens', 'Staking de tokens', 'A', 'crypto'),
+            ('Quel animal est le logo de Dogecoin ?', 'Un chat', 'Un chien Shiba', 'Un lapin', 'Un ours', 'B', 'crypto'),
+            ('Quest-ce que HODL ?', 'Hold On for Dear Life', 'High Order Digital Ledger', 'Hash Of Distributed Ledger', 'Hybrid Online Data Layer', 'A', 'crypto')
+        ''')
+
     # Insert top 10 frozen plans - Starting from 20 USDT (only if not exist)
     frozen_count = cursor.execute('SELECT COUNT(*) as count FROM frozen_plans').fetchone()['count']
     
@@ -1357,7 +1417,226 @@ def invest_roi():
 
     return jsonify({'success': True, 'message': f'Investissement dans {plan["name"]} réalisé avec succès!'})
 
+# ==================== QUIZ GAME ROUTES ====================
 
+@app.route('/quiz-game')
+@login_required
+def quiz_game():
+    """Page du jeu quiz avec mise"""
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    
+    # Récupérer l'historique des parties
+    quiz_history = conn.execute('''
+        SELECT * FROM quiz_games 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC 
+        LIMIT 10
+    ''', (session['user_id'],)).fetchall()
+    
+    conn.close()
+    return render_template('quiz_game.html', user=user, quiz_history=quiz_history)
+
+@app.route('/start-quiz', methods=['POST'])
+@login_required
+def start_quiz():
+    """Démarrer une partie de quiz"""
+    import random
+    
+    data = request.get_json()
+    bet_amount = float(data.get('amount', 0))
+    
+    if bet_amount < 10:
+        return jsonify({'error': 'Mise minimum: 10 USDT'}), 400
+    
+    conn = get_db_connection()
+    
+    # Vérifier le solde
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    if user['balance'] < bet_amount:
+        conn.close()
+        return jsonify({'error': 'Solde insuffisant'}), 400
+    
+    # Déduire la mise
+    conn.execute('UPDATE users SET balance = balance - ? WHERE id = ?', (bet_amount, session['user_id']))
+    
+    # Créer la partie
+    cursor = conn.execute('''
+        INSERT INTO quiz_games (user_id, bet_amount)
+        VALUES (?, ?)
+    ''', (session['user_id'], bet_amount))
+    game_id = cursor.lastrowid
+    
+    # Sélectionner 2 questions aléatoires
+    questions = conn.execute('SELECT * FROM quiz_questions ORDER BY RANDOM() LIMIT 2').fetchall()
+    
+    conn.commit()
+    conn.close()
+    
+    # Stocker les questions dans la session
+    session['quiz_game_id'] = game_id
+    session['quiz_questions'] = [dict(q) for q in questions]
+    session['quiz_current'] = 0
+    session['quiz_correct'] = 0
+    session['quiz_bet'] = bet_amount
+    
+    return jsonify({
+        'success': True,
+        'game_id': game_id,
+        'question': {
+            'id': questions[0]['id'],
+            'question': questions[0]['question'],
+            'options': {
+                'A': questions[0]['option_a'],
+                'B': questions[0]['option_b'],
+                'C': questions[0]['option_c'],
+                'D': questions[0]['option_d']
+            }
+        },
+        'question_number': 1,
+        'total_questions': 2,
+        'time_limit': 10
+    })
+
+@app.route('/submit-quiz-answer', methods=['POST'])
+@login_required
+def submit_quiz_answer():
+    """Soumettre une réponse au quiz"""
+    data = request.get_json()
+    answer = data.get('answer', '').upper()
+    time_taken = float(data.get('time_taken', 11))
+    
+    if 'quiz_game_id' not in session:
+        return jsonify({'error': 'Aucune partie en cours'}), 400
+    
+    current_index = session.get('quiz_current', 0)
+    questions = session.get('quiz_questions', [])
+    
+    if current_index >= len(questions):
+        return jsonify({'error': 'Quiz terminé'}), 400
+    
+    current_question = questions[current_index]
+    correct_answer = current_question['correct_answer']
+    
+    # Vérifier si le temps est écoulé (10 secondes)
+    is_correct = False
+    if time_taken <= 10 and answer == correct_answer:
+        is_correct = True
+        session['quiz_correct'] = session.get('quiz_correct', 0) + 1
+    
+    session['quiz_current'] = current_index + 1
+    
+    # Vérifier s'il reste des questions
+    if session['quiz_current'] < len(questions):
+        next_question = questions[session['quiz_current']]
+        return jsonify({
+            'success': True,
+            'is_correct': is_correct,
+            'correct_answer': correct_answer,
+            'next_question': {
+                'id': next_question['id'],
+                'question': next_question['question'],
+                'options': {
+                    'A': next_question['option_a'],
+                    'B': next_question['option_b'],
+                    'C': next_question['option_c'],
+                    'D': next_question['option_d']
+                }
+            },
+            'question_number': session['quiz_current'] + 1,
+            'total_questions': 2,
+            'time_limit': 10
+        })
+    else:
+        # Quiz terminé - calculer le résultat
+        return complete_quiz_game()
+
+def complete_quiz_game():
+    """Compléter la partie et calculer les gains/pertes"""
+    game_id = session.get('quiz_game_id')
+    bet_amount = session.get('quiz_bet', 0)
+    correct_answers = session.get('quiz_correct', 0)
+    
+    conn = get_db_connection()
+    
+    # 2 bonnes réponses = victoire (96% profit)
+    # Sinon = perte (50% de la mise)
+    if correct_answers == 2:
+        result = 'win'
+        profit = bet_amount * 0.96
+        total_return = bet_amount + profit
+        # Rendre la mise + profit
+        conn.execute('UPDATE users SET balance = balance + ? WHERE id = ?', (total_return, session['user_id']))
+    else:
+        result = 'lose'
+        profit = -(bet_amount * 0.50)
+        # Rendre 50% de la mise
+        refund = bet_amount * 0.50
+        conn.execute('UPDATE users SET balance = balance + ? WHERE id = ?', (refund, session['user_id']))
+    
+    # Mettre à jour la partie
+    conn.execute('''
+        UPDATE quiz_games 
+        SET questions_answered = 2, correct_answers = ?, result = ?, profit_loss = ?, completed_at = ?
+        WHERE id = ?
+    ''', (correct_answers, result, profit, datetime.now(), game_id))
+    
+    # Ajouter une transaction
+    trans_type = 'quiz_win' if result == 'win' else 'quiz_loss'
+    conn.execute('''
+        INSERT INTO transactions (user_id, type, amount, status, transaction_hash)
+        VALUES (?, ?, ?, 'completed', ?)
+    ''', (session['user_id'], trans_type, abs(profit), generate_transaction_hash()))
+    
+    # Récupérer le nouveau solde
+    user = conn.execute('SELECT balance FROM users WHERE id = ?', (session['user_id'],)).fetchone()
+    
+    conn.commit()
+    conn.close()
+    
+    # Nettoyer la session
+    session.pop('quiz_game_id', None)
+    session.pop('quiz_questions', None)
+    session.pop('quiz_current', None)
+    session.pop('quiz_correct', None)
+    session.pop('quiz_bet', None)
+    
+    # Ajouter notification
+    if result == 'win':
+        add_notification(
+            session['user_id'],
+            'Quiz Gagné! 🎉',
+            f'Bravo! Vous avez gagné {profit:.2f} USDT avec le quiz!',
+            'success'
+        )
+    else:
+        add_notification(
+            session['user_id'],
+            'Quiz Perdu',
+            f'Dommage! Vous avez perdu {abs(profit):.2f} USDT. 50% de votre mise a été remboursé.',
+            'warning'
+        )
+    
+    return jsonify({
+        'success': True,
+        'game_complete': True,
+        'result': result,
+        'correct_answers': correct_answers,
+        'profit_loss': profit,
+        'new_balance': user['balance']
+    })
+
+@app.route('/timeout-quiz', methods=['POST'])
+@login_required
+def timeout_quiz():
+    """Gérer le timeout d'une question"""
+    if 'quiz_game_id' not in session:
+        return jsonify({'error': 'Aucune partie en cours'}), 400
+    
+    # Marquer comme mauvaise réponse et passer à la suivante
+    return submit_quiz_answer()
+
+# ==================== END QUIZ GAME ROUTES ====================
 
 @app.route('/investment-history')
 @login_required

@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Challenge - Ttrust{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative -mt-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-16 lg:py-24 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-yellow-600/20 via-orange-600/10 to-transparent"></div>
+    
+    <div class="relative max-w-4xl mx-auto text-center">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 animate-fade-in" style="background: var(--glass-bg); border: 1px solid var(--border-subtle);">
+            <span class="w-2 h-2 rounded-full animate-pulse" style="background: #fbbf24;"></span>
+            <span class="text-sm font-medium" style="color: var(--text-secondary);">Quiz Challenge</span>
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight animate-fade-in-up">
+            <i class="fas fa-brain mr-3" style="color: #fbbf24;"></i>
+            Quiz <span class="gradient-text">Crypto</span>
+        </h1>
+
+        <p class="text-lg sm:text-xl mb-8 max-w-2xl mx-auto animate-fade-in-up" style="color: var(--text-secondary); animation-delay: 0.1s;">
+            Testez vos connaissances crypto et gagnez jusqu'à 96% de profit !
+        </p>
+    </div>
+</div>
+
+<!-- Règles du jeu -->
+<div class="glass-card p-6 mb-8">
+    <h2 class="text-xl font-bold mb-4 flex items-center gap-3">
+        <i class="fas fa-book text-yellow-500"></i>
+        Règles du Quiz
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(34, 197, 94, 0.2);">
+                <i class="fas fa-trophy" style="color: #22c55e;"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-green-400">Si vous gagnez</h4>
+                <p class="text-sm" style="color: var(--text-secondary);">
+                    2 bonnes réponses = <span class="text-green-400 font-bold">+96% de profit</span> + récupération de votre mise
+                </p>
+            </div>
+        </div>
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(239, 68, 68, 0.2);">
+                <i class="fas fa-times-circle" style="color: #ef4444;"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-red-400">Si vous perdez</h4>
+                <p class="text-sm" style="color: var(--text-secondary);">
+                    Moins de 2 bonnes réponses = <span class="text-red-400 font-bold">-50% de la mise</span> (50% remboursé)
+                </p>
+            </div>
+        </div>
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(251, 191, 36, 0.2);">
+                <i class="fas fa-clock" style="color: #fbbf24;"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-yellow-400">Chronomètre</h4>
+                <p class="text-sm" style="color: var(--text-secondary);">
+                    <span class="text-yellow-400 font-bold">10 secondes</span> par question - Répondez vite !
+                </p>
+            </div>
+        </div>
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background: rgba(139, 92, 246, 0.2);">
+                <i class="fas fa-question-circle" style="color: #8b5cf6;"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-purple-400">2 Questions</h4>
+                <p class="text-sm" style="color: var(--text-secondary);">
+                    Répondez correctement aux 2 questions pour gagner !
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Solde et Mise -->
+<div id="bet-section" class="glass-card p-6 mb-8">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">
+            <i class="fas fa-coins mr-2 text-yellow-500"></i>
+            Placer votre mise
+        </h2>
+        <div class="text-right">
+            <p class="text-sm" style="color: var(--text-secondary);">Votre solde</p>
+            <p class="text-2xl font-bold text-green-400">{{ "%.2f"|format(user.balance) }} USDT</p>
+        </div>
+    </div>
+
+    <div class="mb-6">
+        <label class="block text-sm font-medium mb-2" style="color: var(--text-secondary);">Montant de la mise (minimum 10 USDT)</label>
+        <div class="relative">
+            <input type="number" id="bet-amount" min="10" step="1" placeholder="Entrez votre mise"
+                class="w-full px-4 py-3 rounded-xl text-lg font-medium"
+                style="background: var(--glass-bg); border: 1px solid var(--border-subtle); color: var(--text-primary);">
+            <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">USDT</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-4 gap-3 mb-6">
+        <button onclick="setAmount(10)" class="btn btn-ghost py-2 text-sm">10 USDT</button>
+        <button onclick="setAmount(25)" class="btn btn-ghost py-2 text-sm">25 USDT</button>
+        <button onclick="setAmount(50)" class="btn btn-ghost py-2 text-sm">50 USDT</button>
+        <button onclick="setAmount(100)" class="btn btn-ghost py-2 text-sm">100 USDT</button>
+    </div>
+
+    <div class="glass-card p-4 mb-6" style="background: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.3);">
+        <div class="flex justify-between items-center">
+            <span style="color: var(--text-secondary);">Gain potentiel (si victoire):</span>
+            <span id="potential-win" class="text-xl font-bold text-green-400">+0.00 USDT</span>
+        </div>
+        <div class="flex justify-between items-center mt-2">
+            <span style="color: var(--text-secondary);">Perte potentielle (si défaite):</span>
+            <span id="potential-loss" class="text-xl font-bold text-red-400">-0.00 USDT</span>
+        </div>
+    </div>
+
+    <button onclick="startQuiz()" class="btn btn-primary w-full py-4 text-lg font-bold">
+        <i class="fas fa-play mr-2"></i>
+        Commencer le Quiz !
+    </button>
+</div>
+
+<!-- Quiz Game Section (Hidden initially) -->
+<div id="quiz-section" class="glass-card p-6 mb-8" style="display: none;">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <span class="text-sm" style="color: var(--text-secondary);">Question</span>
+            <span id="question-number" class="text-xl font-bold text-purple-400">1/2</span>
+        </div>
+        <div class="text-center">
+            <div id="timer-circle" class="relative w-20 h-20 mx-auto">
+                <svg class="w-20 h-20 transform -rotate-90">
+                    <circle cx="40" cy="40" r="35" stroke="rgba(255,255,255,0.1)" stroke-width="6" fill="none"/>
+                    <circle id="timer-progress" cx="40" cy="40" r="35" stroke="#fbbf24" stroke-width="6" fill="none"
+                        stroke-dasharray="220" stroke-dashoffset="0" stroke-linecap="round"/>
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span id="timer-text" class="text-2xl font-bold text-yellow-400">10</span>
+                </div>
+            </div>
+        </div>
+        <div class="text-right">
+            <span class="text-sm" style="color: var(--text-secondary);">Mise</span>
+            <p id="current-bet" class="text-xl font-bold text-green-400">0 USDT</p>
+        </div>
+    </div>
+
+    <div id="question-container" class="mb-6">
+        <h3 id="question-text" class="text-xl font-bold mb-6 text-center" style="color: var(--text-primary);">
+            Chargement de la question...
+        </h3>
+
+        <div class="grid grid-cols-1 gap-4" id="options-container">
+            <button onclick="submitAnswer('A')" class="option-btn glass-card p-4 text-left transition-all hover:scale-[1.02]" data-option="A">
+                <span class="inline-block w-8 h-8 rounded-full mr-3 text-center font-bold" style="background: var(--accent-primary); line-height: 2rem;">A</span>
+                <span id="option-a">Option A</span>
+            </button>
+            <button onclick="submitAnswer('B')" class="option-btn glass-card p-4 text-left transition-all hover:scale-[1.02]" data-option="B">
+                <span class="inline-block w-8 h-8 rounded-full mr-3 text-center font-bold" style="background: var(--accent-primary); line-height: 2rem;">B</span>
+                <span id="option-b">Option B</span>
+            </button>
+            <button onclick="submitAnswer('C')" class="option-btn glass-card p-4 text-left transition-all hover:scale-[1.02]" data-option="C">
+                <span class="inline-block w-8 h-8 rounded-full mr-3 text-center font-bold" style="background: var(--accent-primary); line-height: 2rem;">C</span>
+                <span id="option-c">Option C</span>
+            </button>
+            <button onclick="submitAnswer('D')" class="option-btn glass-card p-4 text-left transition-all hover:scale-[1.02]" data-option="D">
+                <span class="inline-block w-8 h-8 rounded-full mr-3 text-center font-bold" style="background: var(--accent-primary); line-height: 2rem;">D</span>
+                <span id="option-d">Option D</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Result Section (Hidden initially) -->
+<div id="result-section" class="glass-card p-8 mb-8 text-center" style="display: none;">
+    <div id="result-icon" class="text-6xl mb-4"></div>
+    <h2 id="result-title" class="text-3xl font-bold mb-4"></h2>
+    <p id="result-message" class="text-lg mb-6" style="color: var(--text-secondary);"></p>
+    <div id="result-stats" class="glass-card p-4 mb-6">
+        <div class="flex justify-between items-center">
+            <span>Bonnes réponses:</span>
+            <span id="correct-count" class="font-bold">0/2</span>
+        </div>
+        <div class="flex justify-between items-center mt-2">
+            <span>Résultat:</span>
+            <span id="profit-loss" class="font-bold">+0 USDT</span>
+        </div>
+        <div class="flex justify-between items-center mt-2">
+            <span>Nouveau solde:</span>
+            <span id="new-balance" class="font-bold text-green-400">0 USDT</span>
+        </div>
+    </div>
+    <button onclick="playAgain()" class="btn btn-primary px-8 py-3">
+        <i class="fas fa-redo mr-2"></i>
+        Rejouer
+    </button>
+</div>
+
+<!-- Historique des parties -->
+<div class="glass-card p-6">
+    <h2 class="text-xl font-bold mb-4">
+        <i class="fas fa-history mr-2 text-purple-500"></i>
+        Historique des parties
+    </h2>
+    
+    {% if quiz_history %}
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr style="color: var(--text-secondary);">
+                    <th class="text-left py-2">Date</th>
+                    <th class="text-center py-2">Mise</th>
+                    <th class="text-center py-2">Score</th>
+                    <th class="text-right py-2">Résultat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for game in quiz_history %}
+                <tr class="border-t" style="border-color: var(--border-subtle);">
+                    <td class="py-3 text-sm">{{ game.created_at[:16] if game.created_at else '-' }}</td>
+                    <td class="py-3 text-center">{{ "%.2f"|format(game.bet_amount) }} USDT</td>
+                    <td class="py-3 text-center">{{ game.correct_answers }}/2</td>
+                    <td class="py-3 text-right font-bold {% if game.result == 'win' %}text-green-400{% else %}text-red-400{% endif %}">
+                        {% if game.result == 'win' %}
+                        +{{ "%.2f"|format(game.profit_loss) }} USDT
+                        {% elif game.result == 'lose' %}
+                        {{ "%.2f"|format(game.profit_loss) }} USDT
+                        {% else %}
+                        En cours...
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-center py-8" style="color: var(--text-secondary);">
+        <i class="fas fa-gamepad text-4xl mb-4 block text-gray-600"></i>
+        Vous n'avez pas encore joué. Tentez votre chance !
+    </p>
+    {% endif %}
+</div>
+
+<script>
+let timerInterval;
+let timeLeft = 10;
+let startTime;
+
+function setAmount(amount) {
+    document.getElementById('bet-amount').value = amount;
+    updatePotentials();
+}
+
+function updatePotentials() {
+    const amount = parseFloat(document.getElementById('bet-amount').value) || 0;
+    const potentialWin = amount * 0.96;
+    const potentialLoss = amount * 0.50;
+    
+    document.getElementById('potential-win').textContent = '+' + potentialWin.toFixed(2) + ' USDT';
+    document.getElementById('potential-loss').textContent = '-' + potentialLoss.toFixed(2) + ' USDT';
+}
+
+document.getElementById('bet-amount').addEventListener('input', updatePotentials);
+
+async function startQuiz() {
+    const amount = parseFloat(document.getElementById('bet-amount').value);
+    
+    if (!amount || amount < 10) {
+        alert('Mise minimum: 10 USDT');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/start-quiz', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({amount: amount})
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        
+        document.getElementById('bet-section').style.display = 'none';
+        document.getElementById('quiz-section').style.display = 'block';
+        document.getElementById('current-bet').textContent = amount + ' USDT';
+        
+        displayQuestion(data);
+        
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors du démarrage du quiz');
+    }
+}
+
+function displayQuestion(data) {
+    document.getElementById('question-number').textContent = data.question_number + '/' + data.total_questions;
+    document.getElementById('question-text').textContent = data.question.question;
+    document.getElementById('option-a').textContent = data.question.options.A;
+    document.getElementById('option-b').textContent = data.question.options.B;
+    document.getElementById('option-c').textContent = data.question.options.C;
+    document.getElementById('option-d').textContent = data.question.options.D;
+    
+    // Reset options
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.disabled = false;
+        btn.style.background = '';
+        btn.style.borderColor = '';
+    });
+    
+    startTimer();
+}
+
+function startTimer() {
+    timeLeft = 10;
+    startTime = Date.now();
+    updateTimerDisplay();
+    
+    timerInterval = setInterval(() => {
+        timeLeft = 10 - Math.floor((Date.now() - startTime) / 1000);
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timeLeft = 0;
+            updateTimerDisplay();
+            submitAnswer('');
+        } else {
+            updateTimerDisplay();
+        }
+    }, 100);
+}
+
+function updateTimerDisplay() {
+    document.getElementById('timer-text').textContent = Math.max(0, timeLeft);
+    
+    const progress = document.getElementById('timer-progress');
+    const offset = 220 - (220 * (timeLeft / 10));
+    progress.style.strokeDashoffset = offset;
+    
+    if (timeLeft <= 3) {
+        progress.style.stroke = '#ef4444';
+        document.getElementById('timer-text').style.color = '#ef4444';
+    } else if (timeLeft <= 5) {
+        progress.style.stroke = '#f97316';
+        document.getElementById('timer-text').style.color = '#f97316';
+    } else {
+        progress.style.stroke = '#fbbf24';
+        document.getElementById('timer-text').style.color = '#fbbf24';
+    }
+}
+
+async function submitAnswer(answer) {
+    clearInterval(timerInterval);
+    
+    const timeTaken = (Date.now() - startTime) / 1000;
+    
+    // Disable all options
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.disabled = true;
+    });
+    
+    try {
+        const response = await fetch('/submit-quiz-answer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({answer: answer, time_taken: timeTaken})
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        
+        // Show correct/incorrect
+        if (data.correct_answer) {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                if (btn.dataset.option === data.correct_answer) {
+                    btn.style.background = 'rgba(34, 197, 94, 0.3)';
+                    btn.style.borderColor = '#22c55e';
+                }
+                if (btn.dataset.option === answer && answer !== data.correct_answer) {
+                    btn.style.background = 'rgba(239, 68, 68, 0.3)';
+                    btn.style.borderColor = '#ef4444';
+                }
+            });
+        }
+        
+        // Wait before next question
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        if (data.game_complete) {
+            showResult(data);
+        } else if (data.next_question) {
+            displayQuestion({
+                question: data.next_question,
+                question_number: data.question_number,
+                total_questions: data.total_questions
+            });
+        }
+        
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la soumission de la réponse');
+    }
+}
+
+function showResult(data) {
+    document.getElementById('quiz-section').style.display = 'none';
+    document.getElementById('result-section').style.display = 'block';
+    
+    if (data.result === 'win') {
+        document.getElementById('result-icon').innerHTML = '<i class="fas fa-trophy text-yellow-400"></i>';
+        document.getElementById('result-title').textContent = 'Bravo ! Vous avez gagné !';
+        document.getElementById('result-title').className = 'text-3xl font-bold mb-4 text-green-400';
+        document.getElementById('result-message').textContent = 'Félicitations ! Vous avez répondu correctement aux 2 questions !';
+        document.getElementById('profit-loss').textContent = '+' + data.profit_loss.toFixed(2) + ' USDT';
+        document.getElementById('profit-loss').className = 'font-bold text-green-400';
+    } else {
+        document.getElementById('result-icon').innerHTML = '<i class="fas fa-times-circle text-red-400"></i>';
+        document.getElementById('result-title').textContent = 'Dommage !';
+        document.getElementById('result-title').className = 'text-3xl font-bold mb-4 text-red-400';
+        document.getElementById('result-message').textContent = '50% de votre mise a été remboursé.';
+        document.getElementById('profit-loss').textContent = data.profit_loss.toFixed(2) + ' USDT';
+        document.getElementById('profit-loss').className = 'font-bold text-red-400';
+    }
+    
+    document.getElementById('correct-count').textContent = data.correct_answers + '/2';
+    document.getElementById('new-balance').textContent = data.new_balance.toFixed(2) + ' USDT';
+}
+
+function playAgain() {
+    document.getElementById('result-section').style.display = 'none';
+    document.getElementById('bet-section').style.display = 'block';
+    document.getElementById('bet-amount').value = '';
+    updatePotentials();
+    window.location.reload();
+}
+</script>
+{% endblock %}
