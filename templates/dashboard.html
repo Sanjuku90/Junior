@@ -58,7 +58,7 @@
     <!-- Quick Actions -->
     <div class="glass-card p-6">
         <h2 class="text-lg font-bold mb-4">Actions rapides</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <button onclick="showDepositModal()" class="btn btn-success py-4 text-base">
                 <i class="fas fa-plus-circle"></i>
                 Déposer des fonds
@@ -67,6 +67,14 @@
                 <i class="fas fa-arrow-up"></i>
                 Retirer des fonds
             </button>
+            <a href="{{ url_for('ultra_plans') }}" class="btn btn-ghost py-4 text-base" style="border-color: #a855f7; color: #a855f7;">
+                <i class="fas fa-rocket"></i>
+                Plans Premium
+            </a>
+            <a href="{{ url_for('quiz_game') }}" class="btn btn-ghost py-4 text-base" style="border-color: #fbbf24; color: #fbbf24;">
+                <i class="fas fa-brain"></i>
+                Quiz Challenge
+            </a>
         </div>
     </div>
 
